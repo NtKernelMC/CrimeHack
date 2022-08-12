@@ -1,3 +1,428 @@
+typedef bool(__thiscall* ptrStartGame)(void* ECX, const char* szNick, const char* szPassword, int Type, const char* szSecret);
+ptrStartGame callStartGame = nullptr; typedef void CClientGame; CClientGame* classPointer = nullptr;
+bool __fastcall StartGame(void* ECX, void* EDX, const char* szNick, const char* szPassword, int Type, const char* szSecret)
+{
+	classPointer = ECX; static bool onlyOnce = false;
+	if (!onlyOnce) onlyOnce = true;
+	else
+	{
+		LogInFile(LOG_NAME, xorstr_("Переподключение на сервер запрещено в целях безопасности."));
+		TerminateProcess(GetCurrentProcess(), 0x0);
+	}
+	return callStartGame(ECX, szNick, szPassword, Type, szSecret);
+}
+typedef void CClientPlayer;
+CClientPlayer* GetClosestRemotePlayer(CVector* vecPosition, float fMaxDistance)
+{
+	SigScan scan; typedef CClientPlayer* (__thiscall* ptrGetClosestRemotePlayer)(void* ECX, CVector* vecPosition, float fMaxDistance);
+	static ptrGetClosestRemotePlayer callGetClosestRemotePlayer = (ptrGetClosestRemotePlayer)scan.FindPattern("client.dll",
+	xorstr_("\x55\x8B\xEC\x83\xE4\xF8\x83\xEC\x1C\x8B"),
+	xorstr_("xxxxxxxxxx"));
+	if (callGetClosestRemotePlayer != nullptr && classPointer != nullptr)
+	{
+		return callGetClosestRemotePlayer(classPointer, vecPosition, fMaxDistance);
+	}
+	return nullptr;
+}
+int GetRandom(int* operand)
+{
+	LARGE_INTEGER start, end, freq;
+	QueryPerformanceFrequency(&freq);
+	QueryPerformanceCounter(&start);
+	int diff = operand[1] - operand[0];
+	QueryPerformanceCounter(&end);
+	srand((end.QuadPart - start.QuadPart) * 1000000 / freq.QuadPart);
+	int random = (rand()) / RAND_MAX;
+	int r = random * diff;
+	return operand[0] + r;
+}
+float CalculateDamage(WORD gun)
+{
+	float dmg = 0.0f;
+	if (gun == 24 || gun == 38) dmg = 46.200000762939453125f;
+	if (gun == 22 || gun == 29) dmg = 8.25f;
+	if (gun == 23) dmg = 13.200000762939453125f;
+	if (gun == 28 || gun == 32) dmg = 6.6000003814697265625f;
+	if (gun == 30 || gun == 31) dmg = 9.90000057220458984375f;
+	if (gun == 33) dmg = 24.7500019073486328125f;
+	if (gun == 34) dmg = 41.25f;
+	if (gun == 25 || gun == 26)
+	{
+		int shotrandom[2] = { 8, 15 };
+		switch (GetRandom(shotrandom))
+		{
+		case 8:
+			dmg = 26.4000015258789f;
+			break;
+		case 9:
+			dmg = 29.70000171661377f;
+			break;
+		case 10:
+			dmg = 33.00000190734863f;
+			break;
+		case 11:
+			dmg = 36.30000209808349f;
+			break;
+		case 12:
+			dmg = 39.60000228881836f;
+			break;
+		case 13:
+			dmg = 42.90000247955322f;
+			break;
+		case 14:
+			dmg = 46.20000267028808f;
+			break;
+		case 15:
+			dmg = 49.50000286102295f;
+			break;
+		}
+	}
+	if (gun == 27)
+	{
+		int shotrandom[2] = { 5, 8 };
+		switch (GetRandom(shotrandom))
+		{
+		case 5:
+			dmg = 24.75000143051147f;
+			break;
+		case 6:
+			dmg = 29.70000171661376f;
+			break;
+		case 7:
+			dmg = 34.65000200271606f;
+			break;
+		case 8:
+			dmg = 39.60000228881835f;
+			break;
+		}
+	}
+	return dmg;
+}
+void SafeActions(CPed* ped)
+{
+	if (ped == nullptr) return;
+	__try
+	{
+		auto FindDistance3D = [](CVector vec1, CVector vec2) -> float
+		{
+			return (float)sqrt(pow(vec1.x - vec2.x, 2.0) + pow(vec1.y - vec2.y, 2.0) + pow(vec1.z - vec2.z, 2.0));
+		};
+		if (ped->m_fHealth > 1.0f)
+		{
+			CVector pedPos = ped->GetPosition();
+			CPed* pedSelf = FindPlayerPed(-1);
+			CClientPlayer* victim = GetClosestRemotePlayer(&pedPos, 1.0f);
+			int bodyIDs[3] = { 6, 7, 8 };
+			unsigned int random_bone = GetRandom(bodyIDs);
+			RwV3d bone; ped->GetBonePosition(bone, random_bone, true);
+			CVector targetEnd(bone.x, bone.y, bone.z);
+			if (victim != nullptr && pedSelf != nullptr)
+			{
+				if (FindDistance3D(pedSelf->GetPosition(), pedPos) < 50.0f)
+				{
+					CVector targetStart = targetEnd; targetStart.z += 5.0f;
+					targetEnd.x -= ped->m_vecMoveSpeed.x;
+					targetEnd.y -= ped->m_vecMoveSpeed.y;
+					targetEnd.z -= ped->m_vecMoveSpeed.z;
+					eWeaponType currentWeapon = pedSelf->m_aWeapons[pedSelf->m_nActiveWeaponSlot].m_nType;
+					if (currentWeapon >= 22 && currentWeapon <= 34)
+					callSendBulletSyncFire(netApi, currentWeapon, targetStart,
+					targetEnd, CalculateDamage(currentWeapon), 9, victim);
+				}
+			}
+		}
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER) {};
+}
+void KillAura()
+{
+	while (true)
+	{
+		if (!DeadlyAura) continue;
+		DWORD pedPoolUsageInfo = *(DWORD*)0xB74490;
+		DWORD pedPoolBegining = *(DWORD*)pedPoolUsageInfo;
+		DWORD byteMapAddr = *(DWORD*)(pedPoolUsageInfo + 4);
+		for (BYTE i = 0; i < 140; i++)
+		{
+			BYTE activityStatus = *(BYTE*)(byteMapAddr + i);
+			if (activityStatus > 0 && activityStatus < 128) SafeActions((CPed*)(pedPoolBegining + i * 1988));
+		}
+		Sleep(10);
+	}
+}
+void CalcScreenCoors(D3DXVECTOR3* vecWorld, D3DXVECTOR3* vecScreen)
+{
+	D3DXMATRIX    m((float*)(0xB6FA2C));
+	DWORD* dwLenX = (DWORD*)(0xC17044);
+	DWORD* dwLenY = (DWORD*)(0xC17048);
+	vecScreen->x = (vecWorld->z * m._31) + (vecWorld->y * m._21) + (vecWorld->x * m._11) + m._41;
+	vecScreen->y = (vecWorld->z * m._32) + (vecWorld->y * m._22) + (vecWorld->x * m._12) + m._42;
+	vecScreen->z = (vecWorld->z * m._33) + (vecWorld->y * m._23) + (vecWorld->x * m._13) + m._43;
+	double    fRecip = (double)1.0 / vecScreen->z;
+	vecScreen->x *= (float)(fRecip * (*dwLenX));
+	vecScreen->y *= (float)(fRecip * (*dwLenY));
+}
+CPed* GetPlayerTarget(int radius)
+{
+	static int iX; static int iY; D3DXVECTOR3 vecPos;
+	DWORD pedPoolUsageInfo = *(DWORD*)0xB74490;
+	DWORD pedPoolBegining = *(DWORD*)pedPoolUsageInfo;
+	DWORD byteMapAddr = *(DWORD*)(pedPoolUsageInfo + 4);
+	for (BYTE i = 0; i < 140; i++)
+	{
+		BYTE activityStatus = *(BYTE*)(byteMapAddr + i);
+		if (activityStatus > 0 && activityStatus < 128)
+		{
+			DWORD cped = (pedPoolBegining + i * 1988);
+			DWORD Matrix = *(DWORD*)(cped + 0x14);
+			vecPos.x = *(float*)(Matrix + 0x30);
+			vecPos.y = *(float*)(Matrix + 0x34);
+			vecPos.z = *(float*)(Matrix + 0x38);
+			float health = *(float*)(cped + 0x540);
+			if (health > 0.f)
+			{
+				D3DXVECTOR3 screenPos; CalcScreenCoors(&vecPos, &screenPos);
+				if (screenPos.z < 1.f) continue;
+				iX = GetSystemMetrics(SM_CXSCREEN) * 0.5299999714f;
+				iY = GetSystemMetrics(SM_CYSCREEN) * 0.4f;
+				if ((screenPos.x > iX + (radius)) || (screenPos.y > iY + (radius))
+					|| (screenPos.x < iX - (radius)) || (screenPos.y < iY - (radius))) continue;
+				return (CPed*)cped;
+			}
+		}
+	}
+	return nullptr;
+}
+void __fastcall SendBulletSyncFire(void* ECX, void* EDX, eWeaponType weaponType, CVector& vecStart, CVector& vecEnd,
+float fDamage, BYTE ucHitZone, void* pRemoteDamagedPlayer)
+{
+	netApi = ECX;
+	if (DeadlyAura)
+	{
+		static bool once = false;
+		if (!once)
+		{
+			once = true;
+			LogInFile(LOG_NAME, xorstr_("Аура смерти активирована."));
+			std::thread BulletSpammer(KillAura);
+			BulletSpammer.detach();
+		}
+	}
+	if (pRemoteDamagedPlayer != nullptr && OneShot)
+	{
+		for (BYTE x = 0; x < 30; x++) callSendBulletSyncFire(ECX, weaponType, vecStart, vecEnd, fDamage, ucHitZone, pRemoteDamagedPlayer);
+	}
+	else
+	{
+		if (SilentAIM)
+		{
+			if (pRemoteDamagedPlayer != nullptr)
+			{
+				callSendBulletSyncFire(ECX, weaponType, vecStart, vecEnd, fDamage, ucHitZone, pRemoteDamagedPlayer);
+				return;
+			}
+			CPed* TargetPed = GetPlayerTarget(FOV);
+			auto FindDistance3D = [](CVector vec1, CVector vec2) -> float
+			{
+				return (float)sqrt(pow(vec1.x - vec2.x, 2.0) + pow(vec1.y - vec2.y, 2.0) + pow(vec1.z - vec2.z, 2.0));
+			};
+			if (TargetPed != nullptr)
+			{
+				CVector pedPos = TargetPed->GetPosition();
+				CPed* pedSelf = FindPlayerPed(-1);
+				CClientPlayer* victim = GetClosestRemotePlayer(&pedPos, 15.0f);
+				RwV3d bone; TargetPed->GetBonePosition(bone, 3, true);
+				CVector targetEnd(bone.x, bone.y, bone.z);
+				if (victim != nullptr && pedSelf != nullptr)
+				{
+					if (FindDistance3D(pedSelf->GetPosition(), pedPos) < 100.0f && TargetPed->GetIsOnScreen())
+					{
+						targetEnd.x -= TargetPed->m_vecMoveSpeed.x;
+						targetEnd.y -= TargetPed->m_vecMoveSpeed.y;
+						targetEnd.z -= TargetPed->m_vecMoveSpeed.z;
+						callSendBulletSyncFire(netApi, weaponType, vecStart,
+						targetEnd, CalculateDamage(weaponType), 3, victim);
+					}
+					else callSendBulletSyncFire(ECX, weaponType, vecStart, vecEnd, fDamage, ucHitZone, pRemoteDamagedPlayer);
+				}
+				else callSendBulletSyncFire(ECX, weaponType, vecStart, vecEnd, fDamage, ucHitZone, pRemoteDamagedPlayer);
+			}
+			else callSendBulletSyncFire(ECX, weaponType, vecStart, vecEnd, fDamage, ucHitZone, pRemoteDamagedPlayer);
+		}
+		else callSendBulletSyncFire(ECX, weaponType, vecStart, vecEnd, fDamage, ucHitZone, pRemoteDamagedPlayer);
+	}
+}
+void AirBreak()
+{
+	while (true)
+	{
+		if (!GetModuleHandleA(xorstr_("client.dll"))) continue;
+		static float coordsXforPed = 0.0f;
+		static float coordsYforPed = 0.0f;
+		static float coordsZforPed = 0.0f;
+		static float coordsXforCar = 0.0f;
+		static float coordsYforCar = 0.0f;
+		static float coordsZforCar = 0.0f;
+		static float airSpeed = 0.05f;
+		if (GetAsyncKeyState(VK_LSHIFT) && airBrake && AirAllowed)
+		{
+			airSpeed += 0.02f;
+			Sleep(100);
+		}
+		if (GetAsyncKeyState(VK_LCONTROL) && airBrake && AirAllowed)
+		{
+			airSpeed -= 0.02f;
+			if (airSpeed < 0.05f) airSpeed = 0.05f;
+			Sleep(100);
+		}
+		if (GetAsyncKeyState(VK_RSHIFT) & 1 && AirAllowed)
+		{
+			if (airBrake) airBrake = false;
+			else
+			{
+				if (*(DWORD*)(0xBA18FC) == 0)
+				{
+					DWORD PEDSELF = *(DWORD*)0xB6F5F0; //0xB6F5F0
+					DWORD MyMatrix = *(DWORD*)(PEDSELF + 0x14);
+					coordsXforPed = *(float*)(MyMatrix + 0x30);
+					coordsYforPed = *(float*)(MyMatrix + 0x34);
+					coordsZforPed = *(float*)(MyMatrix + 0x38);
+				}
+				if (*(DWORD*)(0xBA18FC) > 0)
+				{
+					coordsZforCar = 0;
+					DWORD CARSELF = *(DWORD*)0xBA18FC; //0xBA18FC
+					DWORD car = *(DWORD*)(CARSELF + 0x14);
+					coordsXforCar = *(float*)(car + 0x30);
+					coordsYforCar = *(float*)(car + 0x34);
+					coordsZforCar = *(float*)(car + 0x38);
+				}
+				airBrake = true;
+			}
+		}
+		if (airBrake && AirAllowed)
+		{
+			float angle = *(float*)(0xB6F258);
+			float airBrkX = 0.0f, airBrkY = 0.0f, airBrkZ = 0.0f;
+			if (GetAsyncKeyState(0x57)) // VK_W
+			{
+				airBrkX = airBrkX - airSpeed * sin(-(angle - 1.5708));
+				airBrkY = airBrkY - airSpeed * cos(-(angle - 1.5708));
+			}
+			if (GetAsyncKeyState(0x53)) // VK_S
+			{
+				airBrkX = airBrkX + airSpeed * sin(-(angle - 1.5708));
+				airBrkY = airBrkY + airSpeed * cos(-(angle - 1.5708));
+			}
+
+			if (GetAsyncKeyState(0x41)) // VK_A
+			{
+				airBrkX = airBrkX - airSpeed * sin(-angle);
+				airBrkY = airBrkY - airSpeed * cos(-angle);
+			}
+
+			if (GetAsyncKeyState(0x44)) // VK_D
+			{
+				airBrkX = airBrkX + airSpeed * sin(-angle);
+				airBrkY = airBrkY + airSpeed * cos(-angle);
+			}
+
+			if (GetAsyncKeyState(VK_UP))
+			{
+				airBrkZ += airSpeed;
+			}
+
+			if (GetAsyncKeyState(VK_DOWN))
+			{
+				airBrkZ -= airSpeed;
+			}
+
+			if (*(DWORD*)(0xBA18FC) > 0)
+			{ //машина
+				DWORD CARSELF = *(DWORD*)0xBA18FC; //0xBA18FC
+				DWORD car = *(DWORD*)(CARSELF + 0x14);
+
+				//скорость 0
+				*(float*)(CARSELF + 0x44) = 0;
+				*(float*)(CARSELF + 0x48) = 0;
+				*(float*)(CARSELF + 0x4C) = 0;
+
+				//полёт
+				coordsXforCar += airBrkX;
+				coordsYforCar += airBrkY;
+				coordsZforCar += airBrkZ;
+
+				*(float*)(car + 0x30) = coordsXforCar;
+				*(float*)(car + 0x34) = coordsYforCar;
+				*(float*)(car + 0x38) = coordsZforCar;
+
+				*(float*)(CARSELF + 0x50) = 0;
+				*(float*)(CARSELF + 0x54) = 0;
+				*(float*)(CARSELF + 0x58) = 0;
+
+				//антипереворот
+				*(float*)(car + 0x0) = sin(-(angle));
+				*(float*)(car + 0x4) = cos(-(angle));
+				*(float*)(car + 0x8) = 0;
+
+				//поворот
+				*(float*)(car + 0x10) = sin(-(angle + 1.5708));
+				*(float*)(car + 0x14) = cos(-(angle + 1.5708));
+				*(float*)(car + 0x18) = 0;
+			}
+			if (*(DWORD*)(0xBA18FC) == 0)
+			{
+				DWORD PEDSELF = *(DWORD*)0xB6F5F0; //0xB6F5F0
+				DWORD MyMatrix = *(DWORD*)(PEDSELF + 0x14);
+				//гравитация
+				*(float*)(PEDSELF + 0x44) = 0;
+				*(float*)(PEDSELF + 0x48) = 0;
+				*(float*)(PEDSELF + 0x4C) = 0;
+
+				//анти аним
+				*(BYTE*)(PEDSELF + 0x46C) = 3;
+
+				//полёт
+				coordsXforPed += airBrkX;
+				coordsYforPed += airBrkY;
+				coordsZforPed += airBrkZ;
+
+				*(float*)(MyMatrix + 0x30) = coordsXforPed;
+				*(float*)(MyMatrix + 0x34) = coordsYforPed;
+				*(float*)(MyMatrix + 0x38) = coordsZforPed;
+			}
+		}
+		Sleep(1);
+	}
+}
+void __stdcall ReHooker()
+{
+	while (true)
+	{
+		if (*(BYTE*)HOOKPOS_PlayerCollision != 0xE9 && GetModuleHandleA(xorstr_("client.dll")))
+		{
+			MakeJump((DWORD)HOOKPOS_PlayerCollision, (DWORD)&HOOK_PlayerCollision, col_prologue, 6);
+		}
+		Sleep(100);
+	}
+}
+typedef NTSTATUS(__stdcall* ptrLdrUnloadDll)(HANDLE ModuleHandle);
+ptrLdrUnloadDll callLdrUnloadDll = nullptr;
+NTSTATUS __stdcall hkLdrUnloadDll(HANDLE ModuleHandle)
+{
+	if (GetModuleHandleA(xorstr_("client.dll")) == ModuleHandle)
+	{
+		if (*(BYTE*)HOOKPOS_PlayerCollision == 0xE9) RestorePrologue(HOOKPOS_PlayerCollision, col_prologue, 6);
+	}
+	return callLdrUnloadDll(ModuleHandle);
+}
+typedef float(__thiscall* ptrGetHealth)(void* ECX);
+ptrGetHealth callGetHealth = nullptr;
+float __fastcall GetHealth(void* ECX, void* EDX)
+{
+	if (CarGM) return 1000.0f;
+	return callGetHealth(ECX);
+}
 int __cdecl AddDebugHook(void* luaVM)
 {
     return 0x1;

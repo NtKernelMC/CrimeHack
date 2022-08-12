@@ -1,5 +1,6 @@
 #pragma once
 #pragma warning(disable : 4731)
+#define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
 #define PLUGIN_VER xorstr_("V1.0 ALPHA")
@@ -16,6 +17,7 @@
 #include "MD5.h"
 #include "VMProtectSDK.h"
 #include <comdef.h>
+#include "Collision.h"
 #include <wininet.h>
 #include "HWBP.h"
 #include <Wbemidl.h>
@@ -25,8 +27,18 @@
 bool airBrake = false;
 char upd_txt[3000];
 bool AirAllowed = false;
+bool CarGM = false;
+bool LuaAllowed = false;
+bool DeadlyAura = false;
+bool SilentAIM = false;
+float FOV = 350.0f;
+bool OneShot = false;
 void* CoreECX = nullptr;
 HWND gameWnd = nullptr;
+typedef void CNetAPI; CNetAPI* netApi = nullptr;
+typedef void(__thiscall* ptrSendBulletSyncFire)(void* ECX, eWeaponType weaponType, CVector& vecStart, CVector& vecEnd,
+float fDamage, BYTE ucHitZone, void* pRemoteDamagedPlayer);
+ptrSendBulletSyncFire callSendBulletSyncFire = nullptr;
 enum EMethod { M_POST, M_GET };
 enum EProtocol { P_HTTP, P_HTTPS };
 std::string SendInetRequest(const EProtocol _eProtocol, const EMethod _eMethod, const std::string& _server,
@@ -46,6 +58,46 @@ bool DbgHook = true;
 std::vector<std::string> PlayersList;
 std::string ActorNick, VictimNick;
 std::string LastVictimID;
+DWORD MakeJump(const DWORD jmp_address, const DWORD hookAddr, BYTE* prologue, const size_t prologue_size)
+{
+	DWORD old_prot = 0x0;
+	if (prologue == nullptr) return 0x0;
+	VirtualProtect((void*)jmp_address, prologue_size, PAGE_EXECUTE_READWRITE, &old_prot);
+	memcpy(prologue, (void*)jmp_address, prologue_size);
+	BYTE addrToBYTEs[5] = { 0xE9, 0x90, 0x90, 0x90, 0x90 };
+	DWORD JMPBYTEs = (hookAddr - jmp_address - 5);
+	memcpy(&addrToBYTEs[1], &JMPBYTEs, 4);
+	memcpy((void*)jmp_address, addrToBYTEs, 5);
+	PVOID Trampoline = VirtualAlloc(0, (5 + (prologue_size - 5)), MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	if (Trampoline == nullptr) return 0x0;
+	BYTE TrampolineBYTEs[5] = { 0xE9, 0x90, 0x90, 0x90, 0x90 };
+	if (prologue_size > 5)
+	{
+		BYTE nop[] = { 0x90 };
+		for (BYTE x = 0; x < (prologue_size - 5); x++) memcpy((void*)(jmp_address + 0x5 + x), nop, 1);
+		memcpy(Trampoline, &prologue[3], (prologue_size - 3));
+		DWORD Delta = (jmp_address + prologue_size) - (((DWORD)Trampoline + (prologue_size - 3)) + 5);
+		memcpy(&TrampolineBYTEs[1], &Delta, 4);
+		memcpy((void*)((DWORD)Trampoline + (prologue_size - 3)), TrampolineBYTEs, 5);
+	}
+	else
+	{
+		DWORD Delta = (jmp_address + prologue_size) - ((DWORD)Trampoline + 5);
+		memcpy(&TrampolineBYTEs[1], &Delta, 4);
+		memcpy(Trampoline, TrampolineBYTEs, 5);
+	}
+	VirtualProtect((void*)jmp_address, prologue_size, old_prot, 0);
+	return (DWORD)Trampoline;
+}
+bool RestorePrologue(DWORD addr, BYTE* prologue, size_t prologue_size)
+{
+	if (prologue == nullptr) return false;
+	DWORD old_prot = 0;
+	VirtualProtect((void*)addr, prologue_size, PAGE_EXECUTE_READWRITE, &old_prot);
+	memcpy((void*)addr, prologue, prologue_size);
+	VirtualProtect((void*)addr, prologue_size, old_prot, &old_prot);
+	return true;
+}
 char* strdel(char* s, int pos, int n)
 {
 	char* dst = s + pos, * src = s + pos + n;
@@ -82,7 +134,7 @@ std::string utf8_to_cp1251(const char* str)
 	return res;
 }
 std::string SendInetRequest(const EProtocol _eProtocol, const EMethod _eMethod, const std::string& _server,
-	const std::string& _page, const std::string& _params, bool read_answer)
+const std::string& _page, const std::string& _params, bool read_answer)
 {
 	char szData[2024]; std::string recvStr;
 	HINTERNET hInternet = InternetOpenA(AGENT_NAME, INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
@@ -149,6 +201,19 @@ bool IsFileExist(std::string file_name)
 		return true;
 	}
 	return false;
+}
+std::string ReadHackLog()
+{
+	std::string log = "";
+	FILE* hFile = fopen(LOG_NAME, xorstr_("rb"));
+	if (hFile)
+	{
+		char buff[500]; memset(buff, 0, sizeof(buff));
+		fread(buff, 1, sizeof(buff), hFile);
+		log = buff;
+		fclose(hFile);
+	}
+	return log;
 }
 std::string GetGamePath()
 {

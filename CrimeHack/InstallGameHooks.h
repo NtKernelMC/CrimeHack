@@ -1,146 +1,3 @@
-void AirBreak()
-{
-	while (true)
-	{
-		if (!GetModuleHandleA(xorstr_("client.dll"))) continue;
-		static float coordsXforPed = 0.0f;
-		static float coordsYforPed = 0.0f;
-		static float coordsZforPed = 0.0f;
-		static float coordsXforCar = 0.0f;
-		static float coordsYforCar = 0.0f;
-		static float coordsZforCar = 0.0f;
-		static float airSpeed = 0.05f;
-		if (GetAsyncKeyState(VK_LSHIFT) && airBrake && AirAllowed)
-		{
-			airSpeed += 0.02f;
-			Sleep(100);
-		}
-		if (GetAsyncKeyState(VK_LCONTROL) && airBrake && AirAllowed)
-		{
-			airSpeed -= 0.02f;
-			if (airSpeed < 0.05f) airSpeed = 0.05f;
-			Sleep(100);
-		}
-		if (GetAsyncKeyState(VK_RSHIFT) & 1 && AirAllowed)
-		{
-			if (airBrake) airBrake = false;
-			else
-			{
-				if (*(DWORD*)(0xBA18FC) == 0)
-				{
-					DWORD PEDSELF = *(DWORD*)0xB6F5F0; //0xB6F5F0
-					DWORD MyMatrix = *(DWORD*)(PEDSELF + 0x14);
-					coordsXforPed = *(float*)(MyMatrix + 0x30);
-					coordsYforPed = *(float*)(MyMatrix + 0x34);
-					coordsZforPed = *(float*)(MyMatrix + 0x38);
-				}
-				if (*(DWORD*)(0xBA18FC) > 0)
-				{
-					coordsZforCar = 0;
-					DWORD CARSELF = *(DWORD*)0xBA18FC; //0xBA18FC
-					DWORD car = *(DWORD*)(CARSELF + 0x14);
-					coordsXforCar = *(float*)(car + 0x30);
-					coordsYforCar = *(float*)(car + 0x34);
-					coordsZforCar = *(float*)(car + 0x38);
-				}
-				airBrake = true;
-			}
-		}
-		if (airBrake && AirAllowed)
-		{
-			float angle = *(float*)(0xB6F258);
-			float airBrkX = 0.0f, airBrkY = 0.0f, airBrkZ = 0.0f;
-			if (GetAsyncKeyState(0x57)) // VK_W
-			{
-				airBrkX = airBrkX - airSpeed * sin(-(angle - 1.5708));
-				airBrkY = airBrkY - airSpeed * cos(-(angle - 1.5708));
-			}
-			if (GetAsyncKeyState(0x53)) // VK_S
-			{
-				airBrkX = airBrkX + airSpeed * sin(-(angle - 1.5708));
-				airBrkY = airBrkY + airSpeed * cos(-(angle - 1.5708));
-			}
-
-			if (GetAsyncKeyState(0x41)) // VK_A
-			{
-				airBrkX = airBrkX - airSpeed * sin(-angle);
-				airBrkY = airBrkY - airSpeed * cos(-angle);
-			}
-
-			if (GetAsyncKeyState(0x44)) // VK_D
-			{
-				airBrkX = airBrkX + airSpeed * sin(-angle);
-				airBrkY = airBrkY + airSpeed * cos(-angle);
-			}
-
-			if (GetAsyncKeyState(VK_UP))
-			{
-				airBrkZ += airSpeed;
-			}
-
-			if (GetAsyncKeyState(VK_DOWN))
-			{
-				airBrkZ -= airSpeed;
-			}
-
-			if (*(DWORD*)(0xBA18FC) > 0)
-			{ //машина
-				DWORD CARSELF = *(DWORD*)0xBA18FC; //0xBA18FC
-				DWORD car = *(DWORD*)(CARSELF + 0x14);
-
-				//скорость 0
-				*(float*)(CARSELF + 0x44) = 0;
-				*(float*)(CARSELF + 0x48) = 0;
-				*(float*)(CARSELF + 0x4C) = 0;
-
-				//полёт
-				coordsXforCar += airBrkX;
-				coordsYforCar += airBrkY;
-				coordsZforCar += airBrkZ;
-
-				*(float*)(car + 0x30) = coordsXforCar;
-				*(float*)(car + 0x34) = coordsYforCar;
-				*(float*)(car + 0x38) = coordsZforCar;
-
-				*(float*)(CARSELF + 0x50) = 0;
-				*(float*)(CARSELF + 0x54) = 0;
-				*(float*)(CARSELF + 0x58) = 0;
-
-				//антипереворот
-				*(float*)(car + 0x0) = sin(-(angle));
-				*(float*)(car + 0x4) = cos(-(angle));
-				*(float*)(car + 0x8) = 0;
-
-				//поворот
-				*(float*)(car + 0x10) = sin(-(angle + 1.5708));
-				*(float*)(car + 0x14) = cos(-(angle + 1.5708));
-				*(float*)(car + 0x18) = 0;
-			}
-			if (*(DWORD*)(0xBA18FC) == 0)
-			{
-				DWORD PEDSELF = *(DWORD*)0xB6F5F0; //0xB6F5F0
-				DWORD MyMatrix = *(DWORD*)(PEDSELF + 0x14);
-				//гравитация
-				*(float*)(PEDSELF + 0x44) = 0;
-				*(float*)(PEDSELF + 0x48) = 0;
-				*(float*)(PEDSELF + 0x4C) = 0;
-
-				//анти аним
-				*(BYTE*)(PEDSELF + 0x46C) = 3;
-
-				//полёт
-				coordsXforPed += airBrkX;
-				coordsYforPed += airBrkY;
-				coordsZforPed += airBrkZ;
-
-				*(float*)(MyMatrix + 0x30) = coordsXforPed;
-				*(float*)(MyMatrix + 0x34) = coordsYforPed;
-				*(float*)(MyMatrix + 0x38) = coordsZforPed;
-			}
-		}
-		Sleep(1);
-	}
-}
 typedef NTSTATUS(__stdcall* ptrLdrLoadDll)(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING ModuleFileName, PHANDLE ModuleHandle);
 ptrLdrLoadDll callLdrLoadDll = nullptr;
 NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING ModuleFileName, PHANDLE ModuleHandle)
@@ -186,14 +43,24 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             MH_EnableHook(MH_ALL_HOOKS);
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for TakePlayerScreenShot.\n"));
-        callLuaLoadBuffer = (t_LuaLoadBuffer)scan.FindPattern(xorstr_("client.dll"),
-        xorstr_("\x55\x8B\xEC\x83\xEC\x08\x56\x8B\x75\x0C\x57\xFF"), xorstr_("xxxxxxxxxxxx"));
-        if (callLuaLoadBuffer != nullptr)
-        {
-            LogInFile(LOG_NAME, "[PLUGIN] Found address from signature to Lua Engine!\n");
-            HWBP::InstallHWBP((DWORD)callLuaLoadBuffer, (DWORD)&hkLuaLoadBuffer);
-        }
-        else LogInFile(LOG_NAME, "[ERROR] Can`t find a sig to Lua Engine.\n");
+		if (LuaAllowed)
+		{
+			callLuaLoadBuffer = (t_LuaLoadBuffer)scan.FindPattern(xorstr_("client.dll"),
+			xorstr_("\x55\x8B\xEC\x83\xEC\x08\x56\x8B\x75\x0C\x57\xFF"), xorstr_("xxxxxxxxxxxx"));
+			if (callLuaLoadBuffer != nullptr)
+			{
+				LogInFile(LOG_NAME, "[PLUGIN] Found address from signature to Lua Engine!\n");
+				HWBP::InstallHWBP((DWORD)callLuaLoadBuffer, (DWORD)&hkLuaLoadBuffer);
+			}
+			else LogInFile(LOG_NAME, "[ERROR] Can`t find a sig to Lua Engine.\n");
+		}
+		callGetHealth = (ptrGetHealth)scan.FindPattern(xorstr_("client.dll"), xorstr_("\x80\xB9\xC8"), xorstr_("xxx"));
+		if (callGetHealth != nullptr)
+		{
+			MH_RemoveHook(callGetHealth);
+			MH_CreateHook(callGetHealth, &GetHealth, reinterpret_cast<LPVOID*>(&callGetHealth));
+			MH_EnableHook(MH_ALL_HOOKS);
+		}
     }
     return sts;
 }

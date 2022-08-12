@@ -136,10 +136,30 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         {
         case CPP_TAB:
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Аирбрэйк")).c_str(), &AirAllowed);
+            ImGui::SameLine(); ImGui::Checkbox(cp1251_to_utf8(xorstr_("Коллизия")).c_str(), &ColHack);
+            ImGui::SameLine(); ImGui::Checkbox(cp1251_to_utf8(xorstr_("Заморозить HP Тачек")).c_str(), &CarGM);
+            ImGui::SameLine(); ImGui::Checkbox(cp1251_to_utf8(xorstr_("Аура Смерти")).c_str(), &DeadlyAura);
+            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Сайлент аим")).c_str(), &SilentAIM);
+            ImGui::SameLine(); ImGui::SliderFloat(xorstr_("FOV"), &FOV, 50.0, 500.0f);
+            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Ваншот")).c_str(), &OneShot);
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Накрутить патроны")).c_str()))
+            {
+                CPed* ped = FindPlayerPed(-1);
+                if (ped)
+                {
+                    for (short x = 0; x < 13; x++)
+                    {
+                        if (ped->m_aWeapons[x].m_nTotalAmmo != NULL) ped->GiveWeapon(ped->m_aWeapons[x].m_nType, 9999, false);
+                    }
+                    MessageBeep(MB_ICONERROR);
+                }
+            }
             break;
         case LUA_TAB:
             break;
         case LOGS_TAB:
+            ImGui::Text(ReadHackLog().c_str());
             break;
         case UPDATE_TAB:
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Проверить актуальность")).c_str()))

@@ -79,6 +79,7 @@
     <ClInclude Include="kthook\ktsignal\include\ktsignal\ktsignal.hpp" />
     <ClInclude Include="DrawMenu.h" />
     <ClInclude Include="HWBP.h" />
+    <ClInclude Include="Collision.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="PlayerCloner.rc" />

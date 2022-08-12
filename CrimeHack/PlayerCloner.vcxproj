@@ -116,6 +116,7 @@
     <ClCompile Include="Registry.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Collision.h" />
     <ClInclude Include="DrawMenu.h" />
     <ClInclude Include="GameHooks.h" />
     <ClInclude Include="HWBP.h" />

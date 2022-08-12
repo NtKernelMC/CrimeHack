@@ -43,6 +43,7 @@
 #include "imgui.h"
 #include "imgui_impl_dx9.h"
 #include "imgui_impl_win32.h"
+bool ColHack = false;
 #include "PluginUtils.h"
 #pragma comment(lib, "libMinHook.x86.lib")
 #pragma comment(lib, "Winmm.lib")
@@ -59,6 +60,12 @@ void HackThread()
     MakePreInit();
     VMProtectEnd();
     MH_Initialize();
+    CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, xorstr_("Software\\CR1M3H"), true);
+    if (reg != nullptr)
+    {
+        LuaAllowed = reg->ReadInteger(xorstr_("AllowLua"));
+        delete reg;
+    }
     LogInFile(LOG_NAME, xorstr_("[PLUGIN] Crime Hack %s by NtKernelMC loaded!\n"), PLUGIN_VER);
     InstallDx9Hooks();
     std::thread tth(AirBreak); tth.detach();
@@ -68,10 +75,22 @@ void HackThread()
         MH_CreateHook(callGetThreadContext, &hookGetThreadContext, reinterpret_cast<LPVOID*>(&callGetThreadContext));
         MH_EnableHook(MH_ALL_HOOKS);
     }
+    if (*(BYTE*)HOOKPOS_PlayerCollision != 0xE9)
+    {
+        LogInFile(LOG_NAME, xorstr_("[LOG] Installed collision hook!\n"));
+        MakeJump((DWORD)HOOKPOS_PlayerCollision, (DWORD)&HOOK_PlayerCollision, col_prologue, 6);
+    }
+    std::thread ReHook(ReHooker); ReHook.detach(); // поток для авто-восстановления хука если его снимет античит
     callLdrLoadDll = (ptrLdrLoadDll)GetProcAddress(GetModuleHandleA(xorstr_("ntdll.dll")), xorstr_("LdrLoadDll"));
     if (callLdrLoadDll != nullptr)
     {
         MH_CreateHook(callLdrLoadDll, &hkLdrLoadDll, reinterpret_cast<LPVOID*>(&callLdrLoadDll));
+        MH_EnableHook(MH_ALL_HOOKS);
+    }
+    callLdrUnloadDll = (ptrLdrUnloadDll)GetProcAddress(GetModuleHandleA(xorstr_("ntdll.dll")), xorstr_("LdrUnloadDll"));
+    if (callLdrLoadDll != nullptr)
+    {
+        MH_CreateHook(callLdrUnloadDll, &hkLdrUnloadDll, reinterpret_cast<LPVOID*>(&callLdrUnloadDll));
         MH_EnableHook(MH_ALL_HOOKS);
     }
     while (true)
