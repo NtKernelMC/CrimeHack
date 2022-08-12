@@ -60,7 +60,20 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
 			MH_RemoveHook(callGetHealth);
 			MH_CreateHook(callGetHealth, &GetHealth, reinterpret_cast<LPVOID*>(&callGetHealth));
 			MH_EnableHook(MH_ALL_HOOKS);
+            LogInFile(LOG_NAME, "[PLUGIN] Found address from signature to GetHealth!\n");
 		}
+        else LogInFile(LOG_NAME, "[ERROR] Can`t find a sig to GetHealth.\n");
+        callTriggerServerEvent = (ptrTriggerServerEvent)scan.FindPattern("client.dll",
+        "\x55\x8B\xEC\x51\x8B\x45\x04\x50\xE8\x00\x00\x00\x00\x83\xC4\x04\x84\xC0\x75\x0A\xC7\x05\x00\x00\x00\x00\x00\x00\x00\x00\x53\x56\x57",
+        "xxxxxxxxx????xxxxxxxxxxxxxxxxxxxx");
+        if (callTriggerServerEvent != nullptr)
+        {
+            MH_RemoveHook(callTriggerServerEvent);
+            MH_CreateHook(callTriggerServerEvent, &TriggerServerEvent, reinterpret_cast<LPVOID*>(&callTriggerServerEvent));
+            MH_EnableHook(MH_ALL_HOOKS);
+            LogInFile(LOG_NAME, "[PLUGIN] Found address from signature to TriggerServerEvent!\n");
+        }
+        else LogInFile(LOG_NAME, "[ERROR] Can`t find a sig to TriggerServerEvent.\n");
     }
     return sts;
 }

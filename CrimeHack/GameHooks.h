@@ -416,10 +416,22 @@ NTSTATUS __stdcall hkLdrUnloadDll(HANDLE ModuleHandle)
 	}
 	return callLdrUnloadDll(ModuleHandle);
 }
+typedef bool(__cdecl* ptrTriggerServerEvent)(const char* szName, void* CallWithEntity, void* Arguments);
+ptrTriggerServerEvent callTriggerServerEvent = nullptr;
+void __cdecl TriggerServerEvent(const char* szName, void* CallWithEntity, void* Arguments)
+{
+	bool skip_call = false;
+	if (findStringIC(szName, "newGps:Teleportation")) skip_call = true;
+	if (findStringIC(szName, "SetPlayerCarDamage")) skip_call = true;
+	if (findStringIC(szName, "carshop:updateHpInfo")) skip_call = true;
+	if (findStringIC(szName, "ac:snd_adm_sp")) skip_call = true;
+	if (!skip_call) callTriggerServerEvent(szName, CallWithEntity, Arguments);
+}
 typedef float(__thiscall* ptrGetHealth)(void* ECX);
 ptrGetHealth callGetHealth = nullptr;
 float __fastcall GetHealth(void* ECX, void* EDX)
 {
+	if (TotalCar) return 0.0f;
 	if (CarGM) return 1000.0f;
 	return callGetHealth(ECX);
 }

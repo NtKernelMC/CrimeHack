@@ -54,6 +54,30 @@ extern "C" __declspec(dllexport) int NextHook(int code, WPARAM wParam, LPARAM lP
 {
     return CallNextHookEx(NULL, code, wParam, lParam);
 }
+float VecLength(CVector vec) { return sqrt((vec.x * vec.x) + (vec.y * vec.y) + (vec.z * vec.z)); }
+float getVehElementSpeed(CVehicle* theElement)
+{
+    if (theElement == nullptr) return 0.0f;
+    float mult = 111.84681456f;
+    CVector vecSpeed = theElement->m_vecMoveSpeed;
+    return VecLength(vecSpeed * mult);
+}
+bool setVehElementSpeed(CVehicle* element, float speed)
+{
+    if (element == nullptr) return false;
+    float acSpeed = getVehElementSpeed(element);
+    if (acSpeed && acSpeed != 0)
+    {
+        float diff = speed / acSpeed;
+        if (diff != diff) return false;
+        CVector vel = element->m_vecMoveSpeed;
+        element->m_vecMoveSpeed.x = vel.x * diff;
+        element->m_vecMoveSpeed.y = vel.y * diff;
+        element->m_vecMoveSpeed.z = vel.z * diff;
+        return true;
+    }
+    return false;
+}
 void HackThread()
 {
     VMProtectBegin("HackThread()");
@@ -101,6 +125,11 @@ void HackThread()
             if (ShowMenu) callForceCursorVisible(CoreECX, true, true);
             else callForceCursorVisible(CoreECX, false, false);
             Sleep(1000);
+        }
+        if (GetAsyncKeyState(VK_CONTROL) && SpeedHack && GetModuleHandleA(xorstr_("client.dll")))
+        {
+            CVehicle* veh = FindPlayerVehicle(0, false);
+            if (veh != nullptr) setVehElementSpeed(veh, MaxSpd);
         }
         Sleep(150);
     }

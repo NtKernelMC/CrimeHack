@@ -137,12 +137,23 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         case CPP_TAB:
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Аирбрэйк")).c_str(), &AirAllowed);
             ImGui::SameLine(); ImGui::Checkbox(cp1251_to_utf8(xorstr_("Коллизия")).c_str(), &ColHack);
-            ImGui::SameLine(); ImGui::Checkbox(cp1251_to_utf8(xorstr_("Заморозить HP Тачек")).c_str(), &CarGM);
+            ImGui::SameLine(); 
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Заморозить HP Тачек")).c_str(), &CarGM))
+            {
+                if (CarGM)
+                {
+                    CVehicle* veh = FindPlayerVehicle(0, false);
+                    if (veh != nullptr)veh->m_fHealth -= 1.0f;
+                }
+            }
             ImGui::SameLine(); ImGui::Checkbox(cp1251_to_utf8(xorstr_("Аура Смерти")).c_str(), &DeadlyAura);
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Сайлент аим")).c_str(), &SilentAIM);
             ImGui::SameLine(); ImGui::SliderFloat(xorstr_("FOV"), &FOV, 50.0, 500.0f);
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Ваншот")).c_str(), &OneShot);
             ImGui::SameLine();
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Накрутить патроны")).c_str()))
             {
                 CPed* ped = FindPlayerPed(-1);
@@ -155,6 +166,43 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     MessageBeep(MB_ICONERROR);
                 }
             }
+            ImGui::PopStyleColor(3);
+            ImGui::SameLine();
+            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Тоталер тачек")).c_str(), &TotalCar);
+            ImGui::SameLine();
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП по метке")).c_str()))
+            {
+                for (int i = 0; i < (0xAF * 0x28); i += 0x28)
+                {
+                    if (*(short*)(0xBA873D + i) == 4611)
+                    {
+                        BYTE icon = *(BYTE*)((0xBA86F0 + 36) + 0x28 + i);
+                        float* pos = (float*)(0xBA86F8 + 0x28 + i);
+                        CVector dest(*pos, *(pos + 1), *(pos + 2));
+                        if (icon == 41)
+                        {
+                            DWORD PEDSELF = *(DWORD*)0xB6F5F0;
+                            BYTE pedState = *(BYTE*)(PEDSELF + 0x46C);
+                            if (pedState != 1 && pedState != 9)
+                            {
+                                CPed* ped = FindPlayerPed();
+                                if (ped != nullptr) ped->Teleport(dest, false);
+                            }
+                            else
+                            {
+                                CVehicle* veh = FindPlayerVehicle(0, false);
+                                if (veh != nullptr) veh->Teleport(dest, false);
+                            }
+                        }
+                    }
+                }
+            }
+            ImGui::PopStyleColor(3);
+            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Спидхак")).c_str(), &SpeedHack);
+            ImGui::SameLine(); ImGui::SliderFloat(cp1251_to_utf8(xorstr_("Макс.скорость")).c_str(), &MaxSpd, 150.0, 600.0f);
             break;
         case LUA_TAB:
             break;
@@ -174,7 +222,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Загрузить обновление")).c_str()))
             {
-                ShellExecuteA(0, 0, xorstr_("https://vk.com/provhacks"), 0, 0, SW_SHOW);
+                ShellExecuteA(0, 0, xorstr_("https://drive.google.com/file/d/1jd--lAR6CbL3Y5ffGGdYH3t0HHSAFur9/view?usp=sharing"), 0, 0, SW_SHOW);
             }
             ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing();
             ImGui::BulletText(cp1251_to_utf8(upd_txt).c_str());

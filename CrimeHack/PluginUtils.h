@@ -3,7 +3,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V1.0 ALPHA")
+#define PLUGIN_VER xorstr_("V1.2 ALPHA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -24,7 +24,10 @@
 #pragma comment(lib, "wbemuuid.lib")
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Wininet.lib")
+bool SpeedHack = false;
+float MaxSpd = 250.0f;
 bool airBrake = false;
+bool TotalCar = false;
 char upd_txt[3000];
 bool AirAllowed = false;
 bool CarGM = false;
