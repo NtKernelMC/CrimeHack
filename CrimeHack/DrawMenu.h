@@ -138,14 +138,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Аирбрэйк")).c_str(), &AirAllowed);
             ImGui::SameLine(); ImGui::Checkbox(cp1251_to_utf8(xorstr_("Коллизия")).c_str(), &ColHack);
             ImGui::SameLine(); 
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Заморозить HP Тачек")).c_str(), &CarGM))
-            {
-                if (CarGM)
-                {
-                    CVehicle* veh = FindPlayerVehicle(0, false);
-                    if (veh != nullptr)veh->m_fHealth -= 1.0f;
-                }
-            }
+            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Заморозить HP Тачек")).c_str(), &CarGM);
             ImGui::SameLine(); ImGui::Checkbox(cp1251_to_utf8(xorstr_("Аура Смерти")).c_str(), &DeadlyAura);
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Сайлент аим")).c_str(), &SilentAIM);
             ImGui::SameLine(); ImGui::SliderFloat(xorstr_("FOV"), &FOV, 50.0, 500.0f);

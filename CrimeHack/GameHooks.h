@@ -422,7 +422,7 @@ void __cdecl TriggerServerEvent(const char* szName, void* CallWithEntity, void* 
 {
 	bool skip_call = false;
 	if (findStringIC(szName, "newGps:Teleportation")) skip_call = true;
-	if (findStringIC(szName, "SetPlayerCarDamage")) skip_call = true;
+	if (findStringIC(szName, "SetPlayerCarDamage") && !TotalCar) skip_call = true;
 	if (findStringIC(szName, "carshop:updateHpInfo")) skip_call = true;
 	if (findStringIC(szName, "ac:snd_adm_sp")) skip_call = true;
 	if (!skip_call) callTriggerServerEvent(szName, CallWithEntity, Arguments);

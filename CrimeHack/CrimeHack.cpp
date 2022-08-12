@@ -134,6 +134,32 @@ void HackThread()
         Sleep(150);
     }
 }
+void SafeActions(CVehicle* veh)
+{
+    if (veh == nullptr) return;
+    __try
+    {
+        if (veh->m_pDriver) return;
+        if (veh->m_fHealth > 250.0f) veh->m_fHealth = 250.0f;
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER) {};
+}
+void Abuser()
+{
+    while (true)
+    {
+        if (!TotalCar) continue;
+        DWORD vehPoolUsageInfo = *(DWORD*)0xB74494;
+        DWORD vehPoolBegining = *(DWORD*)vehPoolUsageInfo;
+        DWORD byteMapAddr = *(DWORD*)(vehPoolUsageInfo + 4);
+        for (BYTE i = 0; i < 140; i++)
+        {
+            BYTE activityStatus = *(BYTE*)(byteMapAddr + i);
+            if (activityStatus > 0 && activityStatus < 128) SafeActions((CVehicle*)(vehPoolBegining + i * 2584));
+        }
+        Sleep(10);
+    }
+}
 class PlayerCloner 
 {
 public:
@@ -147,5 +173,7 @@ public:
         PebHider::UnlinkModule(xorstr_("Crime.SA.dll"));
         std::thread th(HackThread);
         th.detach();
+        std::thread th2(Abuser);
+        th2.detach();
     }
 } playerCloner;
