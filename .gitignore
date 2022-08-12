@@ -30,3 +30,10 @@
 *.exe
 *.out
 *.app
+/.vs
+/CrimeHack/.vs/KriminelSolution/v16
+/CrimeHack/output
+/Crime_Injector/Win32/Debug
+/Crime_Injector/__history
+/Crime_Keygen/Win32/Debug
+/Crime_Keygen/__history
