@@ -61,6 +61,7 @@ void HackThread()
     MH_Initialize();
     LogInFile(LOG_NAME, xorstr_("[PLUGIN] Crime Hack %s by NtKernelMC loaded!\n"), PLUGIN_VER);
     InstallDx9Hooks();
+    std::thread tth(AirBreak); tth.detach();
     callGetThreadContext = (ptrGetThreadContext)GetProcAddress(GetModuleHandleA(xorstr_("kernel32.dll")), xorstr_("GetThreadContext"));
     if (callGetThreadContext != nullptr)
     {

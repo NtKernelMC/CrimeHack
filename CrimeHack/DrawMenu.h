@@ -82,7 +82,9 @@ void ApplyImGuiTheme()
 enum TABS
 {
     CPP_TAB,
-    LUA_TAB
+    LUA_TAB,
+    LOGS_TAB,
+    UPDATE_TAB
 };
 int page = 0;
 std::optional<HRESULT> on_present(const decltype(present_hook)& hook, IDirect3DDevice9* device_ptr,
@@ -124,13 +126,38 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         if (ImGui::Button(cp1251_to_utf8(xorstr_("C++ читы")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = CPP_TAB;
         ImGui::SameLine();
         if (ImGui::Button(cp1251_to_utf8(xorstr_("Lua читы")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = LUA_TAB;
+        ImGui::SameLine();
+        if (ImGui::Button(cp1251_to_utf8(xorstr_("Логи")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = LOGS_TAB;
+        ImGui::SameLine();
+        if (ImGui::Button(cp1251_to_utf8(xorstr_("Обновление")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = UPDATE_TAB;
         ImGui::EndChild();
         ImGui::BeginChild(xorstr_("main"), ImVec2(0, 0), true, ImGuiWindowFlags_NoScrollbar);
         switch (page)
         {
         case CPP_TAB:
+            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Аирбрэйк")).c_str(), &airBrake);
             break;
         case LUA_TAB:
+            break;
+        case LOGS_TAB:
+            break;
+        case UPDATE_TAB:
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Проверить актуальность")).c_str()))
+            {
+                char params[3000]; std::string host_lnk = xorstr_("kuprey123.beget.tech");
+                memset(params, 0, sizeof(params));
+                sprintf(params, xorstr_("soft_ver=%s"), PLUGIN_VER);
+                std::string sc_ans = SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/check_update.php"), std::string(params), true);
+                memset(upd_txt, 0, sizeof(upd_txt));
+                strcpy(upd_txt, sc_ans.c_str());
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Загрузить обновление")).c_str()))
+            {
+                ShellExecuteA(0, 0, xorstr_("https://vk.com/provhacks"), 0, 0, SW_SHOW);
+            }
+            ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing();
+            ImGui::BulletText(cp1251_to_utf8(upd_txt).c_str());
             break;
         }
         ImGui::EndChild();

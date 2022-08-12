@@ -1,5 +1,6 @@
 #pragma once
 #pragma warning(disable : 4731)
+#define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
 #define PLUGIN_VER xorstr_("V1.0 ALPHA")
 #include <Windows.h>
@@ -15,12 +16,21 @@
 #include "MD5.h"
 #include "VMProtectSDK.h"
 #include <comdef.h>
+#include <wininet.h>
 #include "HWBP.h"
 #include <Wbemidl.h>
 #pragma comment(lib, "wbemuuid.lib")
 #pragma comment(lib, "Winmm.lib")
+#pragma comment(lib, "Wininet.lib")
+bool airBrake = false;
+char upd_txt[3000];
+bool AirAllowed = false;
 void* CoreECX = nullptr;
 HWND gameWnd = nullptr;
+enum EMethod { M_POST, M_GET };
+enum EProtocol { P_HTTP, P_HTTPS };
+std::string SendInetRequest(const EProtocol _eProtocol, const EMethod _eMethod, const std::string& _server,
+const std::string& _page, const std::string& _params, bool read_answer);
 typedef int(__cdecl* t_LuaLoadBuffer)(void* L, const char* buff, size_t sz, const char* name);
 t_LuaLoadBuffer callLuaLoadBuffer = nullptr;
 typedef int(__cdecl* ptrAddDebugHook)(void* luaVM);
@@ -44,6 +54,90 @@ char* strdel(char* s, int pos, int n)
 	}
 	*dst = 0;
 	return s;
+}
+std::string utf8_to_cp1251(const char* str)
+{
+	std::string res;
+	WCHAR* ures = NULL;
+	char* cres = NULL;
+	int result_u = MultiByteToWideChar(CP_UTF8, 0, str, -1, 0, 0);
+	if (result_u != 0)
+	{
+		ures = new WCHAR[result_u];
+		if (MultiByteToWideChar(CP_UTF8, 0, str, -1, ures, result_u))
+		{
+			int result_c = WideCharToMultiByte(1251, 0, ures, -1, 0, 0, 0, 0);
+			if (result_c != 0)
+			{
+				cres = new char[result_c];
+				if (WideCharToMultiByte(1251, 0, ures, -1, cres, result_c, 0, 0))
+				{
+					res = cres;
+				}
+			}
+		}
+	}
+	delete[] ures, cres;
+	return res;
+}
+std::string SendInetRequest(const EProtocol _eProtocol, const EMethod _eMethod, const std::string& _server,
+	const std::string& _page, const std::string& _params, bool read_answer)
+{
+	char szData[2024]; std::string recvStr;
+	HINTERNET hInternet = InternetOpenA(AGENT_NAME, INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+	if (hInternet != NULL)
+	{
+		INTERNET_PORT port = NULL; DWORD flags = NULL;
+		switch (_eProtocol)
+		{
+		case P_HTTP:
+			port = INTERNET_DEFAULT_HTTP_PORT;
+			flags = INTERNET_FLAG_KEEP_CONNECTION;
+			break;
+		case P_HTTPS:
+			port = INTERNET_DEFAULT_HTTPS_PORT;
+			flags = INTERNET_FLAG_SECURE;
+			break;
+		default:
+			return NULL;
+		}
+		HINTERNET hConnect = InternetConnectA(hInternet, _server.c_str(), port, NULL, NULL, INTERNET_SERVICE_HTTP, 0, 1);
+		if (hConnect != NULL)
+		{
+			std::string request; std::string method;
+			std::string headers; std::string data;
+			switch (_eMethod)
+			{
+			case M_GET:
+				method = xorstr_("GET");
+				request = _page + (_params.empty() ? "" : ("?" + _params));
+				break;
+			case M_POST:
+				method = xorstr_("POST");
+				request = _page;
+				headers = xorstr_("Content-Type: application/x-www-form-urlencoded");
+				data = (_params.empty() ? "" : _params);
+				break;
+			default:
+				return "";
+			}
+			HINTERNET hRequest = HttpOpenRequestA(hConnect, method.c_str(), (LPCSTR)request.c_str(), NULL, NULL, 0, flags, 1);
+			if (hRequest != NULL)
+			{
+				BOOL isSend = HttpSendRequestA(hRequest, headers.c_str(), headers.length(), (LPVOID)data.c_str(), data.length());
+				if (isSend && read_answer)
+				{
+					DWORD dwByteRead = NULL; BOOL scs = FALSE;
+					InternetReadFile(hRequest, szData, sizeof(szData) - 1, &dwByteRead);
+					recvStr.append(szData, dwByteRead); szData[dwByteRead] = 0;
+				}
+				InternetCloseHandle(hRequest);
+			}
+			InternetCloseHandle(hConnect);
+		}
+		InternetCloseHandle(hInternet);
+	}
+	return utf8_to_cp1251(recvStr.c_str());
 }
 bool IsFileExist(std::string file_name)
 {
@@ -259,6 +353,20 @@ void MakePreInit()
 		std::string LF_Key = GenerateLifeTimeKey(); std::string DM_Key = GenerateDemoKey();
 		if (!RegisteredKey.empty() && RegisteredKey.length() >= 4)
 		{
+			std::string host_lnk = xorstr_("kuprey123.beget.tech");
+			char params[3000]; memset(params, 0, sizeof(params));
+			sprintf(params, xorstr_("hwid=%s"), total_hwid.c_str());
+			std::string sc_ans = SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/security.php"), std::string(params), true);
+			if (sc_ans.find(total_hwid) != std::string::npos)
+			{
+				LogInFile(LOG_NAME, xorstr_("[PLUGIN] Пошел нахуй :)\n"));
+				delete reg; DeadCode();
+			}
+			memset(params, 0, sizeof(params));
+			sprintf(params, xorstr_("soft_ver=%s"), PLUGIN_VER);
+			sc_ans = SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/check_update.php"), std::string(params), true);
+			memset(upd_txt, 0, sizeof(upd_txt));
+			strcpy(upd_txt, sc_ans.c_str());
 			if (LF_Key.find(RegisteredKey.c_str()) == std::string::npos)
 			{
 				if (DM_Key.find(RegisteredKey.c_str()) == std::string::npos)
@@ -348,31 +456,6 @@ std::string cp1251_to_utf8(const char* str)
 			{
 				cres = new char[result_c];
 				if (WideCharToMultiByte(CP_UTF8, 0, ures, -1, cres, result_c, 0, 0))
-				{
-					res = cres;
-				}
-			}
-		}
-	}
-	delete[] ures, cres;
-	return res;
-}
-std::string utf8_to_cp1251(const char* str)
-{
-	std::string res;
-	WCHAR* ures = NULL;
-	char* cres = NULL;
-	int result_u = MultiByteToWideChar(CP_UTF8, 0, str, -1, 0, 0);
-	if (result_u != 0)
-	{
-		ures = new WCHAR[result_u];
-		if (MultiByteToWideChar(CP_UTF8, 0, str, -1, ures, result_u))
-		{
-			int result_c = WideCharToMultiByte(1251, 0, ures, -1, 0, 0, 0, 0);
-			if (result_c != 0)
-			{
-				cres = new char[result_c];
-				if (WideCharToMultiByte(1251, 0, ures, -1, cres, result_c, 0, 0))
 				{
 					res = cres;
 				}
