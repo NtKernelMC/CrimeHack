@@ -75,7 +75,7 @@ void HackThread()
     }
     while (true)
     {
-        if (GetAsyncKeyState(VK_F10))// && GetModuleHandleA(xorstr_("client.dll")))
+        if (GetAsyncKeyState(VK_F10) && GetModuleHandleA(xorstr_("client.dll")))
         {
             ShowMenu ^= true;
             if (ShowMenu) callForceCursorVisible(CoreECX, true, true);
