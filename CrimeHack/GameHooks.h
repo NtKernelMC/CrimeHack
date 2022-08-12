@@ -422,7 +422,7 @@ void __cdecl TriggerServerEvent(const char* szName, void* CallWithEntity, void* 
 {
 	bool skip_call = false;
 	if (findStringIC(szName, "newGps:Teleportation")) skip_call = true;
-	if (findStringIC(szName, "SetPlayerCarDamage") && !TotalCar) skip_call = true;
+	if (findStringIC(szName, "SetPlayerCarDamage")) skip_call = true;
 	if (findStringIC(szName, "carshop:updateHpInfo")) skip_call = true;
 	if (findStringIC(szName, "ac:snd_adm_sp")) skip_call = true;
 	if (!skip_call) callTriggerServerEvent(szName, CallWithEntity, Arguments);
@@ -431,9 +431,48 @@ typedef float(__thiscall* ptrGetHealth)(void* ECX);
 ptrGetHealth callGetHealth = nullptr;
 float __fastcall GetHealth(void* ECX, void* EDX)
 {
-	if (TotalCar) return 0.0f;
+	if (TotalCar) return 250.0f;
 	if (CarGM) return 1000.0f;
 	return callGetHealth(ECX);
+}
+typedef void(__thiscall* ptrVehGetPosition)(void* ECX, CVector* vecPosition);
+ptrVehGetPosition callVehGetPosition = nullptr;
+void __fastcall VehGetPosition(void* ECX, void* EDX, CVector* vecPosition)
+{
+	callVehGetPosition(ECX, vecPosition);
+	if (VehInviz) vecPosition->z -= 5.0f;
+}
+typedef void(__thiscall* ptrPedGetPosition)(void* ECX, CVector* vecPosition);
+ptrPedGetPosition callPedGetPosition = nullptr;
+void __fastcall PedGetPosition(void* ECX, void* EDX, CVector* vecPosition)
+{
+	callPedGetPosition(ECX, vecPosition);
+	if (PedInviz) vecPosition->z -= 5.0f;
+}
+typedef void(__thiscall* ptrRecalculateFrameRateLimit)(void* ECX, uint uiServerFrameRateLimit, bool bLogToConsole);
+ptrRecalculateFrameRateLimit callRecalculateFrameRateLimit = nullptr;
+void __fastcall RecalculateFrameRateLimit(void* ECX, void* EDX, uint uiServerFrameRateLimit, bool bLogToConsole)
+{
+	uiServerFrameRateLimit = 100;
+	callRecalculateFrameRateLimit(ECX, uiServerFrameRateLimit, true);
+}
+typedef void(__thiscall* ptrGetRotationRadians)(void* ECX, CVector& vecRotation);
+ptrGetRotationRadians callGetRotationRadians = nullptr;
+void __fastcall GetRotationRadians(void* ECX, void* EDX, CVector& vecRotation)
+{
+	callGetRotationRadians(ECX, vecRotation);
+	if (UpSide)
+	{
+		CVector newRot(vecRotation);
+		newRot.x = ConvertRadiansToDegrees(vecRotation.x);
+		newRot.y = ConvertRadiansToDegrees(vecRotation.y);
+		newRot.z = ConvertRadiansToDegrees(vecRotation.z);
+		newRot.x += 180.0f;
+		newRot.x = newRot.x * 3.1415926535897932384626433832795f / 180.0f;
+		newRot.y = newRot.y * 3.1415926535897932384626433832795f / 180.0f;
+		newRot.z = newRot.z * 3.1415926535897932384626433832795f / 180.0f;
+		vecRotation = newRot;
+	}
 }
 int __cdecl AddDebugHook(void* luaVM)
 {
@@ -501,9 +540,17 @@ ptrTakePlayerScreenShot callTakePlayerScreenShot = nullptr;
 void __fastcall TakePlayerScreenShot(void* ECX, void* EDX, uint uiSizeX, uint uiSizeY, void* strTag,
 uint uiQuality, uint uiMaxBandwidth, uint uiMaxPacketSize, void* pResource, uint uiServerSentTime)
 {
-    PlaySoundA(xorstr_("Alert.wav"), NULL, SND_FILENAME | SND_ASYNC);
-    LogInFile(LOG_NAME, xorstr_("[WARNING] Заблокирован скриншот от администратора!\n[WARNING] Игра закрылась автоматически."));
-    TerminateProcess(GetCurrentProcess(), 0x0);
+	if (NoScreen)
+	{
+		LogInFile(LOG_NAME, xorstr_("[WARNING] Заблокирован скриншот от администратора!\n[WARNING] Игра закрылась автоматически."));
+		TerminateProcess(GetCurrentProcess(), 0x0);
+	}
+	else
+	{
+		PlaySoundA(xorstr_("Alert.wav"), NULL, SND_FILENAME | SND_ASYNC);
+		LogInFile(LOG_NAME, xorstr_("[WARNING] Администратор сделал скриншот!\n"));
+		callTakePlayerScreenShot(ECX, uiSizeX, uiSizeY, strTag, uiQuality, uiMaxBandwidth, uiMaxPacketSize, pResource, uiServerSentTime);
+	}
 }
 void __fastcall ForceCursorVisible(void* ECX, void* EDX, bool bVisible, bool bToggleControls)
 {

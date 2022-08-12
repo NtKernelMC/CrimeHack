@@ -3,7 +3,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V1.2 ALPHA")
+#define PLUGIN_VER xorstr_("V1.3 ALPHA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -24,6 +24,10 @@
 #pragma comment(lib, "wbemuuid.lib")
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Wininet.lib")
+bool NoScreen = false;
+bool PedInviz = false;
+bool VehInviz = false;
+bool UpSide = false;
 bool SpeedHack = false;
 float MaxSpd = 250.0f;
 bool airBrake = false;
@@ -61,6 +65,18 @@ bool DbgHook = true;
 std::vector<std::string> PlayersList;
 std::string ActorNick, VictimNick;
 std::string LastVictimID;
+inline float WrapAround(float fValue, float fHigh)
+{
+	return fValue - (fHigh * floor(static_cast<float>(fValue / fHigh)));
+}
+inline float ConvertDegreesToRadians(float fRotation)
+{
+	return WrapAround(static_cast<float>(fRotation * M_PI / 180.0f + 2 * M_PI), static_cast<float>(2 * M_PI));
+}
+inline float ConvertRadiansToDegrees(float fRotation)
+{
+	return WrapAround(static_cast<float>(fRotation * 180.0f / M_PI + 360.0f), 360.0f);
+}
 DWORD MakeJump(const DWORD jmp_address, const DWORD hookAddr, BYTE* prologue, const size_t prologue_size)
 {
 	DWORD old_prot = 0x0;

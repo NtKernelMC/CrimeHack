@@ -74,6 +74,63 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             LogInFile(LOG_NAME, "[PLUGIN] Found address from signature to TriggerServerEvent!\n");
         }
         else LogInFile(LOG_NAME, "[ERROR] Can`t find a sig to TriggerServerEvent.\n");
+        if (callRecalculateFrameRateLimit == nullptr)
+        {
+            callRecalculateFrameRateLimit = (ptrRecalculateFrameRateLimit)scan.FindPattern(xorstr_("core.dll"),
+            xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x50\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF1"),
+            xorstr_("xxxxxx????xxxxxxxxxxx????xxxxxxxxxxxxxxxxxx"));
+            if (callRecalculateFrameRateLimit != nullptr)
+            {
+                MH_RemoveHook(callRecalculateFrameRateLimit);
+                MH_CreateHook(callRecalculateFrameRateLimit, &RecalculateFrameRateLimit, reinterpret_cast<LPVOID*>(&callRecalculateFrameRateLimit));
+                MH_EnableHook(MH_ALL_HOOKS);
+                LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to FPS UNLOCKER!\n"));
+            }
+            else LogInFile(xorstr_("RevengeHack.log"), xorstr_("[ERROR] Can`t find a sig for FPS UNLOCKER.\n"));
+        }
+        if (callStartGame == nullptr) callStartGame = (ptrStartGame)scan.FindPattern(xorstr_("client.dll"),
+        xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x81\xEC\xB4\x01"),
+        xorstr_("xxxxxx????xxxxxxxxxxx"));
+        if (callStartGame != nullptr)
+        {
+            MH_RemoveHook(callStartGame);
+            MH_CreateHook(callStartGame, &StartGame, reinterpret_cast<LPVOID*>(&callStartGame));
+            MH_EnableHook(MH_ALL_HOOKS);
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to StartGame!\n"));
+        }
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for StartGame.\n"));
+        if (callGetRotationRadians == nullptr) callGetRotationRadians = (ptrGetRotationRadians)scan.FindPattern(xorstr_("client.dll"),
+        xorstr_("\x55\x8B\xEC\x83\xEC\x30\x53\x56\x8B\xF1\x8D"), xorstr_("xxxxxxxxxxx"));
+        if (callGetRotationRadians != nullptr)
+        {
+            MH_RemoveHook(callGetRotationRadians);
+            MH_CreateHook(callGetRotationRadians, &GetRotationRadians, reinterpret_cast<LPVOID*>(&callGetRotationRadians));
+            MH_EnableHook(MH_ALL_HOOKS);
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to GetRotationRadians!\n"));
+        }
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for GetRotationRadians.\n"));
+        if (callPedGetPosition == nullptr) callPedGetPosition = (ptrPedGetPosition)scan.FindPattern(xorstr_("client.dll"),
+        xorstr_("\x55\x8B\xEC\x57\x8B\xF9\x8B\x8F\x00\x00\x00\x00\x85\xC9\x74\x2B\x8B\x41\x04\x83\xC1\x04\x8B\x40\x0C\x03\xC8\x8B\x01\xFF\x50\x10\x85\xC0\x74\x17\x8B\x48\x04\x83\xC0\x04\x8B\x49\x04\x03\xC8\x8B\x01\xFF\x90\x00\x00\x00\x00\x8B\xC8\xEB\x02"),
+        xorstr_("xxxxxxxx????xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx????xxxx"));
+        if (callPedGetPosition != nullptr)
+        {
+            MH_RemoveHook(callPedGetPosition);
+            MH_CreateHook(callPedGetPosition, &PedGetPosition, reinterpret_cast<LPVOID*>(&callPedGetPosition));
+            MH_EnableHook(MH_ALL_HOOKS);
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to PedGetPosition!\n"));
+        }
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for PedGetPosition.\n"));
+        if (callVehGetPosition == nullptr) callVehGetPosition = (ptrVehGetPosition)scan.FindPattern(xorstr_("client.dll"),
+        xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x2C\x53\x56\x57\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF9\x80\xBF\xA8"),
+        xorstr_("xxxxxx????xxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxx"));
+        if (callVehGetPosition != nullptr)
+        {
+            MH_RemoveHook(callVehGetPosition);
+            MH_CreateHook(callVehGetPosition, &VehGetPosition, reinterpret_cast<LPVOID*>(&callVehGetPosition));
+            MH_EnableHook(MH_ALL_HOOKS);
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to VehGetPosition!\n"));
+        }
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for VehGetPosition.\n"));
     }
     return sts;
 }
