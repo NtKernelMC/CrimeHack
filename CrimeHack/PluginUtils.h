@@ -36,6 +36,7 @@ t_LuaLoadBuffer callLuaLoadBuffer = nullptr;
 typedef int(__cdecl* ptrAddDebugHook)(void* luaVM);
 ptrAddDebugHook callAddDebugHook = nullptr;
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+void __stdcall LogInFile(std::string log_name, const char* log, ...);
 typedef void(__thiscall* ptrForceCursorVisible)(void* ECX, bool bVisible, bool bToggleControls);
 ptrForceCursorVisible callForceCursorVisible = nullptr;
 std::string total_hwid = "";

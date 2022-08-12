@@ -135,7 +135,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         switch (page)
         {
         case CPP_TAB:
-            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Аирбрэйк")).c_str(), &airBrake);
+            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Аирбрэйк")).c_str(), &AirAllowed);
             break;
         case LUA_TAB:
             break;
