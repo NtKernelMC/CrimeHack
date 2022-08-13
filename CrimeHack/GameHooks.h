@@ -1,3 +1,15 @@
+typedef bool(__cdecl* ptrTriggerServerEvent)(const char* szName, void* CallWithEntity, void* Arguments);
+ptrTriggerServerEvent callTriggerServerEvent = nullptr;
+void __cdecl TriggerServerEvent(const char* szName, void* CallWithEntity, void* Arguments)
+{
+	bool skip_call = false;
+	if (findStringIC(szName, "trafficlights:addFine") && AntiRed) skip_call = true;
+	if (findStringIC(szName, "newGps:Teleportation")) skip_call = true;
+	if (findStringIC(szName, "SetPlayerCarDamage")) skip_call = true;
+	if (findStringIC(szName, "carshop:updateHpInfo")) skip_call = true;
+	if (findStringIC(szName, "ac:snd_adm_sp")) skip_call = true;
+	if (!skip_call) callTriggerServerEvent(szName, CallWithEntity, Arguments);
+}
 typedef bool(__thiscall* ptrStartGame)(void* ECX, const char* szNick, const char* szPassword, int Type, const char* szSecret);
 ptrStartGame callStartGame = nullptr; typedef void CClientGame; CClientGame* classPointer = nullptr;
 bool __fastcall StartGame(void* ECX, void* EDX, const char* szNick, const char* szPassword, int Type, const char* szSecret)
@@ -416,17 +428,6 @@ NTSTATUS __stdcall hkLdrUnloadDll(HANDLE ModuleHandle)
 	}
 	return callLdrUnloadDll(ModuleHandle);
 }
-typedef bool(__cdecl* ptrTriggerServerEvent)(const char* szName, void* CallWithEntity, void* Arguments);
-ptrTriggerServerEvent callTriggerServerEvent = nullptr;
-void __cdecl TriggerServerEvent(const char* szName, void* CallWithEntity, void* Arguments)
-{
-	bool skip_call = false;
-	if (findStringIC(szName, "newGps:Teleportation")) skip_call = true;
-	if (findStringIC(szName, "SetPlayerCarDamage")) skip_call = true;
-	if (findStringIC(szName, "carshop:updateHpInfo")) skip_call = true;
-	if (findStringIC(szName, "ac:snd_adm_sp")) skip_call = true;
-	if (!skip_call) callTriggerServerEvent(szName, CallWithEntity, Arguments);
-}
 typedef float(__thiscall* ptrGetHealth)(void* ECX);
 ptrGetHealth callGetHealth = nullptr;
 float __fastcall GetHealth(void* ECX, void* EDX)
@@ -514,6 +515,12 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	end
 	setTimer(ParseCommandsFromClient, 100, 0)
 
+	function BindedCode()
+		local lights = getTrafficLightState()
+		outputChatBox('Lights state: ' .. tostring(lights))
+	end
+	bindKey("9", "down", BindedCode)
+
     )STUB");
     int result = callLuaLoadBuffer(L, buff, sz, name);
     callLuaLoadBuffer(L, code.c_str(), code.length(), xorstr_("QRAM"));
@@ -565,4 +572,43 @@ bool __fastcall ProcessMessage(void* ECX, void* EDX, HWND__* hwnd, unsigned int 
     ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam);
     if (ShowMenu) return true;
     return callProcessMessage(ECX, hwnd, uMsg, wParam, lParam);
+}
+float cVecLength(CVector vec) { return sqrt((vec.x * vec.x) + (vec.y * vec.y) + (vec.z * vec.z)); }
+typedef void(__thiscall* ptrVehGetMoveSpeed)(void* ECX, CVector* vecMoveSpeed);
+ptrVehGetMoveSpeed callVehGetMoveSpeed = nullptr;
+void __fastcall VehGetMoveSpeed(void* ECX, void* EDX, CVector* vecMoveSpeed)
+{
+	if (!AntiRadar) callVehGetMoveSpeed(ECX, vecMoveSpeed);
+	else
+	{
+		CVector vecSpeed; callVehGetMoveSpeed(ECX, &vecSpeed);
+		std::random_device rd; std::mt19937 gen(rd());
+		std::uniform_real_distribution<float> dis(66.0f, 69.0f);
+		float speed_limit = dis(gen), fMult = 111.84681456f;
+		float acSpeed = cVecLength(vecSpeed * fMult);
+		if (acSpeed && acSpeed != 0 && acSpeed >= 68.0f)
+		{
+			float diff = speed_limit / acSpeed;
+			vecMoveSpeed->x = vecSpeed.x * diff;
+			vecMoveSpeed->y = vecSpeed.y * diff;
+			vecMoveSpeed->z = vecSpeed.z * diff;
+		}
+		else callVehGetMoveSpeed(ECX, vecMoveSpeed);
+	}
+}
+typedef bool(__cdecl* ptrSetTrafficLightState)(char ucState);
+ptrSetTrafficLightState callSetTrafficLightState = nullptr;
+bool __cdecl SetTrafficLightState(char ucState)
+{
+	bool rslt = true;
+	if (!AntiRed) rslt = callSetTrafficLightState(ucState);
+	return rslt;
+}
+typedef bool (__cdecl *ptrSetTrafficLightsLocked)(bool bLocked);
+ptrSetTrafficLightsLocked callSetTrafficLightsLocked = nullptr;
+bool __cdecl SetTrafficLightsLocked(bool bLocked)
+{
+	bool rslt = true;
+	if (!AntiRed) rslt = callSetTrafficLightsLocked(bLocked);
+	return rslt;
 }

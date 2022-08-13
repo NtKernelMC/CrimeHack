@@ -199,6 +199,18 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Инвиз пешком")).c_str(), &PedInviz);
             ImGui::SameLine(); ImGui::Checkbox(cp1251_to_utf8(xorstr_("Инвиз в тачке")).c_str(), &VehInviz);
             ImGui::SameLine(); ImGui::Checkbox(cp1251_to_utf8(xorstr_("Тачка ездит перевернутой (Синхра)")).c_str(), &UpSide);
+            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Анти-штраф (Скорость)")).c_str(), &AntiRadar);
+            ImGui::SameLine(); 
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Анти-штраф (Светофор)")).c_str(), &AntiRed))
+            {
+                if (AntiRed)
+                {
+                    AntiRed = false;
+                    SetTrafficLightState(5);
+                    SetTrafficLightsLocked(true);
+                    AntiRed = true;
+                }
+            }
             break;
         case LUA_TAB:
             break;

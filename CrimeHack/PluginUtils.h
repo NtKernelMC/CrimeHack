@@ -3,7 +3,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V1.3 ALPHA")
+#define PLUGIN_VER xorstr_("V1.4 ALPHA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -15,6 +15,7 @@
 #include <codecvt>
 #include "xorstr.h"
 #include "MD5.h"
+#include <random>
 #include "VMProtectSDK.h"
 #include <comdef.h>
 #include "Collision.h"
@@ -24,6 +25,8 @@
 #pragma comment(lib, "wbemuuid.lib")
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Wininet.lib")
+bool AntiRadar = false;
+bool AntiRed = false;
 bool NoScreen = false;
 bool PedInviz = false;
 bool VehInviz = false;
