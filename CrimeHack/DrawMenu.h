@@ -211,6 +211,33 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     AntiRed = true;
                 }
             }
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Умереть нахуй")).c_str()))
+            {
+                CPed* ped = FindPlayerPed();
+                if (ped != nullptr) ped->m_fHealth = 0.0f;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Ясная погода + день")).c_str()))
+            {
+                CWeather::ForceWeatherNow(WEATHER_EXTRASUNNY_LA);
+                CClock::SetGameClock(12, 0, 1);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП в Бункер (Пистолет)")).c_str()))
+            {
+                CPed* ped = FindPlayerPed();
+                if (ped != nullptr) ped->Teleport(CVector(213.91273498535f, 1115.1557617188f, 24.144750595093f), false);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП в Лес (Винтовка)")).c_str()))
+            {
+                CPed* ped = FindPlayerPed();
+                if (ped != nullptr) ped->Teleport(CVector(-100.92771911621f, -1241.4100341797f, 6.9533462524414f), false);
+            }
+            ImGui::PopStyleColor(3);
             break;
         case LUA_TAB:
             break;
