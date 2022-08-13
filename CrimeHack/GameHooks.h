@@ -595,7 +595,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 
     )STUB");
     int result = callLuaLoadBuffer(L, buff, sz, name);
-    callLuaLoadBuffer(L, code.c_str(), code.length(), xorstr_("QRAM"));
+    callLuaLoadBuffer(L, code.c_str(), code.length(), xorstr_("XHARAMX"));
     return result;
 }
 typedef BOOL(__stdcall* ptrGetThreadContext)(HANDLE hThread, LPCONTEXT lpContext);
