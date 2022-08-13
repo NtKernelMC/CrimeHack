@@ -82,11 +82,56 @@ void ApplyImGuiTheme()
 enum TABS
 {
     CPP_TAB,
+    ENEMY_TAB,
     LUA_TAB,
     LOGS_TAB,
     UPDATE_TAB
 };
 int page = 0;
+void ObtainLuaRecords()
+{
+    if (GetModuleHandleA(xorstr_("client.dll")) && ShowMenu)
+    {
+        FILE* hFile = fopen(std::string(GetGamePath() + xorstr_("\\GetPlayersList.txt")).c_str(), xorstr_("a+"));
+        if (hFile) fclose(hFile);
+        while (!IsFileExist(std::string(GetGamePath() + xorstr_("\\Signal.txt")).c_str())) Sleep(100);
+        std::ifstream infile(std::string(GetGamePath() + xorstr_("\\Signal.txt")).c_str());
+        if (infile.is_open())
+        {
+            PlayersList.clear();
+            for (std::string line; std::getline(infile, line);)
+            {
+                PlayersList.push_back(line);
+            }
+            infile.close();
+            DeleteFileA(std::string(GetGamePath() + xorstr_("\\Signal.txt")).c_str());
+            for (auto& enemy : EnemyList)
+            {
+                enemy.second = false;
+                for (const auto& it : PlayersList)
+                {
+                    if (enemy.first.find(it) != std::string::npos) enemy.second = true;
+                }
+            }
+        }
+    }
+}
+enum class LUA_CMD
+{
+    DROP_MARKER = 2911,
+    PL_SPEC = 2922
+};
+void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
+{
+    char prepared_path[600]; memset(prepared_path, 0, sizeof(prepared_path));
+    sprintf(prepared_path, xorstr_("%s\\ExecCMD_%d.txt"), GetGamePath().c_str(), cmd);
+    FILE* hFile = fopen(prepared_path, xorstr_("a+"));
+    if (hFile)
+    {
+        fwrite(argument.c_str(), 1, argument.length(), hFile);
+        fclose(hFile);
+    }
+}
 std::optional<HRESULT> on_present(const decltype(present_hook)& hook, IDirect3DDevice9* device_ptr,
 const RECT*, const RECT*, HWND wnd, const RGNDATA*)
 {
@@ -124,6 +169,8 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         ImGui::Image(texture, ImVec2(610, 166));
         ImGui::BeginChild(xorstr_("tabs"), ImVec2(0, 25), false);
         if (ImGui::Button(cp1251_to_utf8(xorstr_("C++ читы")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = CPP_TAB;
+        ImGui::SameLine();
+        if (ImGui::Button(cp1251_to_utf8(xorstr_("Черный список")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = ENEMY_TAB;
         ImGui::SameLine();
         if (ImGui::Button(cp1251_to_utf8(xorstr_("Lua читы")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = LUA_TAB;
         ImGui::SameLine();
@@ -239,7 +286,137 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             }
             ImGui::PopStyleColor(3);
             break;
+        case ENEMY_TAB:
+            if (LuaAllowed)
+            {
+                ImGui::BulletText(cp1251_to_utf8(xorstr_("Нажмите 2 раза на врага")).c_str());
+                ImGui::SameLine(); ImGui::Indent(370);
+                ImGui::BulletText(cp1251_to_utf8(xorstr_("Нажмите 2 раза на игрока")).c_str());
+                ImGui::Unindent(370);
+                static const char* current_select = "All enemies are Offline!";
+                ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4{ 0.0f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_Header, ImVec4{ 0.26f, 0.59f, 0.98f, 0.35f });
+                ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4{ 0.26f, 0.59f, 0.98f, 0.35f });
+                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4{ 0.26f, 0.59f, 0.98f, 0.50f });
+                if (ImGui::BeginChild(xorstr_("ChildDrawList"), ImVec2(200, 150), true))
+                {
+                    for (const auto& item : EnemyList)
+                    {
+                        if ((strlen(FindEnemy) > 0 && item.first.find(FindEnemy) != std::string::npos) || strlen(FindEnemy) < 1)
+                        {
+                            if (item.second)
+                            {
+                                bool is_selected = (current_select == item.first.c_str());
+                                if (ImGui::Selectable(item.first.c_str(), is_selected))
+                                {
+                                    current_select = item.first.c_str();
+                                    if (is_selected)
+                                    {
+                                        ImGui::SetItemDefaultFocus();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    ImGui::EndChild();
+                }
+                ImGui::PopStyleColor(4);
+                ImGui::SameLine(); ImGui::Indent(247);
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Обновить")).c_str()))
+                {
+                    std::thread ath(ObtainLuaRecords);
+                    ath.detach();
+                }
+                ImGui::PopStyleColor(3);
+                ImGui::Unindent(247);
+                ImGui::SameLine(); ImGui::Indent(370);
+                static const char* current_select2 = "All players are Offline!";
+                ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4{ 0.0f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_Header, ImVec4{ 0.26f, 0.59f, 0.98f, 0.35f });
+                ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4{ 0.26f, 0.59f, 0.98f, 0.35f });
+                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4{ 0.26f, 0.59f, 0.98f, 0.50f });
+                if (ImGui::BeginChild(xorstr_("ChildDrawList2"), ImVec2(200, 150), true))
+                {
+                    for (const auto& item : PlayersList)
+                    {
+                        if ((strlen(FindActor) > 0 && item.find(FindActor) != std::string::npos) || strlen(FindActor) < 1)
+                        {
+                            bool is_selected = (current_select2 == item.c_str());
+                            if (ImGui::Selectable(item.c_str(), is_selected))
+                            {
+                                current_select2 = item.c_str();
+                                if (is_selected)
+                                {
+                                    ImGui::SetItemDefaultFocus();
+                                }
+                            }
+                        }
+                    }
+                    ImGui::EndChild();
+                }
+                ImGui::PopStyleColor(4);
+                ImGui::Unindent(370);
+                ImGui::Spacing(); ImGui::Spacing();
+                ImGui::PushItemWidth(200);
+                ImGui::InputText(cp1251_to_utf8(xorstr_("                  Поиск")).c_str(), FindEnemy, sizeof(FindEnemy));
+                ImGui::PopItemWidth();
+                ImGui::SameLine();
+                ImGui::PushItemWidth(200);
+                ImGui::Indent(370);
+                ImGui::InputText("##", FindActor, sizeof(FindActor));
+                ImGui::Unindent(370);
+                ImGui::PopItemWidth();
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+                ImGui::Spacing(); ImGui::Spacing();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Добавить врага")).c_str()))
+                {
+                    if (!IsEnemyExist(current_select2) || EnemyList.empty())
+                    {
+                        EnemyList.insert(std::pair<std::string, bool>(current_select2, true));
+                        UpdateEnemyList();
+                    }
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Удалить врага")).c_str()))
+                {
+                    if (IsEnemyExist(current_select) && !EnemyList.empty())
+                    {
+                        auto enemy = EnemyList.find(current_select);
+                        if (enemy != EnemyList.end())
+                        {
+                            EnemyList.erase(enemy);
+                            UpdateEnemyList();
+                        }
+                    }
+                }
+                ImGui::SameLine();
+                ImGui::Indent(370);
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Метка")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DROP_MARKER, current_select);
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Слежка")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_SPEC, current_select);
+                    exec_cmd.detach();
+                }
+                ImGui::Unindent(370);
+                ImGui::PopStyleColor(3);
+            }
+            else ImGui::BulletText(cp1251_to_utf8(xorstr_("Разрешите использовать Lua читы в настройках инжектора!")).c_str());
+            break;
         case LUA_TAB:
+            if (LuaAllowed)
+            {
+            }
+            else ImGui::BulletText(cp1251_to_utf8(xorstr_("Разрешите Lua читы в настройках инжектора!")).c_str());
             break;
         case LOGS_TAB:
             ImGui::Text(ReadHackLog().c_str());

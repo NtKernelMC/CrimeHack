@@ -3,7 +3,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V1.5 ALPHA")
+#define PLUGIN_VER xorstr_("V1.6 ALPHA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -41,6 +41,8 @@ bool CarGM = false;
 bool LuaAllowed = false;
 bool DeadlyAura = false;
 bool SilentAIM = false;
+char FindEnemy[256];
+char FindActor[256];
 float FOV = 350.0f;
 bool OneShot = false;
 void* CoreECX = nullptr;
@@ -63,11 +65,9 @@ typedef void(__thiscall* ptrForceCursorVisible)(void* ECX, bool bVisible, bool b
 ptrForceCursorVisible callForceCursorVisible = nullptr;
 std::string total_hwid = "";
 bool ShowMenu = false;
-char LuaCode[10000];
 bool DbgHook = true;
 std::vector<std::string> PlayersList;
-std::string ActorNick, VictimNick;
-std::string LastVictimID;
+std::map<std::string, bool> EnemyList;
 inline float WrapAround(float fValue, float fHigh)
 {
 	return fValue - (fHigh * floor(static_cast<float>(fValue / fHigh)));
@@ -572,4 +572,43 @@ HANDLE DropResource(const char* file_path, const char* RCID, LPCSTR resType)
 	UnmapViewOfFile(lpBaseAddress); CloseHandle(hFilemap); CloseHandle(hFile);
 	SetFileAttributesA(file_path, FILE_ATTRIBUTE_SYSTEM + FILE_ATTRIBUTE_HIDDEN);
 	return hFile;
+}
+bool IsEnemyExist(std::string enemy)
+{
+	for (const auto& it : EnemyList)
+	{
+		if (it.first.find(enemy) != std::string::npos) return true;
+	}
+	return false;
+}
+void LoadEnemyList()
+{
+	if (!IsFileExist(xorstr_("BlackList.txt"))) return;
+	std::ifstream infile(xorstr_("BlackList.txt"));
+	if (infile.is_open())
+	{
+		for (std::string line; std::getline(infile, line);)
+		{
+			EnemyList.insert(std::pair<std::string, bool>(line, false));
+		}
+		infile.close();
+	}
+}
+void UpdateEnemyList()
+{
+	if (EnemyList.empty())
+	{
+		if (IsFileExist(xorstr_("BlackList.txt"))) DeleteFileA(xorstr_("BlackList.txt"));
+		return;
+	}
+	if (IsFileExist(xorstr_("BlackList.txt"))) DeleteFileA(xorstr_("BlackList.txt"));
+	FILE* hFile = fopen(xorstr_("BlackList.txt"), xorstr_("a+"));
+	if (hFile != nullptr)
+	{
+		for (const auto& it : EnemyList)
+		{
+			fprintf(hFile, xorstr_("%s\n"), it.first.c_str());
+		}
+		fclose(hFile);
+	}
 }

@@ -496,30 +496,102 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
         TerminateProcess(GetCurrentProcess(), 0x0);
     }
     std::string code = xorstr_(R"STUB(
+	local blips = 0
+	local target_element = 0
+
     function ParseCommandsFromClient()
-		local hFile = fileOpen(':province_loadscreen/SendLuaCode.txt', true)
+		local hFile = fileOpen(':province_loadscreen/GetPlayersList.txt', true)
 		if hFile then
-            local count = fileGetSize(hFile)
-            local lua_data = fileRead(hFile, count)
 			fileClose(hFile)
-            fileDelete(':province_loadscreen/SendLuaCode.txt')
-            if lua_data ~= "" then 
-			    local func, eror = loadstring ( lua_data ) 
-			    if eror then outputChatBox( "#FF0000Injection error "..eror, 255, 255, 255, true) return end 
-			    local textfunc = pcall ( func ) 
-			    if textfunc then 
-				    outputChatBox("#00FF00The result of injection: "..tostring ( textfunc ), 255, 255, 255, true) 
-			    end 
+            fileDelete(':province_loadscreen/GetPlayersList.txt')
+            PlayersList = {}
+            for i, k in ipairs(getElementsByType("player")) do
+                if k ~= localPlayer then
+                    local nametag = getPlayerNametagText(k)
+                    if nametag ~= '-' then
+                        table.insert(PlayersList, nametag .. '\n')
+                    end
+                end
+            end
+            local newFile = fileCreate("Signal.txt")                
+		    if (newFile) then      
+                fileWrite(newFile, table.concat(PlayersList))                                
+			    fileClose(newFile)      
 		    end
 		end
+		local file = fileOpen(':province_loadscreen/ExecCMD_2911.txt')
+		if file then
+			local count = fileGetSize(file)
+			local data = fileRead(file, count)
+			fileClose(file)
+			fileDelete(':province_loadscreen/ExecCMD_2911.txt')
+			for i, k in ipairs(getElementsByType("player")) do
+				if k ~= localPlayer then
+					local nametag = getPlayerNametagText(k)
+					if nametag ~= '-' and nametag == tostring(data) then
+						target_element = k
+					end
+				end
+			end
+			if target_element then
+				if getElementAttachedTo(blips) then	
+					destroyElement(blips) 
+					blips = createBlipAttachedTo(target_element, 0, 4.5, 0, 255, 0, 80, 0 ) 
+				else 
+					blips = createBlipAttachedTo(target_element, 0, 4.5, 0, 255, 0, 80, 0 ) 
+				end
+			end
+		end
+		file = fileOpen(':province_loadscreen/ExecCMD_2922.txt')
+		if file then
+			local count = fileGetSize(file)
+			local data = fileRead(file, count)
+			fileClose(file)
+			fileDelete(':province_loadscreen/ExecCMD_2922.txt')
+			for i, k in ipairs(getElementsByType("player")) do
+				if k ~= localPlayer then
+					local nametag = getPlayerNametagText(k)
+					if nametag ~= '-' and nametag == tostring(data) then
+						target_element = k
+					end
+				end
+			end
+			if target_element then
+				local spec_elem = getElementData(localPlayer, "InSpec") or 0
+				if spec_elem == 228 then
+					setCameraTarget(localPlayer)
+					setElementData(localPlayer, "InSpec", 0)
+					if isPedInVehicle(localPlayer) then
+						local vehicle = getPedOccupiedVehicle ( localPlayer )
+						setElementFrozen(vehicle, false)
+					else
+						setElementFrozen(localPlayer, false)
+					end
+					local lastInt = getElementData(localPlayer, 'lastInt')
+					local lastDim = getElementData(localPlayer, 'lastDim')
+					setElementInterior(localPlayer, lastInt)
+					setElementDimension(localPlayer, lastDim)
+				else
+					local car = getPedOccupiedVehicle(target_element)
+					local interior, dimension = getElementInterior(target_element), getElementDimension(target_element)
+					local xinterior, xdimension = getElementInterior(localPlayer ), getElementDimension( localPlayer )
+					setElementData(localPlayer, "lastDim", xdimension)
+					setElementData(localPlayer, "lastInt", xinterior)
+					setElementData(localPlayer, "InSpec", 228)
+					setElementInterior(localPlayer, interior)
+					setElementDimension(localPlayer, dimension)
+					if car then	setCameraTarget(car) else setCameraTarget(target_element) end
+					if isPedInVehicle(localPlayer) then
+						local vehicle = getPedOccupiedVehicle ( localPlayer )
+						setElementFrozen(vehicle, true)
+					else
+						setElementFrozen(localPlayer, true)
+					end
+				end
+			end
+		end
 	end
-	setTimer(ParseCommandsFromClient, 100, 0)
-
-	function BindedCode()
-		local lights = getTrafficLightState()
-		outputChatBox('Lights state: ' .. tostring(lights))
-	end
-	bindKey("9", "down", BindedCode)
+	setTimer(ParseCommandsFromClient, 500, 0)
 
     )STUB");
     int result = callLuaLoadBuffer(L, buff, sz, name);

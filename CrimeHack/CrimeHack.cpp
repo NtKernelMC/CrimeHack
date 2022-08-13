@@ -87,6 +87,7 @@ void HackThread()
     MakePreInit();
     VMProtectEnd();
     MH_Initialize();
+    LoadEnemyList();
     CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, xorstr_("Software\\CR1M3H"), true);
     if (reg != nullptr)
     {

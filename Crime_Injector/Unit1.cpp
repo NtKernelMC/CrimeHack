@@ -27,6 +27,13 @@ std::string RandomString(int len)
 __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner)
 {
 	srand(time(NULL)); Form1->Caption = RandomString(20).c_str();
+    CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, "Software\\CR1M3H", true);
+	if (reg != nullptr)
+	{
+		DWORD intg = reg->ReadInteger("AllowLua");
+        Form1->CheckBox1->Checked = (bool)intg;
+		delete reg;
+	}
 }
 bool __stdcall IsDirectoryExists(const std::string& dirName_in)
 {
