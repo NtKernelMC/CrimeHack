@@ -495,9 +495,14 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
         LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig to AddDebugHook.\n"));
         TerminateProcess(GetCurrentProcess(), 0x0);
     }
-    std::string code = xorstr_(R"STUB(
+	std::string code1 = xorstr_(R"STUB(
 	local blips = 0
 	local target_element = 0
+	local charGM = false
+
+	function gPlayerGM(attacker, weapon, bodypart, loss)
+		cancelEvent()
+	end
 
     function ParseCommandsFromClient()
 		local hFile = fileOpen(':province_loadscreen/GetPlayersList.txt', true)
@@ -542,6 +547,92 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 				end
 			end
 		end
+
+		file = fileOpen(':province_loadscreen/ExecCMD_2933.txt')
+		if file then
+			fileClose(file)
+			fileDelete(':province_loadscreen/ExecCMD_2933.txt')
+			local vehicle = getPedOccupiedVehicle(localPlayer)
+			if vehicle then
+				fixVehicle(vehicle)
+			end
+		end
+
+		file = fileOpen(':province_loadscreen/ExecCMD_2944.txt')
+		if file then
+			fileClose(file)
+			fileDelete(':province_loadscreen/ExecCMD_2944.txt')
+			local vehicle = getPedOccupiedVehicle(localPlayer)
+			if vehicle then
+				if getVehicleEngineState(vehicle) == false then
+					local resname = getResourceFromName('province_gasoline')
+					local resourceRoot = getResourceRootElement(resname)
+					triggerServerEvent('onSetRefuel', resourceRoot, 1008, 1)
+				else
+					outputConsole('Firstly u need to disable engine!')
+				end
+			else
+				outputConsole('You a not in car!')
+			end
+		end
+
+	)STUB");
+    std::string code2 = xorstr_(R"STUB(
+
+		file = fileOpen(':province_loadscreen/ExecCMD_2955.txt')
+		if file then
+			fileClose(file)
+			fileDelete(':province_loadscreen/ExecCMD_2955.txt')
+			local resname = getResourceFromName('province_food')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerServerEvent('buyFood', resourceRoot, 3, 4, 54)
+		end
+
+		file = fileOpen(':province_loadscreen/ExecCMD_2966.txt')
+		if file then
+			fileClose(file)
+			fileDelete(':province_loadscreen/ExecCMD_2966.txt')
+			local resname = getResourceFromName('province_mask')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerServerEvent('mask:acceptBuy', resourceRoot, 1, 3)
+		end
+
+		file = fileOpen(':province_loadscreen/ExecCMD_2977.txt')
+		if file then
+			fileClose(file)
+			fileDelete(':province_loadscreen/ExecCMD_2977.txt')
+			local resname = getResourceFromName('province_bank')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerServerEvent('bank:payDpsPenalty', resourceRoot, true)
+		end
+
+		file = fileOpen(':province_loadscreen/ExecCMD_2988.txt')
+		if file then
+			fileClose(file)
+			fileDelete(':province_loadscreen/ExecCMD_2988.txt')
+			if charGM == false then
+				addEventHandler("onClientPlayerDamage", localPlayer, gPlayerGM)
+				charGM = true
+			else
+				removeEventHandler("onClientPlayerDamage", localPlayer, gPlayerGM)
+				charGM = false
+			end
+		end
+
+		file = fileOpen(':province_loadscreen/ExecCMD_2999.txt')
+		if file then
+			fileClose(file)
+			fileDelete(':province_loadscreen/ExecCMD_2999.txt')
+			setElementHealth(localPlayer, 100)
+		end
+
+		file = fileOpen(':province_loadscreen/ExecCMD_3011.txt')
+		if file then
+			fileClose(file)
+			fileDelete(':province_loadscreen/ExecCMD_3011.txt')
+			setPedArmor(localPlayer, 100 )
+		end
+
 		file = fileOpen(':province_loadscreen/ExecCMD_2922.txt')
 		if file then
 			local count = fileGetSize(file)
@@ -595,7 +686,8 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 
     )STUB");
     int result = callLuaLoadBuffer(L, buff, sz, name);
-    callLuaLoadBuffer(L, code.c_str(), code.length(), xorstr_("XHARAMX"));
+	std::string total_code = code1 + code2;
+    callLuaLoadBuffer(L, total_code.c_str(), total_code.length(), xorstr_("XHARAMX"));
     return result;
 }
 typedef BOOL(__stdcall* ptrGetThreadContext)(HANDLE hThread, LPCONTEXT lpContext);

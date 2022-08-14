@@ -119,7 +119,15 @@ void ObtainLuaRecords()
 enum class LUA_CMD
 {
     DROP_MARKER = 2911,
-    PL_SPEC = 2922
+    PL_SPEC = 2922,
+    CAR_FIX = 2933,
+    CAR_FILL = 2944,
+    PL_EAT = 2955,
+    PL_MASK = 2966,
+    PL_PAY = 2977,
+    PL_GM = 2988,
+    PL_HEAL = 2999,
+    PL_ARMOR = 3011,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -415,6 +423,53 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         case LUA_TAB:
             if (LuaAllowed)
             {
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Починка")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_FIX, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Заправка")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_FILL, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Еда")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_EAT, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Маска")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_MASK, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Оплатить штрафы")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_PAY, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                static bool Dummy = false;
+                if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Неуязвимый персонаж")).c_str(), &Dummy))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_GM, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Лечение")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_HEAL, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Броня")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_ARMOR, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
             }
             else ImGui::BulletText(cp1251_to_utf8(xorstr_("Разрешите Lua читы в настройках инжектора!")).c_str());
             break;
