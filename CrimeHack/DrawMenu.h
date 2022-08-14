@@ -201,7 +201,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 {
                     for (short x = 0; x < 13; x++)
                     {
-                        if (ped->m_aWeapons[x].m_nTotalAmmo != NULL) ped->GiveWeapon(ped->m_aWeapons[x].m_nType, 9999, false);
+                        if (ped->m_aWeapons[x].m_nTotalAmmo != NULL) ped->GiveWeapon(ped->m_aWeapons[x].m_eWeaponType, 9999, false);
                     }
                     MessageBeep(MB_ICONERROR);
                 }

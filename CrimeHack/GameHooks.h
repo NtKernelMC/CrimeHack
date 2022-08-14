@@ -136,7 +136,7 @@ void SafeActions(CPed* ped)
 					targetEnd.x -= ped->m_vecMoveSpeed.x;
 					targetEnd.y -= ped->m_vecMoveSpeed.y;
 					targetEnd.z -= ped->m_vecMoveSpeed.z;
-					eWeaponType currentWeapon = pedSelf->m_aWeapons[pedSelf->m_nActiveWeaponSlot].m_nType;
+					eWeaponType currentWeapon = pedSelf->m_aWeapons[pedSelf->m_nActiveWeaponSlot].m_eWeaponType;
 					if (currentWeapon >= 22 && currentWeapon <= 34)
 					callSendBulletSyncFire(netApi, currentWeapon, targetStart,
 					targetEnd, CalculateDamage(currentWeapon), 9, victim);

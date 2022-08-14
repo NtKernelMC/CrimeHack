@@ -47,8 +47,8 @@
     <IntDir>$(ProjectDir).obj\GTASA\Release\</IntDir>
     <TargetName>Crime.SA</TargetName>
     <TargetExt>.dll</TargetExt>
-    <IncludePath>$(DXSDK_DIR)Include\;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;</IncludePath>
-    <LibraryPath>gram Files %28x86%29\Microsoft DirectX SDK %28August 2009%29;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(DXSDK_DIR)Include\;C:\Program Files %28x86%29\Microsoft DirectX SDK %28August 2009%29\Include</IncludePath>
+    <LibraryPath>C:\Program Files %28x86%29\Microsoft DirectX SDK %28August 2009%29\Lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GTASA zDebug|Win32'">
     <OutDir>$(SolutionDir)output\</OutDir>
