@@ -136,11 +136,11 @@ enum class LUA_CMD
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
     char prepared_path[600]; memset(prepared_path, 0, sizeof(prepared_path));
-    sprintf(prepared_path, xorstr_("%s\\ExecCMD_%d.txt"), GetGamePath().c_str(), cmd);
+    sprintf(prepared_path, xorstr_("%s\\ExecCMD.txt"), GetGamePath().c_str());
     FILE* hFile = fopen(prepared_path, xorstr_("a+"));
     if (hFile)
     {
-        fwrite(argument.c_str(), 1, argument.length(), hFile);
+        fprintf(hFile, xorstr_("%d\n%s"), cmd, argument.c_str());
         fclose(hFile);
     }
 }

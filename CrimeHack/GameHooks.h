@@ -483,6 +483,9 @@ int __cdecl AddDebugHook(void* luaVM)
 int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 {
 	std::string code1 = xorstr_(R"STUB(
+	local lastDim = 0
+	local lastInt = 0
+	local InSpec = 0
 	local blips = 0
 	local target_element = 0
 	local charGM = false
@@ -492,7 +495,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	end
 
     function ParseCommandsFromClient()
-		local hFile = fileOpen(':province_loadscreen/GetPlayersList.txt', true)
+		local hFile = fileOpen('GetPlayersList.txt', true)
 		if hFile then
 			fileClose(hFile)
             fileDelete(':province_loadscreen/GetPlayersList.txt')
@@ -511,175 +514,123 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			    fileClose(newFile)      
 		    end
 		end
-		local file = fileOpen(':province_loadscreen/ExecCMD_2911.txt')
+
+		local textFile = {}
+
+		local file = fileOpen(':province_loadscreen/ExecCMD.txt', true)
 		if file then
 			local count = fileGetSize(file)
 			local data = fileRead(file, count)
+			for w in data:gmatch( '([^%s]+)' ) do
+				table.insert( textFile, w )
+			end
 			fileClose(file)
-			fileDelete(':province_loadscreen/ExecCMD_2911.txt')
-			for i, k in ipairs(getElementsByType("player")) do
-				if k ~= localPlayer then
-					local nametag = getPlayerNametagText(k)
-					if nametag ~= '-' and nametag == tostring(data) then
-						target_element = k
+			fileDelete(':province_loadscreen/ExecCMD.txt')
+			local exec_cmd = textFile[1]
+			local exec_arg = textFile[2]
+
+			if tonumber(exec_cmd) == 2911 then
+				for i, k in ipairs(getElementsByType("player")) do
+					if k ~= localPlayer then
+						local nametag = getPlayerNametagText(k)
+						if nametag ~= '-' and nametag == tostring(exec_arg) then
+							target_element = k
+						end
+					end
+				end
+				if target_element then
+					if getElementAttachedTo(blips) then	
+						destroyElement(blips) 
+						blips = createBlipAttachedTo(target_element, 0, 4.5, 0, 255, 0, 80, 0 ) 
+					else 
+						blips = createBlipAttachedTo(target_element, 0, 4.5, 0, 255, 0, 80, 0 ) 
 					end
 				end
 			end
-			if target_element then
-				if getElementAttachedTo(blips) then	
-					destroyElement(blips) 
-					blips = createBlipAttachedTo(target_element, 0, 4.5, 0, 255, 0, 80, 0 ) 
-				else 
-					blips = createBlipAttachedTo(target_element, 0, 4.5, 0, 255, 0, 80, 0 ) 
+
+			if tonumber(exec_cmd) == 2933 then
+				local vehicle = getPedOccupiedVehicle(localPlayer)
+				if vehicle then
+					fixVehicle(vehicle)
 				end
 			end
-		end
 
-		file = fileOpen(':province_loadscreen/ExecCMD_2933.txt')
-		if file then
-			fileClose(file)
-			fileDelete(':province_loadscreen/ExecCMD_2933.txt')
-			local vehicle = getPedOccupiedVehicle(localPlayer)
-			if vehicle then
-				fixVehicle(vehicle)
-			end
-		end
-
-		file = fileOpen(':province_loadscreen/ExecCMD_2944.txt')
-		if file then
-			fileClose(file)
-			fileDelete(':province_loadscreen/ExecCMD_2944.txt')
-			local vehicle = getPedOccupiedVehicle(localPlayer)
-			if vehicle then
-				if getVehicleEngineState(vehicle) == false then
-					local resname = getResourceFromName('province_gasoline')
-					local resourceRoot = getResourceRootElement(resname)
-					triggerServerEvent('onSetRefuel', resourceRoot, 1008, 1)
+			if tonumber(exec_cmd) == 2944 then
+				local vehicle = getPedOccupiedVehicle(localPlayer)
+				if vehicle then
+					if getVehicleEngineState(vehicle) == false then
+						local resname = getResourceFromName('province_gasoline')
+						local resourceRoot = getResourceRootElement(resname)
+						triggerServerEvent('onSetRefuel', resourceRoot, 1008, 1)
+					else
+						outputConsole('Firstly u need to disable engine!')
+					end
 				else
-					outputConsole('Firstly u need to disable engine!')
+					outputConsole('You a not in car!')
 				end
-			else
-				outputConsole('You a not in car!')
 			end
-		end
 
-		file = fileOpen(':province_loadscreen/ExecCMD_2955.txt')
-		if file then
-			fileClose(file)
-			fileDelete(':province_loadscreen/ExecCMD_2955.txt')
-			local resname = getResourceFromName('province_food')
-			local resourceRoot = getResourceRootElement(resname)
-			triggerServerEvent('buyFood', resourceRoot, 3, 4, 54)
-		end
-
-		file = fileOpen(':province_loadscreen/ExecCMD_2966.txt')
-		if file then
-			fileClose(file)
-			fileDelete(':province_loadscreen/ExecCMD_2966.txt')
-			local resname = getResourceFromName('province_mask')
-			local resourceRoot = getResourceRootElement(resname)
-			triggerServerEvent('mask:acceptBuy', resourceRoot, 1, 3)
-		end
-
-		file = fileOpen(':province_loadscreen/ExecCMD_2977.txt')
-		if file then
-			fileClose(file)
-			fileDelete(':province_loadscreen/ExecCMD_2977.txt')
-			local resname = getResourceFromName('province_bank')
-			local resourceRoot = getResourceRootElement(resname)
-			triggerServerEvent('bank:payDpsPenalty', resourceRoot, true)
-		end
-
-		file = fileOpen(':province_loadscreen/ExecCMD_2988.txt')
-		if file then
-			fileClose(file)
-			fileDelete(':province_loadscreen/ExecCMD_2988.txt')
-			if charGM == false then
-				addEventHandler("onClientPlayerDamage", localPlayer, gPlayerGM)
-				charGM = true
-			else
-				removeEventHandler("onClientPlayerDamage", localPlayer, gPlayerGM)
-				charGM = false
+			if tonumber(exec_cmd) == 2955 then
+				local resname = getResourceFromName('province_food')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('buyFood', resourceRoot, 3, 4, 54)
 			end
-		end
 
-		file = fileOpen(':province_loadscreen/ExecCMD_2999.txt')
-		if file then
-			fileClose(file)
-			fileDelete(':province_loadscreen/ExecCMD_2999.txt')
-			setElementHealth(localPlayer, 100)
-		end
+			if tonumber(exec_cmd) == 2966 then
+				local resname = getResourceFromName('province_mask')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('mask:acceptBuy', resourceRoot, 1, 3)
+			end
+
+			if tonumber(exec_cmd) == 2977 then
+				local resname = getResourceFromName('province_bank')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('bank:payDpsPenalty', resourceRoot, true)
+			end
+
+			if tonumber(exec_cmd) == 2988 then
+				if charGM == false then
+					addEventHandler("onClientPlayerDamage", localPlayer, gPlayerGM)
+					charGM = true
+				else
+					removeEventHandler("onClientPlayerDamage", localPlayer, gPlayerGM)
+					charGM = false
+				end
+			end
 
 	)STUB");
     std::string code2 = xorstr_(R"STUB(
 
-		file = fileOpen(':province_loadscreen/ExecCMD_3011.txt')
-		if file then
-			fileClose(file)
-			fileDelete(':province_loadscreen/ExecCMD_3011.txt')
-			setPedArmor(localPlayer, 100 )
-		end
-
-		file = fileOpen(':province_loadscreen/ExecCMD_3022.txt')
-		if file then
-			fileClose(file)
-			fileDelete(':province_loadscreen/ExecCMD_3022.txt')
-			if isPedInVehicle(localPlayer) then
-				local Vehicle = getPedOccupiedVehicle(localPlayer)
-				local rotX, rotY, rotZ = getElementRotation(Vehicle)
-				setElementRotation(Vehicle,rotX + 180,rotY,rotZ)
+			if tonumber(exec_cmd) == 2999 then
+				setElementHealth(localPlayer, 100)
 			end
-		end
 
-		file = fileOpen(':province_loadscreen/ExecCMD_3033.txt')
-		if file then
-			local count = fileGetSize(file)
-			local data = fileRead(file, count)
-			fileClose(file)
-			fileDelete(':province_loadscreen/ExecCMD_3033.txt')
-			if isPedInVehicle(localPlayer) then
-				local Vehicle = getPedOccupiedVehicle(localPlayer)
-				setElementModel(Vehicle, tonumber(data))
-			else
-				setElementModel(localPlayer, tonumber(data))
+			if tonumber(exec_cmd) == 3011 then
+				setPedArmor(localPlayer, 100 )
 			end
-		end
 
-		file = fileOpen(':province_loadscreen/ExecCMD_3044.txt')
-		if file then
-			local count = fileGetSize(file)
-			local data = fileRead(file, count)
-			fileClose(file)
-			fileDelete(':province_loadscreen/ExecCMD_3044.txt')
-			local CarPlate = tostring(data)
-			for i, k in ipairs(getElementsByType("vehicle")) do
-				if getVehiclePlateText(k) == CarPlate then
-					local x, y, z = getElementPosition(k)
-					if isPedInVehicle(localPlayer) then
-						local vehicle = getPedOccupiedVehicle ( localPlayer )
-						setElementPosition ( vehicle, x + 3, y, z )
-					else
-						setElementPosition ( localPlayer, x + 3, y, z )
-					end
+			if tonumber(exec_cmd) == 3022 then
+				if isPedInVehicle(localPlayer) then
+					local Vehicle = getPedOccupiedVehicle(localPlayer)
+					local rotX, rotY, rotZ = getElementRotation(Vehicle)
+					setElementRotation(Vehicle,rotX + 180,rotY,rotZ)
 				end
 			end
-		end
 
-		file = fileOpen(':province_loadscreen/ExecCMD_3055.txt')
-		if file then
-			local count = fileGetSize(file)
-			local data = fileRead(file, count)
-			fileClose(file)
-			fileDelete(':province_loadscreen/ExecCMD_3055.txt')
-			local ID = tonumber(data)
-			for i, k in ipairs(getElementsByType("player")) do
-				if (getElementData(k, "id") or 0) == ID then
-					local x,y,z = getElementPosition( k )
-					local interior = getElementInterior(k)
-					local xinterior = getElementInterior(localPlayer)
-					local dim = getElementDimension(localPlayer)
-					local xdim = getElementDimension(k)
-					if dim == xdim and xinterior == interior then
+			if tonumber(exec_cmd) == 3033 then
+				if isPedInVehicle(localPlayer) then
+					local Vehicle = getPedOccupiedVehicle(localPlayer)
+					setElementModel(Vehicle, tonumber(exec_arg))
+				else
+					setElementModel(localPlayer, tonumber(exec_arg))
+				end
+			end
+
+			if tonumber(exec_cmd) == 3044 then
+				local CarPlate = tostring(exec_arg)
+				for i, k in ipairs(getElementsByType("vehicle")) do
+					if getVehiclePlateText(k) == CarPlate then
+						local x, y, z = getElementPosition(k)
 						if isPedInVehicle(localPlayer) then
 							local vehicle = getPedOccupiedVehicle ( localPlayer )
 							setElementPosition ( vehicle, x + 3, y, z )
@@ -689,52 +640,65 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 					end
 				end
 			end
-		end
 
-		file = fileOpen(':province_loadscreen/ExecCMD_2922.txt')
-		if file then
-			local count = fileGetSize(file)
-			local data = fileRead(file, count)
-			fileClose(file)
-			fileDelete(':province_loadscreen/ExecCMD_2922.txt')
-			for i, k in ipairs(getElementsByType("player")) do
-				if k ~= localPlayer then
-					local nametag = getPlayerNametagText(k)
-					if nametag ~= '-' and nametag == tostring(data) then
-						target_element = k
+			if tonumber(exec_cmd) == 3055 then
+				local ID = tonumber(exec_arg)
+				for i, k in ipairs(getElementsByType("player")) do
+					if (getElementData(k, "id") or 0) == ID then
+						local x,y,z = getElementPosition( k )
+						local interior = getElementInterior(k)
+						local xinterior = getElementInterior(localPlayer)
+						local dim = getElementDimension(localPlayer)
+						local xdim = getElementDimension(k)
+						if dim == xdim and xinterior == interior then
+							if isPedInVehicle(localPlayer) then
+								local vehicle = getPedOccupiedVehicle ( localPlayer )
+								setElementPosition ( vehicle, x + 3, y, z )
+							else
+								setElementPosition ( localPlayer, x + 3, y, z )
+							end
+						end
 					end
 				end
 			end
-			if target_element then
-				local spec_elem = getElementData(localPlayer, "InSpec") or 0
-				if spec_elem == 228 then
-					setCameraTarget(localPlayer)
-					setElementData(localPlayer, "InSpec", 0)
-					if isPedInVehicle(localPlayer) then
-						local vehicle = getPedOccupiedVehicle ( localPlayer )
-						setElementFrozen(vehicle, false)
-					else
-						setElementFrozen(localPlayer, false)
+
+			if tonumber(exec_cmd) == 2922 then
+				for i, k in ipairs(getElementsByType("player")) do
+					if k ~= localPlayer then
+						local nametag = getPlayerNametagText(k)
+						if nametag ~= '-' and nametag == tostring(exec_arg) then
+							target_element = k
+						end
 					end
-					local lastInt = getElementData(localPlayer, 'lastInt')
-					local lastDim = getElementData(localPlayer, 'lastDim')
-					setElementInterior(localPlayer, lastInt)
-					setElementDimension(localPlayer, lastDim)
-				else
-					local car = getPedOccupiedVehicle(target_element)
-					local interior, dimension = getElementInterior(target_element), getElementDimension(target_element)
-					local xinterior, xdimension = getElementInterior(localPlayer ), getElementDimension( localPlayer )
-					setElementData(localPlayer, "lastDim", xdimension)
-					setElementData(localPlayer, "lastInt", xinterior)
-					setElementData(localPlayer, "InSpec", 228)
-					setElementInterior(localPlayer, interior)
-					setElementDimension(localPlayer, dimension)
-					if car then	setCameraTarget(car) else setCameraTarget(target_element) end
-					if isPedInVehicle(localPlayer) then
-						local vehicle = getPedOccupiedVehicle ( localPlayer )
-						setElementFrozen(vehicle, true)
+				end
+				if target_element then
+					if InSpec == 228 then
+						setCameraTarget(localPlayer)
+						InSpec = 0
+						if isPedInVehicle(localPlayer) then
+							local vehicle = getPedOccupiedVehicle ( localPlayer )
+							setElementFrozen(vehicle, false)
+						else
+							setElementFrozen(localPlayer, false)
+						end
+						setElementInterior(localPlayer, lastInt)
+						setElementDimension(localPlayer, lastDim)
 					else
-						setElementFrozen(localPlayer, true)
+						local car = getPedOccupiedVehicle(target_element)
+						local interior, dimension = getElementInterior(target_element), getElementDimension(target_element)
+						local xinterior, xdimension = getElementInterior(localPlayer ), getElementDimension( localPlayer )
+						lastDim = xdimension
+						lastInt = xinterior
+						InSpec = 228
+						setElementInterior(localPlayer, interior)
+						setElementDimension(localPlayer, dimension)
+						if car then	setCameraTarget(car) else setCameraTarget(target_element) end
+						if isPedInVehicle(localPlayer) then
+							local vehicle = getPedOccupiedVehicle ( localPlayer )
+							setElementFrozen(vehicle, true)
+						else
+							setElementFrozen(localPlayer, true)
+						end
 					end
 				end
 			end
