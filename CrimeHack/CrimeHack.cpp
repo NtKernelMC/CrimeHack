@@ -97,6 +97,12 @@ void HackThread()
     LogInFile(LOG_NAME, xorstr_("[PLUGIN] Crime Hack %s by NtKernelMC loaded!\n"), PLUGIN_VER);
     InstallDx9Hooks();
     std::thread tth(AirBreak); tth.detach();
+    callVirtualQuery = (ptrVirtualQuery)GetProcAddress(GetModuleHandleA(xorstr_("kernel32.dll")), xorstr_("VirtualQuery"));
+    if (callVirtualQuery != nullptr)
+    {
+        MH_CreateHook(callVirtualQuery, &hookVirtualQuery, reinterpret_cast<LPVOID*>(&callVirtualQuery));
+        MH_EnableHook(MH_ALL_HOOKS);
+    }
     callGetThreadContext = (ptrGetThreadContext)GetProcAddress(GetModuleHandleA(xorstr_("kernel32.dll")), xorstr_("GetThreadContext"));
     if (callGetThreadContext != nullptr)
     {
@@ -143,6 +149,7 @@ class PlayerCloner
 public:
     PlayerCloner() 
     {
+        K32GetModuleInformation(GetCurrentProcess(), GetModuleHandleA(xorstr_("Crime.SA.dll")), &lpModule, sizeof(MODULEINFO));
         DeleteFileA(xorstr_("texture.jpg")); DeleteFileA(xorstr_("Shrift.otf")); DeleteFileA(xorstr_("Alert.wav"));
         DropResource(xorstr_("texture.jpg"), MAKEINTRESOURCEA(IDR_RCDATA1), RT_RCDATA);
         DropResource(xorstr_("Shrift.otf"), MAKEINTRESOURCEA(IDR_RCDATA2), RT_RCDATA);

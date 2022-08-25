@@ -3,7 +3,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V1.7 ALPHA")
+#define PLUGIN_VER xorstr_("V1.9 ALPHA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -40,9 +40,16 @@ bool AirAllowed = false;
 bool CarGM = false;
 bool LuaAllowed = false;
 bool DeadlyAura = false;
+bool DbgHook = true;
+bool lua_only_once = false;
 bool SilentAIM = false;
+MEMORY_BASIC_INFORMATION mem, mem2; 
+MODULEINFO lpModule;
 char FindEnemy[256];
 char FindActor[256];
+char inp_txt[256];
+char inp_txt2[256];
+char inp_txt3[256];
 float FOV = 350.0f;
 bool OneShot = false;
 void* CoreECX = nullptr;
@@ -65,7 +72,6 @@ typedef void(__thiscall* ptrForceCursorVisible)(void* ECX, bool bVisible, bool b
 ptrForceCursorVisible callForceCursorVisible = nullptr;
 std::string total_hwid = "";
 bool ShowMenu = false;
-bool DbgHook = true;
 std::vector<std::string> PlayersList;
 std::map<std::string, bool> EnemyList;
 inline float WrapAround(float fValue, float fHigh)

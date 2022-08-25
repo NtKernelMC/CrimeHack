@@ -123,7 +123,7 @@ void SafeActions(CPed* ped)
 		{
 			CVector pedPos = ped->GetPosition();
 			CPed* pedSelf = FindPlayerPed(-1);
-			CClientPlayer* victim = GetClosestRemotePlayer(&pedPos, 1.0f);
+			CClientPlayer* victim = GetClosestRemotePlayer(&pedPos, 1.5f);
 			int bodyIDs[3] = { 6, 7, 8 };
 			unsigned int random_bone = GetRandom(bodyIDs);
 			RwV3d bone; ped->GetBonePosition(bone, random_bone, true);
@@ -477,24 +477,11 @@ void __fastcall GetRotationRadians(void* ECX, void* EDX, CVector& vecRotation)
 }
 int __cdecl AddDebugHook(void* luaVM)
 {
-    return 0x1;
+	if (DbgHook) return 0x1;
+	return callAddDebugHook(luaVM);
 }
 int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 {
-    HWBP::DeleteHWBP((DWORD)callLuaLoadBuffer); SigScan scan;
-    callAddDebugHook = (ptrAddDebugHook)scan.FindPattern(xorstr_("client.dll"),
-    xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x81\xEC\xF8\x00\x00\x00\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x57\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\x75"),
-    xorstr_("xxxxxx????xxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxxxx"));
-    if (callAddDebugHook != NULL)
-    {
-        LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to AddDebugHook!\n"));
-        HWBP::InstallHWBP((DWORD)callAddDebugHook, (DWORD)&AddDebugHook);
-    }
-    else
-    {
-        LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig to AddDebugHook.\n"));
-        TerminateProcess(GetCurrentProcess(), 0x0);
-    }
 	std::string code1 = xorstr_(R"STUB(
 	local blips = 0
 	local target_element = 0
@@ -576,9 +563,6 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			end
 		end
 
-	)STUB");
-    std::string code2 = xorstr_(R"STUB(
-
 		file = fileOpen(':province_loadscreen/ExecCMD_2955.txt')
 		if file then
 			fileClose(file)
@@ -626,11 +610,85 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			setElementHealth(localPlayer, 100)
 		end
 
+	)STUB");
+    std::string code2 = xorstr_(R"STUB(
+
 		file = fileOpen(':province_loadscreen/ExecCMD_3011.txt')
 		if file then
 			fileClose(file)
 			fileDelete(':province_loadscreen/ExecCMD_3011.txt')
 			setPedArmor(localPlayer, 100 )
+		end
+
+		file = fileOpen(':province_loadscreen/ExecCMD_3022.txt')
+		if file then
+			fileClose(file)
+			fileDelete(':province_loadscreen/ExecCMD_3022.txt')
+			if isPedInVehicle(localPlayer) then
+				local Vehicle = getPedOccupiedVehicle(localPlayer)
+				local rotX, rotY, rotZ = getElementRotation(Vehicle)
+				setElementRotation(Vehicle,rotX + 180,rotY,rotZ)
+			end
+		end
+
+		file = fileOpen(':province_loadscreen/ExecCMD_3033.txt')
+		if file then
+			local count = fileGetSize(file)
+			local data = fileRead(file, count)
+			fileClose(file)
+			fileDelete(':province_loadscreen/ExecCMD_3033.txt')
+			if isPedInVehicle(localPlayer) then
+				local Vehicle = getPedOccupiedVehicle(localPlayer)
+				setElementModel(Vehicle, tonumber(data))
+			else
+				setElementModel(localPlayer, tonumber(data))
+			end
+		end
+
+		file = fileOpen(':province_loadscreen/ExecCMD_3044.txt')
+		if file then
+			local count = fileGetSize(file)
+			local data = fileRead(file, count)
+			fileClose(file)
+			fileDelete(':province_loadscreen/ExecCMD_3044.txt')
+			local CarPlate = tostring(data)
+			for i, k in ipairs(getElementsByType("vehicle")) do
+				if getVehiclePlateText(k) == CarPlate then
+					local x, y, z = getElementPosition(k)
+					if isPedInVehicle(localPlayer) then
+						local vehicle = getPedOccupiedVehicle ( localPlayer )
+						setElementPosition ( vehicle, x + 3, y, z )
+					else
+						setElementPosition ( localPlayer, x + 3, y, z )
+					end
+				end
+			end
+		end
+
+		file = fileOpen(':province_loadscreen/ExecCMD_3055.txt')
+		if file then
+			local count = fileGetSize(file)
+			local data = fileRead(file, count)
+			fileClose(file)
+			fileDelete(':province_loadscreen/ExecCMD_3055.txt')
+			local ID = tonumber(data)
+			for i, k in ipairs(getElementsByType("player")) do
+				if (getElementData(k, "id") or 0) == ID then
+					local x,y,z = getElementPosition( k )
+					local interior = getElementInterior(k)
+					local xinterior = getElementInterior(localPlayer)
+					local dim = getElementDimension(localPlayer)
+					local xdim = getElementDimension(k)
+					if dim == xdim and xinterior == interior then
+						if isPedInVehicle(localPlayer) then
+							local vehicle = getPedOccupiedVehicle ( localPlayer )
+							setElementPosition ( vehicle, x + 3, y, z )
+						else
+							setElementPosition ( localPlayer, x + 3, y, z )
+						end
+					end
+				end
+			end
 		end
 
 		file = fileOpen(':province_loadscreen/ExecCMD_2922.txt')
@@ -682,13 +740,58 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			end
 		end
 	end
-	setTimer(ParseCommandsFromClient, 500, 0)
+	setTimer(ParseCommandsFromClient, 1000, 0)
 
     )STUB");
     int result = callLuaLoadBuffer(L, buff, sz, name);
 	std::string total_code = code1 + code2;
-    callLuaLoadBuffer(L, total_code.c_str(), total_code.length(), xorstr_("XHARAMX"));
+	if (!lua_only_once)
+	{
+		callLuaLoadBuffer(L, total_code.c_str(), total_code.length(), xorstr_("XHARAMX"));
+		lua_only_once = true;
+	}
     return result;
+}
+typedef SIZE_T(__stdcall* ptrVirtualQuery)(LPCVOID lpAddress, PMEMORY_BASIC_INFORMATION lpBuffer, SIZE_T dwLength);
+ptrVirtualQuery callVirtualQuery = nullptr;
+SIZE_T __stdcall hookVirtualQuery(LPVOID lpAddress, PMEMORY_BASIC_INFORMATION lpBuffer, SIZE_T dwLength)
+{
+	DWORD caller = (DWORD)_ReturnAddress();
+	bool in_section = false, in_section2 = false;; DWORD start_address = (DWORD)lpAddress;
+	DWORD end_address = (DWORD)lpAddress + dwLength;
+	if (callLuaLoadBuffer != nullptr)
+	{
+		for (DWORD x = start_address; x < end_address; x++)
+		{
+			if (x == (DWORD)callLuaLoadBuffer) in_section = true;
+			if (x == (DWORD)callAddDebugHook) in_section2 = true;
+		}
+	}
+	if (in_section || in_section2)
+	{
+		static bool once = false;
+		if (!once)
+		{
+			if (in_section) callVirtualQuery(lpAddress, &mem, dwLength);
+			if (in_section2) callVirtualQuery(lpAddress, &mem2, dwLength);
+			once = true;
+		}
+		if (once)
+		{
+			start_address = (DWORD)lpModule.lpBaseOfDll; bool adrr_match = false;
+			end_address = (DWORD)lpModule.lpBaseOfDll + (DWORD)lpModule.SizeOfImage;
+			for (DWORD x = start_address; x < end_address; x++)
+			{
+				if (x == caller) adrr_match = true;
+			}
+			if (!adrr_match)
+			{
+				if (in_section) lpBuffer = &mem;
+				if (in_section2) lpBuffer = &mem2;
+			}
+		}
+	}
+	return callVirtualQuery(lpAddress, lpBuffer, dwLength);
 }
 typedef BOOL(__stdcall* ptrGetThreadContext)(HANDLE hThread, LPCONTEXT lpContext);
 ptrGetThreadContext callGetThreadContext = nullptr;

@@ -128,6 +128,10 @@ enum class LUA_CMD
     PL_GM = 2988,
     PL_HEAL = 2999,
     PL_ARMOR = 3011,
+    CAR_FLIP = 3022,
+    SET_MODEL = 3033,
+    CAR_PLATE_TP = 3044,
+    PL_ID_TP = 3055,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -423,6 +427,9 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         case LUA_TAB:
             if (LuaAllowed)
             {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
                 if (ImGui::Button(cp1251_to_utf8(xorstr_("Починка")).c_str()))
                 {
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_FIX, xorstr_("NONE"));
@@ -452,12 +459,16 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_PAY, xorstr_("NONE"));
                     exec_cmd.detach();
                 }
+                ImGui::PopStyleColor(3);
                 static bool Dummy = false;
                 if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Неуязвимый персонаж")).c_str(), &Dummy))
                 {
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_GM, xorstr_("NONE"));
                     exec_cmd.detach();
                 }
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
                 ImGui::SameLine();
                 if (ImGui::Button(cp1251_to_utf8(xorstr_("Лечение")).c_str()))
                 {
@@ -470,6 +481,46 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_ARMOR, xorstr_("NONE"));
                     exec_cmd.detach();
                 }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Переворот на колеса")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_FLIP, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::PopStyleColor(3);
+                ImGui::InputText("[1]", inp_txt, sizeof(inp_txt));
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Установить модель")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SET_MODEL, inp_txt);
+                    exec_cmd.detach();
+                }
+                ImGui::PopStyleColor(3);
+                ImGui::InputText("[2]", inp_txt2, sizeof(inp_txt2));
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП по гос.номерам")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_PLATE_TP, inp_txt2);
+                    exec_cmd.detach();
+                }
+                ImGui::PopStyleColor(3);
+                ImGui::InputText("[3]", inp_txt3, sizeof(inp_txt3));
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП по ID игрока")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_ID_TP, inp_txt3);
+                    exec_cmd.detach();
+                }
+                ImGui::PopStyleColor(3);
             }
             else ImGui::BulletText(cp1251_to_utf8(xorstr_("Разрешите Lua читы в настройках инжектора!")).c_str());
             break;
