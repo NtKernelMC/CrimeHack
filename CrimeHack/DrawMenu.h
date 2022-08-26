@@ -555,11 +555,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::LIC_D, xorstr_("NONE"));
                     exec_cmd.detach();
                 }
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Права D")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::LIC_D, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
                 ImGui::PopStyleColor(3);
                 ImGui::InputText("[4]", inp_txt4, sizeof(inp_txt4));
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
