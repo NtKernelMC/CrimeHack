@@ -764,6 +764,11 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 				triggerServerEvent('bar:sendRequestToBuyProduct', resourceRoot, 300, 1669, 1, tostring(exec_arg))	
 			end
 
+			if tonumber(exec_cmd) == 4033 then
+				local resname = getResourceFromName('province_lottery')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent("province_lottery:onCompleteOrder", resourceRoot, { tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg) } )
+			end
 		end
 	end
 	setTimer(ParseCommandsFromClient, 1000, 0)

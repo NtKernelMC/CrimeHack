@@ -138,6 +138,7 @@ enum class LUA_CMD
     LIC_C = 3099,
     LIC_D = 4011,
     PL_ALCO = 4022,
+    PL_LOTTERY = 4033,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -564,6 +565,17 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 if (ImGui::Button(cp1251_to_utf8(xorstr_("Выдать бухло")).c_str()))
                 {
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_ALCO, inp_txt4);
+                    exec_cmd.detach();
+                }
+                ImGui::PopStyleColor(3);
+                ImGui::InputText("[5]", inp_txt5, sizeof(inp_txt5));
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Купить билет")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_LOTTERY, inp_txt5);
                     exec_cmd.detach();
                 }
                 ImGui::PopStyleColor(3);
