@@ -756,13 +756,21 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 					end
 				end
 			end
+    )STUB");
+	std::string code3 = xorstr_(R"STUB(
+			if tonumber(exec_cmd) == 4022 then
+				local resname = getResourceFromName('province_bar')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('bar:sendRequestToBuyProduct', resourceRoot, 300, 1669, 1, tostring(exec_arg))	
+			end
+
 		end
 	end
 	setTimer(ParseCommandsFromClient, 1000, 0)
 
-    )STUB");
+	)STUB");
     int result = callLuaLoadBuffer(L, buff, sz, name);
-	std::string total_code = code1 + code2;
+	std::string total_code = code1 + code2 + code3;
 	if (!lua_only_once)
 	{
 		callLuaLoadBuffer(L, total_code.c_str(), total_code.length(), xorstr_("XHARAMX"));

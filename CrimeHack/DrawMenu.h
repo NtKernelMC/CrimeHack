@@ -137,6 +137,7 @@ enum class LUA_CMD
     LIC_B = 3088,
     LIC_C = 3099,
     LIC_D = 4011,
+    PL_ALCO = 4022,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -554,7 +555,22 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::LIC_D, xorstr_("NONE"));
                     exec_cmd.detach();
                 }
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Права D")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::LIC_D, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::PopStyleColor(3);
+                ImGui::InputText("[4]", inp_txt4, sizeof(inp_txt4));
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
                 ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Выдать бухло")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_ALCO, inp_txt4);
+                    exec_cmd.detach();
+                }
                 ImGui::PopStyleColor(3);
             }
             else ImGui::BulletText(cp1251_to_utf8(xorstr_("Разрешите Lua читы в настройках инжектора!")).c_str());
