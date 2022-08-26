@@ -132,6 +132,11 @@ enum class LUA_CMD
     SET_MODEL = 3033,
     CAR_PLATE_TP = 3044,
     PL_ID_TP = 3055,
+    LIC_MONORELS = 3066,
+    LIC_TRAMWAY = 3077,
+    LIC_B = 3088,
+    LIC_C = 3099,
+    LIC_D = 4011,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -520,6 +525,36 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_ID_TP, inp_txt3);
                     exec_cmd.detach();
                 }
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Права Монорельса")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::LIC_MONORELS, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Права Трамвай")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::LIC_TRAMWAY, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Права B")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::LIC_B, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Права C")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::LIC_C, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Права D")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::LIC_D, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
                 ImGui::PopStyleColor(3);
             }
             else ImGui::BulletText(cp1251_to_utf8(xorstr_("Разрешите Lua читы в настройках инжектора!")).c_str());

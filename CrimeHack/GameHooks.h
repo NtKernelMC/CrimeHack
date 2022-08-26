@@ -353,6 +353,8 @@ void AirBreak()
 			{ //машина
 				DWORD CARSELF = *(DWORD*)0xBA18FC; //0xBA18FC
 				DWORD car = *(DWORD*)(CARSELF + 0x14);
+				DWORD trailer = *(DWORD*)(CARSELF + 0x4C8);
+				DWORD trailer_matrix = *(DWORD*)(trailer + 0x14);
 
 				//скорость 0
 				*(float*)(CARSELF + 0x44) = 0;
@@ -381,6 +383,30 @@ void AirBreak()
 				*(float*)(car + 0x10) = sin(-(angle + 1.5708));
 				*(float*)(car + 0x14) = cos(-(angle + 1.5708));
 				*(float*)(car + 0x18) = 0;
+
+				CVehicle* veh = FindPlayerVehicle(0, false);
+				if (veh != nullptr)
+				{
+					if (veh->m_pTrailer != nullptr)
+					{
+						float coordsXforTruck = veh->m_pTrailer->GetPosition().x + airBrkX;
+						float coordsYforTruck = veh->m_pTrailer->GetPosition().y + airBrkY;
+						float coordsZforTruck = veh->m_pTrailer->GetPosition().z + airBrkZ;
+
+
+						veh->m_pTrailer->SetPosn(CVector(coordsXforTruck, coordsYforTruck, coordsZforTruck));
+						veh->m_pTrailer->m_vecMoveSpeed.x = 0.0f;
+						veh->m_pTrailer->m_vecMoveSpeed.y = 0.0f;
+						veh->m_pTrailer->m_vecMoveSpeed.z = 0.0f;
+
+						veh->m_pTrailer->m_vecTurnSpeed.x = 0.0f;
+						veh->m_pTrailer->m_vecTurnSpeed.y = 0.0f;
+						veh->m_pTrailer->m_vecTurnSpeed.z = 0.0f;
+
+						float rx, ry, rz; veh->GetOrientation(rx, ry, rz);
+						veh->m_pTrailer->SetOrientation(rx, ry, rz);
+					}
+				}
 			}
 			if (*(DWORD*)(0xBA18FC) == 0)
 			{
@@ -402,6 +428,7 @@ void AirBreak()
 				*(float*)(MyMatrix + 0x30) = coordsXforPed;
 				*(float*)(MyMatrix + 0x34) = coordsYforPed;
 				*(float*)(MyMatrix + 0x38) = coordsZforPed;
+				
 			}
 		}
 		Sleep(1);
@@ -660,6 +687,33 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 						end
 					end
 				end
+			end
+
+			if tonumber(exec_cmd) == 3066 then
+				triggerServerEvent("subway:givePlayerLicense", getResourceRootElement(getResourceFromName("province_subway")))
+			end
+
+			if tonumber(exec_cmd) == 3077 then
+				local resname = getResourceFromName('province_ttu')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('getTestAnswer', resourceRoot, 1, 2)
+				triggerServerEvent('getTestAnswer', resourceRoot, 2, 2)
+				triggerServerEvent('getTestAnswer', resourceRoot, 3, 1)
+				triggerServerEvent('getTestAnswer', resourceRoot, 4, 1)
+				triggerServerEvent('getTestAnswer', resourceRoot, 5, 4)
+				triggerServerEvent('getTestResults', resourceRoot, 1, 1)
+			end
+
+			if tonumber(exec_cmd) == 3088 then
+				triggerServerEvent("startExam", getResourceRootElement(getResourceFromName("province_autoschool")), 1, 1)
+			end
+
+			if tonumber(exec_cmd) == 3099 then
+				triggerServerEvent("startExam", getResourceRootElement(getResourceFromName("province_autoschool")), 2, 1)
+			end
+
+			if tonumber(exec_cmd) == 4011 then
+				triggerServerEvent("startExam", getResourceRootElement(getResourceFromName("province_autoschool")), 3, 1)
 			end
 
 			if tonumber(exec_cmd) == 2922 then
