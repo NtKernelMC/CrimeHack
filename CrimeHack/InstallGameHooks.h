@@ -32,6 +32,16 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             }
             else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for ForceCursorVisible.\n"));
         }
+        if (callSendBulletSyncFire == nullptr) callSendBulletSyncFire = (ptrSendBulletSyncFire)scan.FindPattern(xorstr_("client.dll"),
+        xorstr_("\x55\x8B\xEC\x51\x8B\x45\x08\x0F"), xorstr_("xxxxxxxx"));
+        if (callSendBulletSyncFire != nullptr)
+        {
+            LogInFile(LOG_NAME, xorstr_("[LOG] Found address from signature to bullet sync!\n"));
+            MH_RemoveHook(callSendBulletSyncFire);
+            MH_CreateHook(callSendBulletSyncFire, &SendBulletSyncFire, reinterpret_cast<LPVOID*>(&callSendBulletSyncFire));
+            MH_EnableHook(MH_ALL_HOOKS);
+        }
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for bullet sync.\n"));
         callTakePlayerScreenShot = (ptrTakePlayerScreenShot)scan.FindPattern(xorstr_("client.dll"),
         xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x60\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x57\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x89"),
         xorstr_("xxxxxx????xxxxxxxxxxx????xxxxxxxxxxxxxxxxxx"));
