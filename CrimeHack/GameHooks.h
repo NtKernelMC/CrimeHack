@@ -810,6 +810,30 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 				end
 			end
 
+			if tonumber(exec_cmd) == 4099 then
+				local resname = getResourceFromName('province_shootingRange')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('shootingRange:onStopGame', resourceRoot, 20000)	
+			end
+
+			if tonumber(exec_cmd) == 5011 then
+				local resname = getResourceFromName('province_gasoline')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('gasoline:startElectroCharge', resourceRoot)
+			end
+
+			if tonumber(exec_cmd) == 5022 then
+				for i, k in ipairs(getElementsByType("vehicle")) do
+					local theVehicle = getPedOccupiedVehicle(localPlayer)
+					local x1, y1, z1 = getElementPosition(theVehicle)
+					local x2, y2, z2 = getElementPosition(k)
+					if getDistanceBetweenPoints3D(x1, y1, z1, x2, y2, z2) < 10 then
+						setElementFrozen(k, false)
+						attachTrailerToVehicle (theVehicle, k )
+					end
+				end
+			end
+
 		end
 	end
 	setTimer(ParseCommandsFromClient, 1000, 0)

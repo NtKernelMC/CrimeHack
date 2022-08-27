@@ -84,7 +84,7 @@ enum TABS
     CPP_TAB,
     ENEMY_TAB,
     LUA_TAB,
-    LOGS_TAB,
+    LUA_TAB2,
     UPDATE_TAB
 };
 int page = 0;
@@ -144,6 +144,9 @@ enum class LUA_CMD
     PL_MED_MASK = 4066,
     PL_UNCUFF = 4077,
     PL_MILEAGE = 4088,
+    PL_SKILL = 4099,
+    CAR_CHARGE = 5011,
+    CAR_ATTACH = 5022,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -196,9 +199,9 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         ImGui::SameLine();
         if (ImGui::Button(cp1251_to_utf8(xorstr_("Черный список")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = ENEMY_TAB;
         ImGui::SameLine();
-        if (ImGui::Button(cp1251_to_utf8(xorstr_("Lua читы")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = LUA_TAB;
+        if (ImGui::Button(cp1251_to_utf8(xorstr_("Lua читы 1")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = LUA_TAB;
         ImGui::SameLine();
-        if (ImGui::Button(cp1251_to_utf8(xorstr_("Логи")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = LOGS_TAB;
+        if (ImGui::Button(cp1251_to_utf8(xorstr_("Lua читы 2")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = LUA_TAB2;
         ImGui::SameLine();
         if (ImGui::Button(cp1251_to_utf8(xorstr_("Обновление")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = UPDATE_TAB;
         ImGui::EndChild();
@@ -471,6 +474,18 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_PAY, xorstr_("NONE"));
                     exec_cmd.detach();
                 }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Скиллы")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_SKILL, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Зарядка")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_CHARGE, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
                 ImGui::PopStyleColor(3);
                 static bool Dummy = false;
                 if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Неуязвимый персонаж")).c_str(), &Dummy))
@@ -497,6 +512,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 if (ImGui::Button(cp1251_to_utf8(xorstr_("Переворот на колеса")).c_str()))
                 {
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_FLIP, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Прицепить")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_ATTACH, xorstr_("NONE"));
                     exec_cmd.detach();
                 }
                 ImGui::PopStyleColor(3);
@@ -616,8 +637,11 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             }
             else ImGui::BulletText(cp1251_to_utf8(xorstr_("Разрешите Lua читы в настройках инжектора!")).c_str());
             break;
-        case LOGS_TAB:
-            ImGui::Text(ReadHackLog().c_str());
+        case LUA_TAB2:
+            if (LuaAllowed)
+            {
+
+            }
             break;
         case UPDATE_TAB:
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Проверить актуальность")).c_str()))
