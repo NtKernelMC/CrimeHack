@@ -7746,7 +7746,7 @@ object Form1: TForm1
   object CheckBox2: TCheckBox
     Left = 72
     Top = 457
-    Width = 212
+    Width = 249
     Height = 17
     Caption = 'NoScreen ('#1054#1092#1072#1077#1090' '#1080#1075#1088#1091' '#1087#1088#1080' '#1089#1082#1088#1080#1085#1096#1086#1090#1077')'
     TabOrder = 4

@@ -31,7 +31,9 @@ __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner)
 	if (reg != nullptr)
 	{
 		DWORD intg = reg->ReadInteger("AllowLua");
-        Form1->CheckBox1->Checked = (bool)intg;
+		DWORD intg2 = reg->ReadInteger("AllowNoScreen");
+		Form1->CheckBox1->Checked = (bool)intg;
+		Form1->CheckBox2->Checked = (bool)intg2;
 		delete reg;
 	}
 }
