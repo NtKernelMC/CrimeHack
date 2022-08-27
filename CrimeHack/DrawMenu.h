@@ -690,8 +690,8 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
                 ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Уменьшитель урона")).c_str()))
+                ImGui::SameLine(); static bool Dummy3 = false;
+                if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Уменьшитель урона")).c_str(), &Dummy3))
                 {
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_REDUCE_DAMAGE, inp_txt8);
                     exec_cmd.detach();
