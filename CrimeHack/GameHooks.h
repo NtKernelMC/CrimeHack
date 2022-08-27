@@ -922,7 +922,6 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
                     local nametag = getPlayerNametagText(k)
 					local elem = getElementData(k, "WantedLevel") or 0
 					if tonumber(elem) > 0 then
-						local elem = getElementData(actor_vehicle, "Mileage")
 						outputChatBox('Wanted ' .. nametag .. ': Has ' .. tostring(elem) .. ' Stars!')
 					end
 				end
