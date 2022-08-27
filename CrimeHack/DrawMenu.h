@@ -139,6 +139,11 @@ enum class LUA_CMD
     LIC_D = 4011,
     PL_ALCO = 4022,
     PL_LOTTERY = 4033,
+    PL_PEE = 4044,
+    PL_ARMY_MED = 4055,
+    PL_MED_MASK = 4066,
+    PL_UNCUFF = 4077,
+    PL_MILEAGE = 4088,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -576,6 +581,35 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 if (ImGui::Button(cp1251_to_utf8(xorstr_("Купить билет")).c_str()))
                 {
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_LOTTERY, inp_txt5);
+                    exec_cmd.detach();
+                }
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Обоссать")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_PEE, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Мед.комиссия")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_ARMY_MED, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Огромная маска")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_MED_MASK, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Снять наручники")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_UNCUFF, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Узнать пробег")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_MILEAGE, xorstr_("NONE"));
                     exec_cmd.detach();
                 }
                 ImGui::PopStyleColor(3);

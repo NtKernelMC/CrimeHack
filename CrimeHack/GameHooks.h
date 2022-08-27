@@ -769,6 +769,47 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 				local resourceRoot = getResourceRootElement(resname)
 				triggerServerEvent("province_lottery:onCompleteOrder", resourceRoot, { tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg) } )
 			end
+
+			if tonumber(exec_cmd) == 4044 then
+				local resname = getResourceFromName('province_lifts')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('lifts:startPissing', resourceRoot)
+			end
+
+			if tonumber(exec_cmd) == 4055 then
+				local resname = getResourceFromName('province_army')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('Army:setGodenEvent', resourceRoot)
+			end
+
+			if tonumber(exec_cmd) == 4066 then
+				local resname = getResourceFromName('province_food')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('buyFood', resourceRoot, 6, 6, 120)
+				resname = getResourceFromName('province_winter_hats')
+				resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('medicine:ApplyChanges', resourceRoot, -0.017999999, 0.097999997, 0.050000001, 97.199997, 57.599998, 129.60001, 15.5, 15.5, 15.5)
+			end
+
+			if tonumber(exec_cmd) == 4077 then
+				setPedAnimation(localPlayer)
+				toggleAllControls(true)
+				setElementFrozen(localPlayer, false)
+			end
+
+			if tonumber(exec_cmd) == 4088 then
+				for i, k in ipairs(getElementsByType("player")) do
+                    local nametag = getPlayerNametagText(k)
+                    if isPedInVehicle(k) then
+						local actor_vehicle = getPedOccupiedVehicle(k)
+						local elem = getElementData(actor_vehicle, "Mileage") or 0
+						if tonumber(elem) > 0 then
+							outputChatBox('Probeg is: ' .. tostring(elem))
+						end
+					end
+				end
+			end
+
 		end
 	end
 	setTimer(ParseCommandsFromClient, 1000, 0)
