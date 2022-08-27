@@ -92,6 +92,7 @@ void HackThread()
     if (reg != nullptr)
     {
         LuaAllowed = reg->ReadInteger(xorstr_("AllowLua"));
+        AllowNoScreen = reg->ReadInteger(xorstr_("AllowNoScreen"));
         delete reg;
     }
     LogInFile(LOG_NAME, xorstr_("[PLUGIN] Crime Hack %s by NtKernelMC loaded!\n"), PLUGIN_VER);

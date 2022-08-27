@@ -4,7 +4,7 @@ object Form1: TForm1
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Crime Hack by NtKernelMC'
-  ClientHeight = 510
+  ClientHeight = 524
   ClientWidth = 336
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -7728,7 +7728,7 @@ object Form1: TForm1
   end
   object Button2: TButton
     Left = -8
-    Top = 471
+    Top = 487
     Width = 345
     Height = 41
     Caption = 'vk.com/provhacks | '#1055#1086#1089#1077#1090#1080#1090#1100' '#1075#1088#1091#1087#1087#1091' '#1088#1072#1079#1088#1072#1073#1086#1090#1095#1080#1082#1072
@@ -7742,5 +7742,13 @@ object Form1: TForm1
     Height = 17
     Caption = #1056#1072#1079#1088#1077#1096#1080#1090#1100' Lua '#1095#1080#1090#1099' ('#1056#1080#1089#1082' '#1086#1090#1083#1077#1090#1072')'
     TabOrder = 3
+  end
+  object CheckBox2: TCheckBox
+    Left = 72
+    Top = 457
+    Width = 212
+    Height = 17
+    Caption = 'NoScreen ('#1054#1092#1072#1077#1090' '#1080#1075#1088#1091' '#1087#1088#1080' '#1089#1082#1088#1080#1085#1096#1086#1090#1077')'
+    TabOrder = 4
   end
 end

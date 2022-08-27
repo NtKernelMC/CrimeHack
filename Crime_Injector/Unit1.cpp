@@ -67,7 +67,8 @@ BOOL CALLBACK EnumWindowsProcMy(HWND hwnd,LPARAM lParam)
 	CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, "Software\\CR1M3H", true);
 	if (reg != nullptr)
 	{
-        reg->WriteInteger("AllowLua", Form1->CheckBox1->Checked);
+		reg->WriteInteger("AllowLua", Form1->CheckBox1->Checked);
+        reg->WriteInteger("AllowNoScreen", Form1->CheckBox2->Checked);
 		delete reg;
     }
 	DWORD lpdwProcessId = 0x0; AnsiString selt(Form1->ComboBox1->Text);

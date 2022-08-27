@@ -21,6 +21,7 @@ __published:	// IDE-managed Components
 	TImage *Image1;
 	TLabel *Label2;
 	TCheckBox *CheckBox1;
+	TCheckBox *CheckBox2;
 	void __fastcall Button1Click(TObject *Sender);
 	void __fastcall ComboBox1DropDown(TObject *Sender);
 	void __fastcall Button2Click(TObject *Sender);

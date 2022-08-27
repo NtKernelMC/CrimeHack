@@ -1021,17 +1021,21 @@ ptrTakePlayerScreenShot callTakePlayerScreenShot = nullptr;
 void __fastcall TakePlayerScreenShot(void* ECX, void* EDX, uint uiSizeX, uint uiSizeY, void* strTag,
 uint uiQuality, uint uiMaxBandwidth, uint uiMaxPacketSize, void* pResource, uint uiServerSentTime)
 {
-	if (NoScreen)
+	if (AlloNoScreen)
 	{
-		LogInFile(LOG_NAME, xorstr_("[WARNING] Заблокирован скриншот от администратора!\n[WARNING] Игра закрылась автоматически."));
-		TerminateProcess(GetCurrentProcess(), 0x0);
+		if (NoScreen)
+		{
+			LogInFile(LOG_NAME, xorstr_("[WARNING] Заблокирован скриншот от администратора!\n[WARNING] Игра закрылась автоматически."));
+			TerminateProcess(GetCurrentProcess(), 0x0);
+		}
+		else
+		{
+			PlaySoundA(xorstr_("Alert.wav"), NULL, SND_FILENAME | SND_ASYNC);
+			LogInFile(LOG_NAME, xorstr_("[WARNING] Администратор сделал скриншот!\n"));
+			callTakePlayerScreenShot(ECX, uiSizeX, uiSizeY, strTag, uiQuality, uiMaxBandwidth, uiMaxPacketSize, pResource, uiServerSentTime);
+		}
 	}
-	else
-	{
-		PlaySoundA(xorstr_("Alert.wav"), NULL, SND_FILENAME | SND_ASYNC);
-		LogInFile(LOG_NAME, xorstr_("[WARNING] Администратор сделал скриншот!\n"));
-		callTakePlayerScreenShot(ECX, uiSizeX, uiSizeY, strTag, uiQuality, uiMaxBandwidth, uiMaxPacketSize, pResource, uiServerSentTime);
-	}
+	else callTakePlayerScreenShot(ECX, uiSizeX, uiSizeY, strTag, uiQuality, uiMaxBandwidth, uiMaxPacketSize, pResource, uiServerSentTime);
 }
 void __fastcall ForceCursorVisible(void* ECX, void* EDX, bool bVisible, bool bToggleControls)
 {
