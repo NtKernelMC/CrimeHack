@@ -1021,7 +1021,7 @@ ptrTakePlayerScreenShot callTakePlayerScreenShot = nullptr;
 void __fastcall TakePlayerScreenShot(void* ECX, void* EDX, uint uiSizeX, uint uiSizeY, void* strTag,
 uint uiQuality, uint uiMaxBandwidth, uint uiMaxPacketSize, void* pResource, uint uiServerSentTime)
 {
-	if (AlloNoScreen)
+	if (AllowNoScreen)
 	{
 		if (NoScreen)
 		{
