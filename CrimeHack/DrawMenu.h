@@ -147,6 +147,12 @@ enum class LUA_CMD
     PL_SKILL = 4099,
     CAR_CHARGE = 5011,
     CAR_ATTACH = 5022,
+    CAR_SET_PLATE = 5033,
+    PL_SHUTE = 5044,
+    RENT_HOTEL = 5055,
+    HOTEL_PAY_RENT = 5066,
+    PL_REDUCE_DAMAGE = 5077,
+    CAR_KICKER = 5088,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -640,8 +646,59 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         case LUA_TAB2:
             if (LuaAllowed)
             {
-
+                ImGui::InputText("[6]", inp_txt6, sizeof(inp_txt6));
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Установить номера")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_SET_PLATE, inp_txt6);
+                    exec_cmd.detach();
+                }
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Выдать парашют")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_SHUTE, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Арендовать отель")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::RENT_HOTEL, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::PopStyleColor(3);
+                ImGui::SameLine();
+                static bool Dummy2 = false;
+                if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Слаппер машиной")).c_str(), &Dummy2))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_KICKER, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::InputText("[7]", inp_txt7, sizeof(inp_txt7));
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Продлить отель")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::HOTEL_PAY_RENT, inp_txt7);
+                    exec_cmd.detach();
+                }
+                ImGui::PopStyleColor(3);
+                ImGui::InputText("[8]", inp_txt8, sizeof(inp_txt8));
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Уменьшитель урона")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_REDUCE_DAMAGE, inp_txt8);
+                    exec_cmd.detach();
+                }
+                ImGui::PopStyleColor(3);
             }
+            else ImGui::BulletText(cp1251_to_utf8(xorstr_("Разрешите Lua читы в настройках инжектора!!")).c_str());
             break;
         case UPDATE_TAB:
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Проверить актуальность")).c_str()))

@@ -516,9 +516,26 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local blips = 0
 	local target_element = 0
 	local charGM = false
+	local DamageReducer = 0
+	local LossPercentage = 0
+
 
 	function gPlayerGM(attacker, weapon, bodypart, loss)
 		cancelEvent()
+	end
+
+	function godModeP(attacker, weapon, bodypart, loss)
+		if DamageReducer == 228
+		then
+			local reduced_damage = math.percent(LossPercentage, loss)
+			reduced_damage = reduced_damage + 0.0
+			reduced_damage = loss - reduced_damage
+			local elem_hp = getElementHealth(localPlayer)
+			elem_hp = elem_hp + loss
+			local new_hp = elem_hp - reduced_damage
+			setElementHealth(localPlayer, new_hp)
+			cancelEvent()
+		end
 	end
 
     function ParseCommandsFromClient()
@@ -834,13 +851,107 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 				end
 			end
 
+			if tonumber(exec_cmd) == 5033 then
+				if isPedInVehicle(localPlayer) then
+					local Vehicle = getPedOccupiedVehicle(localPlayer)
+					setVehiclePlateText( Vehicle, tostring(exec_arg) )
+				end
+			end
+
+			if tonumber(exec_cmd) == 5044 then
+				local resname = getResourceFromName('province_misc')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('getShute', resourceRoot)
+			end
+
+			if tonumber(exec_cmd) == 5055 then
+				local resname = getResourceFromName('province_hotel')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 1, 1)
+				triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 2, 1)
+				triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 3, 1)
+				triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 4, 1)	
+				triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 5, 1)
+				triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 6, 1)	
+				triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 7, 1)
+				triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 8, 1)
+				triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 9, 1)
+			end
+
+			if tonumber(exec_cmd) == 5066 then
+				local resname = getResourceFromName('province_hotel')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('hotel:onPlayerRequestProlongRent', resourceRoot, tonumber(exec_arg))
+			end
+
+	)STUB");
+	std::string code4 = xorstr_(R"STUB(
+			if tonumber(exec_cmd) == 5077 then
+				if DamageReducer == 0 then
+					DamageReducer = 228
+					LossPercentage = tonumber(exec_arg)
+					addEventHandler("onClientPlayerDamage", localPlayer, godModeP)
+				else
+					DamageReducer = 0
+					removeEventHandler("onClientPlayerDamage", localPlayer, godModeP)
+				end
+			end
+
+			if tonumber(exec_cmd) == 5088 then
+				if TaranMode == 0 then
+					TaranMode = 228
+				else
+					TaranMode = 0
+				end
+			end
+
 		end
 	end
 	setTimer(ParseCommandsFromClient, 1000, 0)
 
 	)STUB");
+	std::string TaranMode = xorstr_(R"STUB(
+	local settings = { }
+	settings.key = 'mouse1'
+	settings.speed = 350
+	settings.time = 100
+	settings.damage = true
+	local function getVehicleFromID(id)
+	for i, k in ipairs(getElementsByType("vehicle")) do
+	local data = getElementData(k, "id")
+	if data == id then
+	return k
+	end
+	end
+	return false
+	end	
+	local function onDamage( )
+	cancelEvent(  )
+	end
+	local function shotCar( )
+		if TaranMode == 228 then
+			local veh = getPedOccupiedVehicle( localPlayer )
+			if veh then
+				local velo = Vector3( getElementVelocity( veh ) )
+				local pos = Vector3( getElementPosition( veh ) )
+				local rot = Vector3( getElementRotation( veh ) )
+				setElementVelocity( veh, velo.x*settings.speed, velo.y*settings.speed, velo.z )
+				if settings.damage then
+					addEventHandler( 'onClientVehicleDamage', veh, onDamage )
+					setTimer( function( )
+						removeEventHandler( 'onClientVehicleDamage', veh, onDamage )
+					end, settings.time + 100, 1 )
+				end
+				setTimer( setElementVelocity, settings.time, 1, veh, 0, 0, 0 )
+				setTimer( setElementRotation, settings.time, 1, veh, rot )
+				setTimer( setElementPosition, settings.time, 1, veh, pos )
+			end
+		end
+	end
+	bindKey( settings.key, 'down', shotCar )
+	)STUB");
     int result = callLuaLoadBuffer(L, buff, sz, name);
-	std::string total_code = code1 + code2 + code3;
+	std::string total_code = code1 + code2 + code3 + code4 + TaranMode;
 	if (!lua_only_once)
 	{
 		callLuaLoadBuffer(L, total_code.c_str(), total_code.length(), xorstr_("XHARAMX"));

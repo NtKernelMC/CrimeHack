@@ -3,7 +3,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V2.4 ALPHA")
+#define PLUGIN_VER xorstr_("V2.5 ALPHA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -52,6 +52,9 @@ char inp_txt2[256];
 char inp_txt3[256];
 char inp_txt4[256];
 char inp_txt5[256];
+char inp_txt6[256];
+char inp_txt7[256];
+char inp_txt8[256];
 float FOV = 350.0f;
 bool OneShot = false;
 void* CoreECX = nullptr;
