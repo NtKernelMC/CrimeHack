@@ -153,6 +153,12 @@ enum class LUA_CMD
     HOTEL_PAY_RENT = 5066,
     PL_REDUCE_DAMAGE = 5077,
     CAR_KICKER = 5088,
+    GET_WANTED = 5099,
+    PL_FISHING_POINT = 6011,
+    PL_FISH_HOOK = 6022,
+    PL_BUY_UDOCHKA = 6033,
+    PL_BUY_BAITS = 6044,
+    PL_SELL_FISH = 6055,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -163,6 +169,29 @@ void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
     {
         fprintf(hFile, xorstr_("%d\n%s"), cmd, argument.c_str());
         fclose(hFile);
+    }
+}
+void GoFish()
+{
+    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_BUY_UDOCHKA, xorstr_("NONE"));
+    exec_cmd.detach(); Sleep(1500);
+    std::thread exec_cmd2(ExecuteLuaCommand, LUA_CMD::PL_BUY_BAITS, xorstr_("NONE"));
+    exec_cmd2.detach(); Sleep(1500);
+    sendMTAChat(xorstr_("fishing"), xorstr_(""), true, false, false);
+    Sleep(1000);
+    while (true)
+    {
+        if (!FisherBot) break;
+        std::string log_line = ReadLastLogLine();
+        if (log_line.find(xorstr_("Вы поймали рыбу")) != std::string::npos)
+        {
+            std::thread exec_cmd3(ExecuteLuaCommand, LUA_CMD::PL_BUY_BAITS, xorstr_("NONE"));
+            exec_cmd3.detach(); Sleep(1500);
+        }
+        EmulateKeyPress(0x1, true);
+        Sleep(50);
+        EmulateKeyPress(0x1, false);
+        Sleep(1000);
     }
 }
 std::optional<HRESULT> on_present(const decltype(present_hook)& hook, IDirect3DDevice9* device_ptr,
@@ -257,18 +286,13 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                         CVector dest(*pos, *(pos + 1), *(pos + 2));
                         if (icon == 41)
                         {
-                            DWORD PEDSELF = *(DWORD*)0xB6F5F0;
-                            BYTE pedState = *(BYTE*)(PEDSELF + 0x46C);
-                            if (pedState != 1 && pedState != 9)
+                            CVehicle* veh = FindPlayerVehicle(0, false);
+                            if (veh == nullptr)
                             {
                                 CPed* ped = FindPlayerPed();
                                 if (ped != nullptr) ped->Teleport(dest, false);
                             }
-                            else
-                            {
-                                CVehicle* veh = FindPlayerVehicle(0, false);
-                                if (veh != nullptr) veh->Teleport(dest, false);
-                            }
+                            else veh->Teleport(dest, false);
                         }
                     }
                 }
@@ -667,6 +691,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::RENT_HOTEL, xorstr_("NONE"));
                     exec_cmd.detach();
                 }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Кто в розыске?")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::GET_WANTED, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
                 ImGui::PopStyleColor(3);
                 ImGui::SameLine();
                 static bool Dummy2 = false;
@@ -687,13 +717,38 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 }
                 ImGui::PopStyleColor(3);
                 ImGui::InputText("[8]", inp_txt8, sizeof(inp_txt8));
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
                 ImGui::SameLine(); static bool Dummy3 = false;
                 if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Уменьшитель урона")).c_str(), &Dummy3))
                 {
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_REDUCE_DAMAGE, inp_txt8);
+                    exec_cmd.detach();
+                }
+                ImGui::Checkbox(cp1251_to_utf8(xorstr_("AntiAFK")).c_str(), &AntiAFK);
+                ImGui::SameLine();
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП на рыбалку")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_FISHING_POINT, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::PopStyleColor(3);
+                ImGui::SameLine();
+                if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Бот Рыболова")).c_str(), &FisherBot))
+                {
+                    if (FisherBot)
+                    {
+                        std::thread exec_fisher(GoFish);
+                        exec_fisher.detach();
+                    }
+                }
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП (Продажа рыбы)")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_SELL_FISH, xorstr_("NONE"));
                     exec_cmd.detach();
                 }
                 ImGui::PopStyleColor(3);

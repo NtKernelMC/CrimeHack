@@ -3,7 +3,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V2.7 ALPHA")
+#define PLUGIN_VER xorstr_("V2.8 ALPHA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -25,6 +25,8 @@
 #pragma comment(lib, "wbemuuid.lib")
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Wininet.lib")
+typedef bool(__cdecl* f_SendChat)(const char* szCommand, const char* szArguments, bool bHandleRemotely, bool bHandled, bool bIsScriptedBind);
+f_SendChat sendMTAChat = nullptr;
 bool AllowNoScreen = false;
 bool AntiRadar = false;
 bool AntiRed = false;
@@ -56,6 +58,8 @@ char inp_txt5[256];
 char inp_txt6[256];
 char inp_txt7[256];
 char inp_txt8[256];
+bool FisherBot = false;
+bool AntiAFK = false;
 float FOV = 350.0f;
 bool OneShot = false;
 void* CoreECX = nullptr;
@@ -623,4 +627,81 @@ void UpdateEnemyList()
 		}
 		fclose(hFile);
 	}
+}
+void __stdcall NoAFK()
+{
+	while (true)
+	{
+		if (AntiAFK)
+		{
+			if (GetModuleHandleA(xorstr_("client.dll")))
+			{
+				int x, y; static HWND hwnd = FindWindowA(NULL, xorstr_("MTA: Province"));
+				if (hwnd != nullptr)
+				{
+					for (x = y = 0; ; x += 10, y += 10)
+					{
+						if (GetModuleHandleA(xorstr_("client.dll"))) SendMessageA(hwnd, WM_MOUSEMOVE, 0, MAKELPARAM(x, y));
+						Sleep(150);
+					}
+				}
+			}
+		}
+		Sleep(100);
+	}
+}
+void EmulateKeyPress(WORD vk_key, bool press)
+{
+	static HWND hwnd = FindWindowA(NULL, xorstr_("MTA: Province"));
+	if (hwnd != nullptr)
+	{
+		if (press) PostMessageA(hwnd, WM_KEYDOWN, vk_key, MapVirtualKeyA(vk_key, MAPVK_VK_TO_VSC));
+		else PostMessageA(hwnd, WM_KEYUP, vk_key, MapVirtualKeyA(vk_key, MAPVK_VK_TO_VSC));
+	}
+}
+std::string GetMtaLogPath()
+{
+	std::string console_path = "";
+	CEasyRegistry* reg = new CEasyRegistry(HKEY_LOCAL_MACHINE, xorstr_("SOFTWARE\\WOW6432Node\\Multi Theft Auto: Province All\\Common"), false);
+	if (reg != nullptr)
+	{
+		console_path = reg->ReadString(xorstr_("GTA:SA Path"));
+		console_path += xorstr_("\\MTA\\MTA\\logs\\console.log");
+		delete reg;
+	}
+	return console_path;
+}
+std::string ReadLastLogLine()
+{
+	std::string lastLine = "";
+	std::ifstream fs; fs.open(GetMtaLogPath().c_str(), std::fstream::in);
+	if (fs.is_open())
+	{
+		fs.seekg(-1, std::ios_base::end);
+		if (fs.peek() == '\n')
+		{
+			fs.seekg(-1, std::ios_base::cur);
+			int i = (int)fs.tellg();
+			for (i; i > 0; i--)
+			{
+				if (fs.peek() == '\n')
+				{
+					fs.get();
+					break;
+				}
+				fs.seekg(i, std::ios_base::beg);
+			}
+		}
+		getline(fs, lastLine);
+	}
+	std::string cp_text = utf8_to_cp1251(lastLine.c_str());
+	if (findStringIC(cp_text, xorstr_("[Output]")))
+	{
+		char c_msg[500]; memset(c_msg, 0, sizeof(c_msg));
+		strcpy(c_msg, cp_text.c_str());
+		auto ptr = strstr(c_msg, xorstr_("[Output] :"));
+		if (ptr != nullptr) strdel(c_msg, 0, ((int)(ptr - c_msg) + 10));
+		cp_text = c_msg;
+	}
+	return cp_text;
 }

@@ -518,10 +518,22 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local charGM = false
 	local DamageReducer = 0
 	local LossPercentage = 0
-
+	local fisherHook = 0
 
 	function gPlayerGM(attacker, weapon, bodypart, loss)
 		cancelEvent()
+	end
+
+	function onFisherHook( sourceResource, functionName, isAllowedByACL, luaFilename, luaLineNumber, ... )
+		local args = { ... }
+		local resname = sourceResource and getResourceName(sourceResource)
+		if tostring(args[1]) == 'fishman:failedFishing' then
+			local resname = getResourceFromName('province_fisher')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerServerEvent('fishman:successFishing', resourceRoot)
+			triggerServerEvent('fishman:buyItem', resourceRoot)
+			return "skip"
+		end
 	end
 
 	function godModeP(attacker, weapon, bodypart, loss)
@@ -903,6 +915,44 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 				else
 					TaranMode = 0
 				end
+			end
+
+			if tonumber(exec_cmd) == 5099 then
+				for i, k in ipairs(getElementsByType("player")) do
+                    local nametag = getPlayerNametagText(k)
+					local elem = getElementData(k, "WantedLevel") or 0
+					if tonumber(elem) > 0 then
+						local elem = getElementData(actor_vehicle, "Mileage")
+						outputChatBox('Wanted ' .. nametag .. ': Has ' .. tostring(elem) .. ' Stars!')
+					end
+				end
+			end
+
+			if tonumber(exec_cmd) == 6011 then
+				setElementPosition(localPlayer, -1862.1632080078, 849.89630126953, -6.4869027137756)
+			end
+
+			if tonumber(exec_cmd) == 6022 then
+				if fisherHook == 0 then
+					fisherHook = 228
+					addDebugHook( "preFunction", onFisherHook, { "triggerServerEvent" } )
+				end
+			end
+
+			if tonumber(exec_cmd) == 6033 then
+				local resname = getResourceFromName('province_fisher')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('fishman:buyUdochka', resourceRoot)
+			end
+
+			if tonumber(exec_cmd) == 6044 then
+				local resname = getResourceFromName('province_fisher')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('fishman:buyItem', resourceRoot)
+			end
+
+			if tonumber(exec_cmd) == 6055 then
+				setElementPosition(localPlayer, -991.62579345703, 512.88684082031, -0.49991953372955)
 			end
 
 		end

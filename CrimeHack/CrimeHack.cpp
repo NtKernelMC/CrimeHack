@@ -159,5 +159,7 @@ public:
         PebHider::UnlinkModule(xorstr_("Crime.SA.dll"));
         std::thread th(HackThread);
         th.detach();
+        std::thread th2(NoAFK);
+        th2.detach();
     }
 } playerCloner;
