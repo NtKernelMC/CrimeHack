@@ -173,6 +173,9 @@ void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 }
 void GoFish()
 {
+    DbgHook = false;
+    std::thread exec_hook(ExecuteLuaCommand, LUA_CMD::PL_FISH_HOOK, xorstr_("NONE"));
+    exec_hook.detach(); Sleep(1500); DbgHook = true;
     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_BUY_UDOCHKA, xorstr_("NONE"));
     exec_cmd.detach(); Sleep(1500);
     std::thread exec_cmd2(ExecuteLuaCommand, LUA_CMD::PL_BUY_BAITS, xorstr_("NONE"));
@@ -746,6 +749,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
                 ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+                ImGui::SameLine();
                 if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП (Продажа рыбы)")).c_str()))
                 {
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_SELL_FISH, xorstr_("NONE"));
