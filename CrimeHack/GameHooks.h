@@ -528,7 +528,6 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			local resname = getResourceFromName('province_trashman')
 			local resourceRoot = getResourceRootElement(resname)
 			triggerServerEvent('province_trashman:onManipulatorPreStart', resourceRoot, 25)
-			triggerServerEvent('province_trashman:onHitMarkerUnload', resourceRoot)
 		end
 	end
 
@@ -980,8 +979,9 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 				if MusorBot == 0 then
 					MusorBot = 228
 					Musor = setTimer(MusoroDrocher, 2000, 0)
-					Musor2 = setTimer(MusoroDrocher2, 3000, 0)
+					Musor2 = setTimer(MusoroDrocher2, 5000, 0)
 				else
+					MusorBot = 0
 					killTimer(Musor)
 					killTimer(Musor2)
 				end
