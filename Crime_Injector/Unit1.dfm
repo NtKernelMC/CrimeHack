@@ -7710,7 +7710,7 @@ object Form1: TForm1
     ParentFont = False
   end
   object Label3: TLabel
-    Left = 87
+    Left = 74
     Top = 480
     Width = 162
     Height = 13
@@ -7763,7 +7763,8 @@ object Form1: TForm1
     Top = 496
     Width = 185
     Height = 17
-    Position = 10
+    Max = 250
+    Position = 250
     SelStart = 250
     TabOrder = 5
     OnChange = TrackBar1Change
