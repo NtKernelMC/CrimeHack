@@ -159,6 +159,7 @@ enum class LUA_CMD
     PL_BUY_UDOCHKA = 6033,
     PL_BUY_BAITS = 6044,
     PL_SELL_FISH = 6055,
+    MUSOR_BOT = 6066,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -756,6 +757,13 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     exec_cmd.detach();
                 }
                 ImGui::PopStyleColor(3);
+                ImGui::SameLine();
+                static bool Dummy4 = false;
+                if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Бот мусорщик")).c_str(), &Dummy4))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::MUSOR_BOT, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
             }
             else ImGui::BulletText(cp1251_to_utf8(xorstr_("Разрешите Lua читы в настройках инжектора!!")).c_str());
             break;

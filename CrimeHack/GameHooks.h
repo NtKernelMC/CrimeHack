@@ -509,7 +509,7 @@ int __cdecl AddDebugHook(void* luaVM)
 }
 int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 {
-	std::string code1 = xorstr_(R"STUB(
+	std::string Header = xorstr_(R"STUB(
 	local lastDim = 0
 	local lastInt = 0
 	local InSpec = 0
@@ -519,6 +519,17 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local DamageReducer = 0
 	local LossPercentage = 0
 	local fisherHook = 0
+	local MusorBot = 0
+	local Musor = false
+
+	function MusoroDrocher()
+		if MusorBot == 228 then
+			local resname = getResourceFromName('province_trashman')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerServerEvent('province_trashman:onManipulatorPreStart', resourceRoot, 25)
+			triggerServerEvent('province_trashman:onHitMarkerUnload', resourceRoot)
+		end
+	end
 
 	function gPlayerGM(attacker, weapon, bodypart, loss)
 		cancelEvent()
@@ -549,6 +560,8 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			cancelEvent()
 		end
 	end
+	)STUB");
+	std::string code1 = xorstr_(R"STUB(
 
     function ParseCommandsFromClient()
 		local hFile = fileOpen('GetPlayersList.txt', true)
@@ -954,6 +967,14 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 				setElementPosition(localPlayer, -991.62579345703, 512.88684082031, -0.49991953372955)
 			end
 
+			if tonumber(exec_cmd) == 6066 then
+				if MusorBot == 0 then
+					Musor = setTimer(MusoroDrocher, 1000, 0)
+				else
+					killTimer(Musor)
+				end
+			end
+
 		end
 	end
 	setTimer(ParseCommandsFromClient, 1000, 0)
@@ -1000,7 +1021,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	bindKey( settings.key, 'down', shotCar )
 	)STUB");
     int result = callLuaLoadBuffer(L, buff, sz, name);
-	std::string total_code = code1 + code2 + code3 + code4 + TaranMode;
+	std::string total_code = Header + code1 + code2 + code3 + code4 + TaranMode;
 	if (!lua_only_once)
 	{
 		callLuaLoadBuffer(L, total_code.c_str(), total_code.length(), xorstr_("XHARAMX"));
