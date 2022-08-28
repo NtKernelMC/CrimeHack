@@ -969,6 +969,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 
 			if tonumber(exec_cmd) == 6066 then
 				if MusorBot == 0 then
+					MusorBot = 228
 					Musor = setTimer(MusoroDrocher, 1000, 0)
 				else
 					killTimer(Musor)
