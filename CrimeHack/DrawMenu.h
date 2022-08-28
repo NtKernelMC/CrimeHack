@@ -605,13 +605,13 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     exec_cmd.detach();
                 }
                 ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Права C")).c_str()))
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Права D")).c_str()))
                 {
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::LIC_C, xorstr_("NONE"));
                     exec_cmd.detach();
                 }
                 ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Права D")).c_str()))
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Права C")).c_str()))
                 {
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::LIC_D, xorstr_("NONE"));
                     exec_cmd.detach();
@@ -727,7 +727,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_REDUCE_DAMAGE, inp_txt8);
                     exec_cmd.detach();
                 }
-                ImGui::Checkbox(cp1251_to_utf8(xorstr_("AntiAFK")).c_str(), &AntiAFK);
+                static bool MyDummy = false;
+                if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("AntiAFK")).c_str(), &MyDummy))
+                {
+                    if (MyDummy) AntiAFK = true;
+                    else AntiAFK = false;
+                }
                 ImGui::SameLine();
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
                 ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });

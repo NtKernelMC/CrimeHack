@@ -618,7 +618,6 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 				if target_element then
 					if getElementAttachedTo(blips) then	
 						destroyElement(blips) 
-						blips = createBlipAttachedTo(target_element, 0, 4.5, 0, 255, 0, 80, 0 ) 
 					else 
 						blips = createBlipAttachedTo(target_element, 0, 4.5, 0, 255, 0, 80, 0 ) 
 					end
@@ -1171,4 +1170,12 @@ bool __cdecl SetTrafficLightsLocked(bool bLocked)
 	bool rslt = true;
 	if (!AntiRed) rslt = callSetTrafficLightsLocked(bLocked);
 	return rslt;
+}
+typedef void* (__thiscall* ptrCClientStreamer)(void* ECX, void* ReachedFunc, float fMaxDistance, float fSectorSize, float fRowSize);
+ptrCClientStreamer callCClientStreamer = nullptr;
+void* __fastcall CClientStreamer(void* ECX, void* EDX, void* ReachedFunc, float fMaxDistance, float fSectorSize, float fRowSize)
+{
+	if (fMaxDistance == 250.0f) fMaxDistance = StreamDist;
+	LogInFile(LOG_NAME, xorstr_("[PLUGIN] CClientStreamer created with fMaxDistance = %f\n"), fMaxDistance);
+	return callCClientStreamer(ECX, ReachedFunc, fMaxDistance, fSectorSize, fRowSize);
 }

@@ -27,13 +27,17 @@ std::string RandomString(int len)
 __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner)
 {
 	srand(time(NULL)); Form1->Caption = RandomString(20).c_str();
-    CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, "Software\\CR1M3H", true);
+	CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, "Software\\CR1M3H", true);
 	if (reg != nullptr)
 	{
 		DWORD intg = reg->ReadInteger("AllowLua");
 		DWORD intg2 = reg->ReadInteger("AllowNoScreen");
 		Form1->CheckBox1->Checked = (bool)intg;
 		Form1->CheckBox2->Checked = (bool)intg2;
+		int pos = reg->ReadInteger("StreamDist");
+		char fmt[256]; memset(fmt, 0, sizeof(fmt));
+		sprintf(fmt, "Дальность прорисовки: %dм (FPS UP)", pos);
+		Form1->Label3->Caption = AnsiString(fmt);
 		delete reg;
 	}
 }
@@ -70,7 +74,8 @@ BOOL CALLBACK EnumWindowsProcMy(HWND hwnd,LPARAM lParam)
 	if (reg != nullptr)
 	{
 		reg->WriteInteger("AllowLua", Form1->CheckBox1->Checked);
-        reg->WriteInteger("AllowNoScreen", Form1->CheckBox2->Checked);
+		reg->WriteInteger("AllowNoScreen", Form1->CheckBox2->Checked);
+        reg->WriteInteger("StreamDist", Form1->TrackBar1->Position);
 		delete reg;
     }
 	DWORD lpdwProcessId = 0x0; AnsiString selt(Form1->ComboBox1->Text);
@@ -153,6 +158,21 @@ void __fastcall TForm1::FormClose(TObject *Sender, TCloseAction &Action)
 	{
 		int mkey = MessageBoxW(0, L"Вы уверены что хотите закрыть чит?\nЗакрытие во время игры вызвит её зависание!", L"WARNING", MB_ICONASTERISK | MB_YESNO);
 	    if (mkey == IDNO) Action = caNone;
+	}
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::TrackBar1Change(TObject *Sender)
+{
+    int pos = Form1->TrackBar1->Position;
+	char fmt[256]; memset(fmt, 0, sizeof(fmt));
+	sprintf(fmt, "Дальность прорисовки: %dм (FPS UP)", pos);
+	Form1->Label3->Caption = AnsiString(fmt);
+	CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, "Software\\CR1M3H", true);
+	if (reg != nullptr)
+	{
+        reg->WriteInteger("StreamDist", pos);
+		delete reg;
 	}
 }
 //---------------------------------------------------------------------------

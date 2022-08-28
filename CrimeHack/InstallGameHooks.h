@@ -37,7 +37,7 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             }
             else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for ForceCursorVisible.\n"));
         }
-        if (callSendBulletSyncFire == nullptr) callSendBulletSyncFire = (ptrSendBulletSyncFire)scan.FindPattern(xorstr_("client.dll"),
+        callSendBulletSyncFire = (ptrSendBulletSyncFire)scan.FindPattern(xorstr_("client.dll"),
         xorstr_("\x55\x8B\xEC\x51\x8B\x45\x08\x0F"), xorstr_("xxxxxxxx"));
         if (callSendBulletSyncFire != nullptr)
         {
@@ -47,6 +47,16 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             MH_EnableHook(MH_ALL_HOOKS);
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SendBulletSyncFire.\n"));
+        callCClientStreamer = (ptrCClientStreamer)scan.FindPattern("client.dll",
+        xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x1C\x53\x56\x57\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF1\x89\x75\xF0\xF3"),
+        xorstr_("xxxxxx????xxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxxx"));
+        if (callCClientStreamer != nullptr)
+        {
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found a signature to CClientStreamer!\n"));
+            MH_CreateHook(callCClientStreamer, &CClientStreamer, reinterpret_cast<LPVOID*>(&callCClientStreamer));
+            MH_EnableHook(MH_ALL_HOOKS);
+        }
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for CClientStreamer.\n"));
         callTakePlayerScreenShot = (ptrTakePlayerScreenShot)scan.FindPattern(xorstr_("client.dll"),
         xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x60\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x57\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x89"),
         xorstr_("xxxxxx????xxxxxxxxxxx????xxxxxxxxxxxxxxxxxx"));

@@ -3,7 +3,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V2.9 ALPHA")
+#define PLUGIN_VER xorstr_("V3.1 BETA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -25,6 +25,7 @@
 #pragma comment(lib, "wbemuuid.lib")
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Wininet.lib")
+float StreamDist = 250.0f;
 typedef bool(__cdecl* f_SendChat)(const char* szCommand, const char* szArguments, bool bHandleRemotely, bool bHandled, bool bIsScriptedBind);
 f_SendChat sendMTAChat = nullptr;
 bool AllowNoScreen = false;
@@ -59,7 +60,7 @@ char inp_txt6[256];
 char inp_txt7[256];
 char inp_txt8[256];
 bool FisherBot = false;
-bool AntiAFK = false;
+volatile bool AntiAFK = false;
 float FOV = 350.0f;
 bool OneShot = false;
 void* CoreECX = nullptr;
@@ -81,7 +82,7 @@ void __stdcall LogInFile(std::string log_name, const char* log, ...);
 typedef void(__thiscall* ptrForceCursorVisible)(void* ECX, bool bVisible, bool bToggleControls);
 ptrForceCursorVisible callForceCursorVisible = nullptr;
 std::string total_hwid = "";
-bool ShowMenu = false;
+volatile bool ShowMenu = false;
 std::vector<std::string> PlayersList;
 std::map<std::string, bool> EnemyList;
 inline float WrapAround(float fValue, float fHigh)
@@ -632,7 +633,7 @@ void __stdcall NoAFK()
 {
 	while (true)
 	{
-		if (AntiAFK)
+		if (AntiAFK && !ShowMenu)
 		{
 			if (GetModuleHandleA(xorstr_("client.dll")))
 			{

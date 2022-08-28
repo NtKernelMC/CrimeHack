@@ -4,7 +4,7 @@ object Form1: TForm1
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Crime Hack by NtKernelMC'
-  ClientHeight = 524
+  ClientHeight = 558
   ClientWidth = 336
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -7709,6 +7709,13 @@ object Form1: TForm1
     Font.Style = []
     ParentFont = False
   end
+  object Label3: TLabel
+    Left = 87
+    Top = 480
+    Width = 162
+    Height = 13
+    Caption = #1047#1086#1085#1072' '#1087#1088#1086#1088#1080#1089#1086#1074#1082#1080': 250'#1084' (FPS UP)'
+  end
   object ComboBox1: TComboBox
     Left = 72
     Top = 376
@@ -7728,7 +7735,7 @@ object Form1: TForm1
   end
   object Button2: TButton
     Left = -8
-    Top = 487
+    Top = 519
     Width = 345
     Height = 41
     Caption = 'vk.com/provhacks | '#1055#1086#1089#1077#1090#1080#1090#1100' '#1075#1088#1091#1087#1087#1091' '#1088#1072#1079#1088#1072#1073#1086#1090#1095#1080#1082#1072
@@ -7750,5 +7757,15 @@ object Form1: TForm1
     Height = 17
     Caption = 'NoScreen ('#1054#1092#1072#1077#1090' '#1080#1075#1088#1091' '#1087#1088#1080' '#1089#1082#1088#1080#1085#1096#1086#1090#1077')'
     TabOrder = 4
+  end
+  object TrackBar1: TTrackBar
+    Left = 72
+    Top = 496
+    Width = 185
+    Height = 17
+    Position = 10
+    SelStart = 250
+    TabOrder = 5
+    OnChange = TrackBar1Change
   end
 end
