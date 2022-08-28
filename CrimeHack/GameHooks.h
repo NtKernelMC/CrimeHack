@@ -510,6 +510,7 @@ int __cdecl AddDebugHook(void* luaVM)
 int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 {
 	std::string Header = xorstr_(R"STUB(
+	local arg4 = false
 	local lastDim = 0
 	local lastInt = 0
 	local InSpec = 0
@@ -552,6 +553,10 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			triggerServerEvent('fishman:successFishing', resourceRoot)
 			triggerServerEvent('fishman:buyItem', resourceRoot)
 			return "skip"
+		end
+		if tostring(args[1]) == 'tuning:buyTuning' then
+			arg4 = tonumber(args[4])
+			outputChatBox('Number: ' .. tostring(arg4))
 		end
 	end
 
@@ -984,6 +989,20 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 					killTimer(Musor)
 					killTimer(Musor2)
 				end
+			end
+
+			if tonumber(exec_cmd) == 6077 then
+				local resname = getResourceFromName('province_tuning')
+				local resourceRoot = getResourceRootElement(resname)
+				local rtable =
+				{
+					['wheel'] =
+					{
+						['param'] = 5073,
+						['price'] = 20000
+					},
+				}
+				triggerServerEvent('tuning:buyTuning', resourceRoot, rtable, tonumber(arg4))
 			end
 
 		end

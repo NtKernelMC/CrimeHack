@@ -3,7 +3,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V3.1 BETA")
+#define PLUGIN_VER xorstr_("V3.2 BETA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -28,6 +28,7 @@
 float StreamDist = 250.0f;
 typedef bool(__cdecl* f_SendChat)(const char* szCommand, const char* szArguments, bool bHandleRemotely, bool bHandled, bool bIsScriptedBind);
 f_SendChat sendMTAChat = nullptr;
+bool AllowTuning = false;
 bool AllowNoScreen = false;
 bool AntiRadar = false;
 bool AntiRed = false;

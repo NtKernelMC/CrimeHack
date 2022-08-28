@@ -4,7 +4,7 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
 {
     NTSTATUS sts = callLdrLoadDll(PathToFile, Flags, ModuleFileName, ModuleHandle);
     std::wstring wstrModuleFileName = std::wstring(ModuleFileName->Buffer, ModuleFileName->Length);
-    if (w_findStringIC(wstrModuleFileName, xorstr_(L"client.dll")))
+    if (w_findStringIC(wstrModuleFileName, xorstr_(L"client.dll")) && !AllowTuning)
     {
         FuckArthemidaIntegrity(xorstr_("core.dll")); SigScan scan; MessageBeep(MB_ICONASTERISK);
         sendMTAChat = (f_SendChat)scan.FindPattern(xorstr_("client.dll"),

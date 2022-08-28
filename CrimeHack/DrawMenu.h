@@ -160,6 +160,7 @@ enum class LUA_CMD
     PL_BUY_BAITS = 6044,
     PL_SELL_FISH = 6055,
     MUSOR_BOT = 6066,
+    BUY_TUNE = 6077,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -172,11 +173,15 @@ void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
         fclose(hFile);
     }
 }
-void GoFish()
+void SetAnotherHook()
 {
     DbgHook = false;
     std::thread exec_hook(ExecuteLuaCommand, LUA_CMD::PL_FISH_HOOK, xorstr_("NONE"));
     exec_hook.detach(); Sleep(1500); DbgHook = true;
+}
+void GoFish()
+{
+    SetAnotherHook();
     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_BUY_UDOCHKA, xorstr_("NONE"));
     exec_cmd.detach(); Sleep(1500);
     std::thread exec_cmd2(ExecuteLuaCommand, LUA_CMD::PL_BUY_BAITS, xorstr_("NONE"));
@@ -769,6 +774,21 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::MUSOR_BOT, xorstr_("NONE"));
                     exec_cmd.detach();
                 }
+                if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Tuning Dumper")).c_str(), &AllowTuning))
+                {
+                    std::thread ttr(SetAnotherHook);
+                    ttr.detach();
+                }
+                ImGui::SameLine();
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Диски Lada Sport")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BUY_TUNE, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::PopStyleColor(3);
             }
             else ImGui::BulletText(cp1251_to_utf8(xorstr_("Разрешите Lua читы в настройках инжектора!!")).c_str());
             break;
