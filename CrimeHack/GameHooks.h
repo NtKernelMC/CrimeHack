@@ -521,12 +521,21 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local fisherHook = 0
 	local MusorBot = 0
 	local Musor = false
+	local Musor2 = false
 
 	function MusoroDrocher()
 		if MusorBot == 228 then
 			local resname = getResourceFromName('province_trashman')
 			local resourceRoot = getResourceRootElement(resname)
 			triggerServerEvent('province_trashman:onManipulatorPreStart', resourceRoot, 25)
+			triggerServerEvent('province_trashman:onHitMarkerUnload', resourceRoot)
+		end
+	end
+
+	function MusoroDrocher2()
+		if MusorBot == 228 then
+			local resname = getResourceFromName('province_trashman')
+			local resourceRoot = getResourceRootElement(resname)
 			triggerServerEvent('province_trashman:onHitMarkerUnload', resourceRoot)
 		end
 	end
@@ -970,9 +979,11 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			if tonumber(exec_cmd) == 6066 then
 				if MusorBot == 0 then
 					MusorBot = 228
-					Musor = setTimer(MusoroDrocher, 1000, 0)
+					Musor = setTimer(MusoroDrocher, 2000, 0)
+					Musor2 = setTimer(MusoroDrocher2, 3000, 0)
 				else
 					killTimer(Musor)
+					killTimer(Musor2)
 				end
 			end
 
