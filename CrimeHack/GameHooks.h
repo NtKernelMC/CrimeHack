@@ -1001,6 +1001,69 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 						['param'] = 5073,
 						['price'] = 20000
 					},
+					['wheel_color_1'] =
+					{
+						['param'] = { 255, 0, 0 },
+						['price'] = 30000
+					},
+					['wheel_color_2'] =
+					{
+						['param'] = { 255, 0, 0 },
+						['price'] = 30000
+					},
+					['wheel_color_3'] =
+					{
+						['param'] = { 255, 0, 0 },
+						['price'] = 30000
+					},
+					['wheel_color_4'] =
+					{
+						['param'] = { 255, 0, 0 },
+						['price'] = 30000
+					},
+				}
+				triggerServerEvent('tuning:buyTuning', resourceRoot, rtable, tonumber(arg4))
+			end
+
+			if tonumber(exec_cmd) == 6088 then
+				local resname = getResourceFromName('province_tuning')
+				local resourceRoot = getResourceRootElement(resname)
+				local rtable =
+				{
+					['paint_color'] =
+					{
+						['param'] = { 205, 0, 255 },
+						['price'] = 30000
+					},
+					['paint_type'] =
+					{
+						['param'] = 5,
+						['price'] = 500000
+					},
+				}
+				triggerServerEvent('tuning:buyTuning', resourceRoot, rtable, tonumber(arg4))
+			end
+
+			if tonumber(exec_cmd) == 6099 then
+				local resname = getResourceFromName('province_tuning')
+				local resourceRoot = getResourceRootElement(resname)
+				local rtable =
+				{
+					['toner_front'] =
+					{
+						['param'] = 260,
+						['price'] = 10000
+					},
+					['toner_front_door'] =
+					{
+						['param'] = 260,
+						['price'] = 10000
+					},
+					['toner_rear'] =
+					{
+						['param'] = 260,
+						['price'] = 10000
+					},
 				}
 				triggerServerEvent('tuning:buyTuning', resourceRoot, rtable, tonumber(arg4))
 			end

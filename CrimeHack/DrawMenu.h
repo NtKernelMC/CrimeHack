@@ -161,6 +161,8 @@ enum class LUA_CMD
     PL_SELL_FISH = 6055,
     MUSOR_BOT = 6066,
     BUY_TUNE = 6077,
+    BUY_TUNE2 = 6088,
+    BUY_TUNE3 = 6099,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -786,6 +788,18 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 if (ImGui::Button(cp1251_to_utf8(xorstr_("Диски Lada Sport")).c_str()))
                 {
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BUY_TUNE, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Покраска Хамелеон")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BUY_TUNE2, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Черный тонер")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BUY_TUNE3, xorstr_("NONE"));
                     exec_cmd.detach();
                 }
                 ImGui::PopStyleColor(3);

@@ -122,7 +122,7 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
                 MH_EnableHook(MH_ALL_HOOKS);
                 LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to FPS UNLOCKER!\n"));
             }
-            else LogInFile(xorstr_("RevengeHack.log"), xorstr_("[ERROR] Can`t find a sig for FPS UNLOCKER.\n"));
+            else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for FPS UNLOCKER.\n"));
         }
         callStartGame = (ptrStartGame)scan.FindPattern(xorstr_("client.dll"),
         xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x81\xEC\xB4\x01"),
