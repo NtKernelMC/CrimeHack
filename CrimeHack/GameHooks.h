@@ -520,25 +520,6 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local DamageReducer = 0
 	local LossPercentage = 0
 	local fisherHook = 0
-	local MusorBot = 0
-	local Musor = false
-	local Musor2 = false
-
-	function MusoroDrocher()
-		if MusorBot == 228 then
-			local resname = getResourceFromName('province_trashman')
-			local resourceRoot = getResourceRootElement(resname)
-			triggerServerEvent('province_trashman:onManipulatorPreStart', resourceRoot, 25)
-		end
-	end
-
-	function MusoroDrocher2()
-		if MusorBot == 228 then
-			local resname = getResourceFromName('province_trashman')
-			local resourceRoot = getResourceRootElement(resname)
-			triggerServerEvent('province_trashman:onHitMarkerUnload', resourceRoot)
-		end
-	end
 
 	function gPlayerGM(attacker, weapon, bodypart, loss)
 		cancelEvent()
@@ -553,10 +534,6 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			triggerServerEvent('fishman:successFishing', resourceRoot)
 			triggerServerEvent('fishman:buyItem', resourceRoot)
 			return "skip"
-		end
-		if tostring(args[1]) == 'tuning:buyTuning' then
-			arg4 = tonumber(args[4])
-			outputChatBox('Number: ' .. tostring(arg4))
 		end
 	end
 
@@ -980,92 +957,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			end
 
 			if tonumber(exec_cmd) == 6066 then
-				if MusorBot == 0 then
-					MusorBot = 228
-					Musor = setTimer(MusoroDrocher, 2000, 0)
-					Musor2 = setTimer(MusoroDrocher2, 5000, 0)
-				else
-					MusorBot = 0
-					killTimer(Musor)
-					killTimer(Musor2)
-				end
-			end
-
-			if tonumber(exec_cmd) == 6077 then
-				local resname = getResourceFromName('province_tuning')
-				local resourceRoot = getResourceRootElement(resname)
-				local rtable =
-				{
-					['wheel'] =
-					{
-						['param'] = 5073,
-						['price'] = 20000
-					},
-					['wheel_color_1'] =
-					{
-						['param'] = { 255, 0, 0 },
-						['price'] = 30000
-					},
-					['wheel_color_2'] =
-					{
-						['param'] = { 255, 0, 0 },
-						['price'] = 30000
-					},
-					['wheel_color_3'] =
-					{
-						['param'] = { 255, 0, 0 },
-						['price'] = 30000
-					},
-					['wheel_color_4'] =
-					{
-						['param'] = { 255, 0, 0 },
-						['price'] = 30000
-					},
-				}
-				triggerServerEvent('tuning:buyTuning', resourceRoot, rtable, tonumber(arg4))
-			end
-
-			if tonumber(exec_cmd) == 6088 then
-				local resname = getResourceFromName('province_tuning')
-				local resourceRoot = getResourceRootElement(resname)
-				local rtable =
-				{
-					['paint_color'] =
-					{
-						['param'] = { 205, 0, 255 },
-						['price'] = 30000
-					},
-					['paint_type'] =
-					{
-						['param'] = 5,
-						['price'] = 500000
-					},
-				}
-				triggerServerEvent('tuning:buyTuning', resourceRoot, rtable, tonumber(arg4))
-			end
-
-			if tonumber(exec_cmd) == 6099 then
-				local resname = getResourceFromName('province_tuning')
-				local resourceRoot = getResourceRootElement(resname)
-				local rtable =
-				{
-					['toner_front'] =
-					{
-						['param'] = 260,
-						['price'] = 10000
-					},
-					['toner_front_door'] =
-					{
-						['param'] = 260,
-						['price'] = 10000
-					},
-					['toner_rear'] =
-					{
-						['param'] = 260,
-						['price'] = 10000
-					},
-				}
-				triggerServerEvent('tuning:buyTuning', resourceRoot, rtable, tonumber(arg4))
+				
 			end
 
 		end

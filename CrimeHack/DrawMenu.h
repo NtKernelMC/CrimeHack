@@ -769,40 +769,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     exec_cmd.detach();
                 }
                 ImGui::PopStyleColor(3);
-                ImGui::SameLine();
-                static bool Dummy4 = false;
-                if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Бот мусорщик")).c_str(), &Dummy4))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::MUSOR_BOT, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Tuning Dumper")).c_str(), &AllowTuning))
-                {
-                    std::thread ttr(SetAnotherHook);
-                    ttr.detach();
-                }
-                ImGui::SameLine();
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Диски Lada Sport")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BUY_TUNE, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Покраска Хамелеон")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BUY_TUNE2, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Черный тонер")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BUY_TUNE3, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::PopStyleColor(3);
             }
             else ImGui::BulletText(cp1251_to_utf8(xorstr_("Разрешите Lua читы в настройках инжектора!!")).c_str());
             break;
