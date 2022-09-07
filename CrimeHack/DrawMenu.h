@@ -159,10 +159,7 @@ enum class LUA_CMD
     PL_BUY_UDOCHKA = 6033,
     PL_BUY_BAITS = 6044,
     PL_SELL_FISH = 6055,
-    MUSOR_BOT = 6066,
-    BUY_TUNE = 6077,
-    BUY_TUNE2 = 6088,
-    BUY_TUNE3 = 6099,
+    PL_SET_INT = 6066,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -769,6 +766,20 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     exec_cmd.detach();
                 }
                 ImGui::PopStyleColor(3);
+                ImGui::SameLine();
+                if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Выйти с КПЗ")).c_str(), &AntiTeleport))
+                {
+                    if (AntiTeleport)
+                    {
+                        CPed* ped = FindPlayerPed();
+                        if (ped != nullptr)
+                        {
+                            ped->Teleport(CVector(1096.158f, 2557.059f, 13.792f + 2.0f), false);
+                            std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_SET_INT, xorstr_("NONE"));
+                            exec_cmd.detach();
+                        }
+                    }
+                }
             }
             else ImGui::BulletText(cp1251_to_utf8(xorstr_("Разрешите Lua читы в настройках инжектора!!")).c_str());
             break;

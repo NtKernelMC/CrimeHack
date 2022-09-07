@@ -198,6 +198,38 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SetTrafficLightsLocked!\n"));
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SetTrafficLightsLocked.\n"));
+        callSetElementPosition = (ptrSetElementPosition)scan.FindPattern(xorstr_("client.dll"),
+        xorstr_("\x55\x8B\xEC\x83\xEC\x10\x57\x8B\x7D\x0C"), xorstr_("xxxxxxxxxx"));
+        if (callSetElementPosition != nullptr)
+        {
+            MH_RemoveHook(callSetElementPosition);
+            MH_CreateHook(callSetElementPosition, &SetElementPosition, reinterpret_cast<LPVOID*>(&callSetElementPosition));
+            MH_EnableHook(MH_ALL_HOOKS);
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SetElementPosition!\n"));
+        }
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SetElementPosition.\n"));
+        callSetPedRotation = (ptrSetPedRotation)scan.FindPattern(xorstr_("client.dll"),
+        xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x0C\x56\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\xC7\x45\x00\x00\x00\x00\x00\x8B"), 
+        xorstr_("xxxxxx????xxxxxxxxxxxx????xxxxxxxxxxxxxx?????x"));
+        if (callSetPedRotation != nullptr)
+        {
+            MH_RemoveHook(callSetPedRotation);
+            MH_CreateHook(callSetPedRotation, &SetPedRotation, reinterpret_cast<LPVOID*>(&callSetPedRotation));
+            MH_EnableHook(MH_ALL_HOOKS);
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SetPedRotation!\n"));
+        }
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SetPedRotation.\n"));
+        callRemovePedFromVehicle = (ptrRemovePedFromVehicle)scan.FindPattern(xorstr_("client.dll"),
+        xorstr_("\x55\x8B\xEC\x8B\x4D\x0C\x8D\x55\x0F\x52\x8B\x01\x8B\x80\x9C\x00\x00\x00\xFF\xD0\x84\xC0\x74\x31"),
+        xorstr_("xxxxxxxxxxxxxxxxxxxxxxxx"));
+        if (callRemovePedFromVehicle != nullptr)
+        {
+            MH_RemoveHook(callRemovePedFromVehicle);
+            MH_CreateHook(callRemovePedFromVehicle, &RemovePedFromVehicle, reinterpret_cast<LPVOID*>(&callRemovePedFromVehicle));
+            MH_EnableHook(MH_ALL_HOOKS);
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to RemovePedFromVehicle!\n"));
+        }
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for RemovePedFromVehicle.\n"));
     }
     return sts;
 }

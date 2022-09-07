@@ -3,7 +3,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V3.5 BETA")
+#define PLUGIN_VER xorstr_("V3.6 BETA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -31,6 +31,7 @@ f_SendChat sendMTAChat = nullptr;
 bool AllowTuning = false;
 bool AllowNoScreen = false;
 bool AntiRadar = false;
+bool AntiTeleport = false;
 bool AntiRed = false;
 bool NoScreen = false;
 bool PedInviz = false;

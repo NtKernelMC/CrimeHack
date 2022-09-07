@@ -957,7 +957,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			end
 
 			if tonumber(exec_cmd) == 6066 then
-				
+				setElementInterior(localPlayer, 0)
 			end
 
 		end
@@ -1152,4 +1152,25 @@ void* __fastcall CClientStreamer(void* ECX, void* EDX, void* ReachedFunc, float 
 	if (fMaxDistance == 250.0f) fMaxDistance = StreamDist;
 	LogInFile(LOG_NAME, xorstr_("[PLUGIN] CClientStreamer created with fMaxDistance = %f\n"), fMaxDistance);
 	return callCClientStreamer(ECX, ReachedFunc, fMaxDistance, fSectorSize, fRowSize);
+}
+typedef void (__thiscall* ptrSetElementPosition)(void *ECX, void* pSource, void* bitStream);
+ptrSetElementPosition callSetElementPosition = nullptr;
+void __fastcall SetElementPosition(void* ECX, void* EDX, void* pSource, void* bitStream)
+{
+	if (AntiTeleport) return;
+	callSetElementPosition(ECX, pSource, bitStream);
+}
+typedef void (__thiscall *ptrSetPedRotation)(void *ECX, void* pSource, void* bitStream);
+ptrSetPedRotation callSetPedRotation = nullptr;
+void __fastcall SetPedRotation(void *ECX, void *EDX, void* pSource, void* bitStream)
+{
+	//if (AntiTeleport) return;
+	return callSetPedRotation(ECX, pSource, bitStream);
+}
+typedef void (__thiscall* ptrRemovePedFromVehicle)(void* ECX, void* pSource, void* bitStream);
+ptrRemovePedFromVehicle callRemovePedFromVehicle = nullptr;
+void __fastcall RemovePedFromVehicle(void* ECX, void* EDX, void* pSource, void* bitStream)
+{
+	//if (AntiTeleport) return;
+	return callRemovePedFromVehicle(ECX, pSource, bitStream);
 }
