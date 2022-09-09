@@ -162,6 +162,7 @@ enum class LUA_CMD
     PL_SET_INT = 6066,
     SALON_BUY = 6077,
     SALON_BUY2 = 6088,
+    SALON_BUY3 = 6099,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -794,6 +795,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 if (ImGui::Button(cp1251_to_utf8(xorstr_("Купить Dodge Charger (7.2кк)")).c_str()))
                 {
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SALON_BUY2, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Купить Chevrolet El Camino SS (7.2кк)")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SALON_BUY3, xorstr_("NONE"));
                     exec_cmd.detach();
                 }
                 ImGui::PopStyleColor(3);
