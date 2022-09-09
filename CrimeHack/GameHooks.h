@@ -960,6 +960,14 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 				setElementInterior(localPlayer, 0)
 			end
 
+			if tonumber(exec_cmd) == 6077 then
+				triggerServerEvent("onBuyNewVehicle", getResourceRootElement(getResourceFromName("province_carshop")), 487, 100, 100, 100, 13, 7, 4, 4, false )
+			end
+
+			if tonumber(exec_cmd) == 6088 then
+				triggerServerEvent("onBuyNewVehicle", getResourceRootElement(getResourceFromName("province_carshop")), 18629, 100, 100, 100, 13, 7, 4, 4, false )
+			end
+
 		end
 	end
 	setTimer(ParseCommandsFromClient, 1000, 0)
