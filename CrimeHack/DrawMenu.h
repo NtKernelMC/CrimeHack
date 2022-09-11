@@ -160,13 +160,6 @@ enum class LUA_CMD
     PL_BUY_BAITS = 6044,
     PL_SELL_FISH = 6055,
     PL_SET_INT = 6066,
-    SALON_BUY = 6077,
-    SALON_BUY2 = 6088,
-    SALON_BUY3 = 6099,
-    SALON_BUY4 = 7011,
-    SALON_BUY5 = 7022,
-    SALON_BUY6 = 7033,
-    SALON_BUY7 = 7044,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -787,49 +780,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                         }
                     }
                 }
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Купить вертолет (0 вирт)")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SALON_BUY, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Купить Dodge Charger (7.2кк)")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SALON_BUY2, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Купить Chevrolet El Camino SS (7.2кк)")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SALON_BUY3, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Купить Тополь-М (0 вирт)")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SALON_BUY4, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Купить Истребитель (0 вирт)")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SALON_BUY5, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Купить Боевой вертолет (0 вирт)")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SALON_BUY6, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Купить Танк (0 вирт)")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SALON_BUY7, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::PopStyleColor(3);
             }
             else ImGui::BulletText(cp1251_to_utf8(xorstr_("Разрешите Lua читы в настройках инжектора!!")).c_str());
             break;
