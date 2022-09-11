@@ -144,7 +144,7 @@ enum class LUA_CMD
     PL_MED_MASK = 4066,
     PL_UNCUFF = 4077,
     PL_MILEAGE = 4088,
-    PL_SKILL = 4099,
+    EMPTY_CODE = 4099,
     CAR_CHARGE = 5011,
     CAR_ATTACH = 5022,
     CAR_SET_PLATE = 5033,
@@ -510,12 +510,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 if (ImGui::Button(cp1251_to_utf8(xorstr_("Оплатить штрафы")).c_str()))
                 {
                     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_PAY, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Скиллы")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_SKILL, xorstr_("NONE"));
                     exec_cmd.detach();
                 }
                 ImGui::SameLine();

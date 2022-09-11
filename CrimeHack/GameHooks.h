@@ -842,9 +842,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			end
 
 			if tonumber(exec_cmd) == 4099 then
-				local resname = getResourceFromName('province_shootingRange')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('shootingRange:onStopGame', resourceRoot, 20000)	
+					
 			end
 
 			if tonumber(exec_cmd) == 5011 then
