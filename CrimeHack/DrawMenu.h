@@ -160,6 +160,7 @@ enum class LUA_CMD
     PL_BUY_BAITS = 6044,
     PL_SELL_FISH = 6055,
     PL_SET_INT = 6066,
+    SERVER_CRASHER = 6077,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -774,6 +775,15 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                         }
                     }
                 }
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Крашнуть сервер")).c_str()))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SERVER_CRASHER, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                ImGui::PopStyleColor(3);
             }
             else ImGui::BulletText(cp1251_to_utf8(xorstr_("Разрешите Lua читы в настройках инжектора!!")).c_str());
             break;

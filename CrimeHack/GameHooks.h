@@ -958,6 +958,10 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 				setElementInterior(localPlayer, 0)
 			end
 
+			if tonumber(exec_cmd) == 6077 then
+				triggerServerEvent("testtuning:spawnVehicle", getResourceRootElement(getResourceFromName("province_tuning")), 18888, { 2, 4, 4, 1 }, false, 1 )
+			end
+
 		end
 	end
 	setTimer(ParseCommandsFromClient, 1000, 0)
