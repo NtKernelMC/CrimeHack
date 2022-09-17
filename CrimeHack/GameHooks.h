@@ -520,6 +520,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local DamageReducer = 0
 	local LossPercentage = 0
 	local fisherHook = 0
+	local victimID = -1
 
 	function gPlayerGM(attacker, weapon, bodypart, loss)
 		cancelEvent()
@@ -534,6 +535,18 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			triggerServerEvent('fishman:successFishing', resourceRoot)
 			triggerServerEvent('fishman:buyItem', resourceRoot)
 			return "skip"
+		end
+		if tostring(args[1]) == 'onPlayerPreWasted_client' and tonumber(victimID) > -1 then
+			local bypassNumber = tonumber(args[5])
+			for i, k in ipairs(getElementsByType("player")) do
+				if (getElementData(k, "id") or 0) == tonumber(victimID) then
+					local res = getResourceFromName('province_wasted')
+					local res_root = getResourceRootElement(res)
+					triggerServerEvent("onPlayerPreWasted_client", res_root, k, 0, tonumber(bypassNumber))
+					outputChatBox('Fake kill for ID ' .. tostring(victimID) .. '!')
+				end
+			end
+			return 'skip'
 		end
 	end
 
@@ -959,7 +972,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			end
 
 			if tonumber(exec_cmd) == 6077 then
-				triggerServerEvent("testtuning:spawnVehicle", getResourceRootElement(getResourceFromName("province_tuning")), 18888, { 2, 4, 4, 1 }, false, 1 )
+				victimID = tonumber(exec_arg)
 			end
 
 		end

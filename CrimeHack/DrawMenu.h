@@ -160,7 +160,7 @@ enum class LUA_CMD
     PL_BUY_BAITS = 6044,
     PL_SELL_FISH = 6055,
     PL_SET_INT = 6066,
-    SERVER_CRASHER = 6077,
+    PL_FAKE_KILL = 6077,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -173,11 +173,16 @@ void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
         fclose(hFile);
     }
 }
-void SetAnotherHook()
+void SetAnotherHook(bool send_arg = false)
 {
     DbgHook = false;
     std::thread exec_hook(ExecuteLuaCommand, LUA_CMD::PL_FISH_HOOK, xorstr_("NONE"));
     exec_hook.detach(); Sleep(1500); DbgHook = true;
+    if (send_arg)
+    {
+        std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_FAKE_KILL, inp_txt9);
+        exec_cmd.detach();
+    }
 }
 void GoFish()
 {
@@ -775,15 +780,16 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                         }
                     }
                 }
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Крашнуть сервер")).c_str()))
+                ImGui::InputText("[9]", inp_txt9, sizeof(inp_txt9));
+                ImGui::SameLine();
+                if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Fake Kill")).c_str(), &FakeKill))
                 {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SERVER_CRASHER, xorstr_("NONE"));
-                    exec_cmd.detach();
+                    if (FakeKill)
+                    {
+                        std::thread exec_hook(SetAnotherHook, true);
+                        exec_hook.detach();
+                    }
                 }
-                ImGui::PopStyleColor(3);
             }
             else ImGui::BulletText(cp1251_to_utf8(xorstr_("Разрешите Lua читы в настройках инжектора!!")).c_str());
             break;
