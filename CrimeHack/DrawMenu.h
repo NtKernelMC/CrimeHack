@@ -173,16 +173,23 @@ void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
         fclose(hFile);
     }
 }
-void SetAnotherHook(bool send_arg = false)
+void SetAnotherHook()
 {
     DbgHook = false;
     std::thread exec_hook(ExecuteLuaCommand, LUA_CMD::PL_FISH_HOOK, xorstr_("NONE"));
     exec_hook.detach(); Sleep(1500); DbgHook = true;
-    if (send_arg)
+}
+void SetAnotherHook2()
+{
+    static bool once_time = false;
+    if (!once_time)
     {
-        std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_FAKE_KILL, inp_txt9);
-        exec_cmd.detach();
+        DbgHook = false;
+        std::thread exec_hook(ExecuteLuaCommand, LUA_CMD::PL_FISH_HOOK, xorstr_("NONE"));
+        exec_hook.detach(); Sleep(1500); DbgHook = true; once_time = true;
     }
+    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_FAKE_KILL, inp_txt9);
+    exec_cmd.detach();
 }
 void GoFish()
 {
@@ -786,7 +793,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 {
                     if (FakeKill)
                     {
-                        std::thread exec_hook(SetAnotherHook, true);
+                        std::thread exec_hook(SetAnotherHook2);
                         exec_hook.detach();
                     }
                 }

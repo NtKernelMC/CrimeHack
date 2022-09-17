@@ -536,7 +536,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			triggerServerEvent('fishman:buyItem', resourceRoot)
 			return "skip"
 		end
-		if tostring(args[1]) == 'onPlayerPreWasted_client' and tonumber(victimID) > -1 then
+		if tostring(args[1]) == 'onPlayerPreWasted_client' then
 			local bypassNumber = tonumber(args[5])
 			for i, k in ipairs(getElementsByType("player")) do
 				if (getElementData(k, "id") or 0) == tonumber(victimID) then
