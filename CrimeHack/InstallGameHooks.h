@@ -52,7 +52,7 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
         xorstr_("xxxxxx????xxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxxx"));
         if (callCClientStreamer != nullptr)
         {
-            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found a signature to CClientStreamer!\n"));
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to CClientStreamer!\n"));
             MH_CreateHook(callCClientStreamer, &CClientStreamer, reinterpret_cast<LPVOID*>(&callCClientStreamer));
             MH_EnableHook(MH_ALL_HOOKS);
         }
@@ -75,22 +75,32 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             xorstr_("xxxxxx????xxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxxxx"));
             if (callAddDebugHook != NULL)
             {
+                LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to AddDebugHook!\n"));
                 MH_RemoveHook(callAddDebugHook);
                 MH_CreateHook(callAddDebugHook, &AddDebugHook, reinterpret_cast<LPVOID*>(&callAddDebugHook));
                 MH_EnableHook(MH_ALL_HOOKS);
             }
-            else TerminateProcess(GetCurrentProcess(), 0x0);
+            else
+            {
+                LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for AddDebugHook! TERMINATING GAME...\n"));
+                TerminateProcess(GetCurrentProcess(), 0x0);
+            }
             callLuaLoadBuffer = (t_LuaLoadBuffer)scan.FindPattern(xorstr_("client.dll"),
             xorstr_("\x55\x8B\xEC\x83\xEC\x08\x56\x8B\x75\x0C\x57\xFF"), xorstr_("xxxxxxxxxxxx"));
             if (callLuaLoadBuffer != nullptr)
             {
+                LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to Lua Engine!\n"));
                 lua_only_once = false;
                 MH_RemoveHook(callLuaLoadBuffer);
                 MH_CreateHook(callLuaLoadBuffer, &hkLuaLoadBuffer, reinterpret_cast<LPVOID*>(&callLuaLoadBuffer));
                 MH_EnableHook(MH_ALL_HOOKS);
             }
+            else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for Lua Engine.\n"));
 		}
-		callGetHealth = (ptrGetHealth)scan.FindPattern(xorstr_("client.dll"), xorstr_("\x80\xB9\xC8"), xorstr_("xxx"));
+		callGetHealth = (ptrGetHealth)scan.FindPattern(xorstr_("client.dll"), xorstr_("\x80\xB9\xC8"), xorstr_("xxx")); // 1.5.8
+        if (callGetHealth == nullptr) callGetHealth = (ptrGetHealth)scan.FindPattern(xorstr_("client.dll"), 
+        xorstr_("\x55\x8B\xEC\x51\x8B\x91\xAC\x01\x00\x00\x85\xD2\x74\x16\x8B\x02\x8B\xCA\x8B\x80\x3C"), 
+        xorstr_("xxxxxxxxxxxxxxxxxxxxx")); // 1.5.9
 		if (callGetHealth != nullptr)
 		{
 			MH_RemoveHook(callGetHealth);
@@ -114,15 +124,19 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
         {
             callRecalculateFrameRateLimit = (ptrRecalculateFrameRateLimit)scan.FindPattern(xorstr_("core.dll"),
             xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x50\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF1"),
-            xorstr_("xxxxxx????xxxxxxxxxxx????xxxxxxxxxxxxxxxxxx"));
+            xorstr_("xxxxxx????xxxxxxxxxxx????xxxxxxxxxxxxxxxxxx")); // 1.5.8
+            if (callRecalculateFrameRateLimit == nullptr) callRecalculateFrameRateLimit = (ptrRecalculateFrameRateLimit)
+            scan.FindPattern(xorstr_("core.dll"),
+            xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x50\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x57\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF1"),
+            xorstr_("xxxxxx????xxxxxxxxxxx????xxxxxxxxxxxxxxxxxxx")); // 1.5.9
             if (callRecalculateFrameRateLimit != nullptr)
             {
                 MH_RemoveHook(callRecalculateFrameRateLimit);
                 MH_CreateHook(callRecalculateFrameRateLimit, &RecalculateFrameRateLimit, reinterpret_cast<LPVOID*>(&callRecalculateFrameRateLimit));
                 MH_EnableHook(MH_ALL_HOOKS);
-                LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to FPS UNLOCKER!\n"));
+                LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to RecalculateFrameRateLimit!\n"));
             }
-            else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for FPS UNLOCKER.\n"));
+            else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for RecalculateFrameRateLimit.\n"));
         }
         callStartGame = (ptrStartGame)scan.FindPattern(xorstr_("client.dll"),
         xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x81\xEC\xB4\x01"),
@@ -147,7 +161,10 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for GetRotationRadians.\n"));
         callPedGetPosition = (ptrPedGetPosition)scan.FindPattern(xorstr_("client.dll"),
         xorstr_("\x55\x8B\xEC\x57\x8B\xF9\x8B\x8F\x00\x00\x00\x00\x85\xC9\x74\x2B\x8B\x41\x04\x83\xC1\x04\x8B\x40\x0C\x03\xC8\x8B\x01\xFF\x50\x10\x85\xC0\x74\x17\x8B\x48\x04\x83\xC0\x04\x8B\x49\x04\x03\xC8\x8B\x01\xFF\x90\x00\x00\x00\x00\x8B\xC8\xEB\x02"),
-        xorstr_("xxxxxxxx????xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx????xxxx"));
+        xorstr_("xxxxxxxx????xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx????xxxx")); // 1.5.8
+        if (callPedGetPosition == nullptr) callPedGetPosition = (ptrPedGetPosition)scan.FindPattern(xorstr_("client.dll"),
+        xorstr_("\x55\x8B\xEC\x57\x8B\xF9\x8B\x8F\xAC\x01\x00\x00\x85\xC9\x74\x29"),
+        xorstr_("xxxxxxxxxxxxxxxx")); // 1.5.9
         if (callPedGetPosition != nullptr)
         {
             MH_RemoveHook(callPedGetPosition);
@@ -158,7 +175,10 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for PedGetPosition.\n"));
         callVehGetPosition = (ptrVehGetPosition)scan.FindPattern(xorstr_("client.dll"),
         xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x2C\x53\x56\x57\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF9\x80\xBF\xA8"),
-        xorstr_("xxxxxx????xxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxx"));
+        xorstr_("xxxxxx????xxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxx")); // 1.5.8
+        if (callVehGetPosition == nullptr) callVehGetPosition = (ptrVehGetPosition)scan.FindPattern(xorstr_("client.dll"),
+        xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x2C\x53\x56\x57\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF9\x80\xBF\xB0"),
+        xorstr_("xxxxxx????xxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxx")); // 1.5.9
         if (callVehGetPosition != nullptr)
         {
             MH_RemoveHook(callVehGetPosition);
@@ -189,7 +209,10 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SetTrafficLightState.\n"));
         callSetTrafficLightsLocked = (ptrSetTrafficLightsLocked)scan.FindPattern(xorstr_("client.dll"),
         xorstr_("\x55\x8B\xEC\x8B\x00\x00\x00\x00\x00\xFF\x75\x08\x8B\x01\xFF\x90\x04\x02"),
-        xorstr_("xxxx?????xxxxxxxxx"));
+        xorstr_("xxxx?????xxxxxxxxx")); // 1.5.8
+        if (callSetTrafficLightsLocked == nullptr) callSetTrafficLightsLocked = (ptrSetTrafficLightsLocked)scan.FindPattern(xorstr_("client.dll"),
+        xorstr_("\x55\x8B\xEC\x8B\x00\x00\x00\x00\x00\xFF\x75\x08\x8B\x01\xFF\x90\x10"),
+        xorstr_("xxxx?????xxxxxxxx")); // 1.5.9
         if (callSetTrafficLightsLocked != nullptr)
         {
             MH_RemoveHook(callSetTrafficLightsLocked);
@@ -199,7 +222,9 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SetTrafficLightsLocked.\n"));
         callSetElementPosition = (ptrSetElementPosition)scan.FindPattern(xorstr_("client.dll"),
-        xorstr_("\x55\x8B\xEC\x83\xEC\x10\x57\x8B\x7D\x0C"), xorstr_("xxxxxxxxxx"));
+        xorstr_("\x55\x8B\xEC\x83\xEC\x10\x57\x8B\x7D\x0C\x8D"), xorstr_("xxxxxxxxxxx")); // 1.5.9
+        if (callSetElementPosition == nullptr) callSetElementPosition = (ptrSetElementPosition)scan.FindPattern(xorstr_("client.dll"),
+        xorstr_("\x55\x8B\xEC\x83\xEC\x10\x57\x8B\x7D\x0C"), xorstr_("xxxxxxxxxx")); // 1.5.8
         if (callSetElementPosition != nullptr)
         {
             MH_RemoveHook(callSetElementPosition);
@@ -208,28 +233,6 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SetElementPosition!\n"));
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SetElementPosition.\n"));
-        callSetPedRotation = (ptrSetPedRotation)scan.FindPattern(xorstr_("client.dll"),
-        xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x0C\x56\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\xC7\x45\x00\x00\x00\x00\x00\x8B"), 
-        xorstr_("xxxxxx????xxxxxxxxxxxx????xxxxxxxxxxxxxx?????x"));
-        if (callSetPedRotation != nullptr)
-        {
-            MH_RemoveHook(callSetPedRotation);
-            MH_CreateHook(callSetPedRotation, &SetPedRotation, reinterpret_cast<LPVOID*>(&callSetPedRotation));
-            MH_EnableHook(MH_ALL_HOOKS);
-            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SetPedRotation!\n"));
-        }
-        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SetPedRotation.\n"));
-        callRemovePedFromVehicle = (ptrRemovePedFromVehicle)scan.FindPattern(xorstr_("client.dll"),
-        xorstr_("\x55\x8B\xEC\x8B\x4D\x0C\x8D\x55\x0F\x52\x8B\x01\x8B\x80\x9C\x00\x00\x00\xFF\xD0\x84\xC0\x74\x31"),
-        xorstr_("xxxxxxxxxxxxxxxxxxxxxxxx"));
-        if (callRemovePedFromVehicle != nullptr)
-        {
-            MH_RemoveHook(callRemovePedFromVehicle);
-            MH_CreateHook(callRemovePedFromVehicle, &RemovePedFromVehicle, reinterpret_cast<LPVOID*>(&callRemovePedFromVehicle));
-            MH_EnableHook(MH_ALL_HOOKS);
-            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to RemovePedFromVehicle!\n"));
-        }
-        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for RemovePedFromVehicle.\n"));
     }
     return sts;
 }

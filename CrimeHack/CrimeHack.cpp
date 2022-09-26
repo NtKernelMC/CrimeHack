@@ -155,7 +155,8 @@ public:
         DeleteFileA(xorstr_("texture.jpg")); DeleteFileA(xorstr_("Shrift.otf")); DeleteFileA(xorstr_("Alert.wav"));
         DropResource(xorstr_("texture.jpg"), MAKEINTRESOURCEA(IDR_RCDATA1), RT_RCDATA);
         DropResource(xorstr_("Shrift.otf"), MAKEINTRESOURCEA(IDR_RCDATA2), RT_RCDATA);
-        DropResource(xorstr_("Alert.wav"), MAKEINTRESOURCEA(IDR_WAVE1), xorstr_("WAVE"));
+        DropResource(xorstr_("NewAlert.wav"), MAKEINTRESOURCEA(IDR_WAVE1), xorstr_("WAVE"));
+        DropResource(xorstr_("stony.wav"), MAKEINTRESOURCEA(IDR_WAVE2), xorstr_("WAVE"));
         PebHider::RemovePeHeader(GetModuleHandleA(xorstr_("Crime.SA.dll")));
         PebHider::UnlinkModule(xorstr_("Crime.SA.dll"));
         std::thread th(HackThread);

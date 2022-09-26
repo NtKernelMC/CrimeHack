@@ -41,7 +41,6 @@
     <ClInclude Include="GameHooks.h" />
     <ClInclude Include="InstallGameHooks.h" />
     <ClInclude Include="VMProtectSDK.h" />
-    <ClInclude Include="resource.h" />
     <ClInclude Include="imgui\imconfig.h">
       <Filter>ImGui</Filter>
     </ClInclude>
@@ -80,17 +79,19 @@
     <ClInclude Include="DrawMenu.h" />
     <ClInclude Include="HWBP.h" />
     <ClInclude Include="Collision.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="PlayerCloner.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Media Include="razrushenie.wav" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ImGui">
       <UniqueIdentifier>{a8d27d05-ad2a-4c94-9ac0-45e52cb332ea}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="CrimeHack.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="razrushenie.wav" />
+    <Media Include="stony.wav" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="texture.jpg" />

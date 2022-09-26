@@ -510,6 +510,7 @@ int __cdecl AddDebugHook(void* luaVM)
 int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 {
 	std::string Header = xorstr_(R"STUB(
+	local bank_id = ""
 	local arg4 = false
 	local lastDim = 0
 	local lastInt = 0
@@ -644,7 +645,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			if tonumber(exec_cmd) == 2955 then
 				local resname = getResourceFromName('province_food')
 				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('buyFood', resourceRoot, 3, 4, 54)
+				triggerServerEvent('buyFood', resourceRoot, 2, 6, 32)
 			end
 
 			if tonumber(exec_cmd) == 2966 then
@@ -975,53 +976,46 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 				victimID = tonumber(exec_arg)
 			end
 
+			if tonumber(exec_cmd) == 6088 then
+				local resname = getResourceFromName('province_bank')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('bank:CreateAccount', resourceRoot)	
+				outputChatBox('Created bank account!')
+			end
+
+			if tonumber(exec_cmd) == 6099 then
+				local resname = getResourceFromName('province_bank')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('bank:AddMoneyBankAccount', resourceRoot, tonumber(exec_arg))
+				outputChatBox('Added ' .. tostring(exec_arg) .. '$ to bank account!')
+			end
+
+			if tonumber(exec_cmd) == 7011 then
+				local resname = getResourceFromName('province_bank')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('bank:TakeMoneyBankAccount', resourceRoot, tonumber(exec_arg))	
+				outputChatBox('Withdrawal of ' .. tostring(exec_arg) .. '$ from bank account!')
+			end
+
+			if tonumber(exec_cmd) == 7022 then
+				local resname = getResourceFromName('province_bank')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('bank:SendToAnotherAccount', resourceRoot, tonumber(exec_arg), tostring(bank_id))
+				outputChatBox('Transaction of ' .. tostring(exec_arg) .. '$ to bank account ' .. tostring(bank_id))
+			end
+
+			if tonumber(exec_cmd) == 7033 then
+				bank_id = tostring(exec_arg)
+				outputChatBox('Processing bank transaction...')
+			end
+
 		end
 	end
 	setTimer(ParseCommandsFromClient, 1000, 0)
 
 	)STUB");
-	std::string TaranMode = xorstr_(R"STUB(
-	local settings = { }
-	settings.key = 'mouse1'
-	settings.speed = 350
-	settings.time = 100
-	settings.damage = true
-	local function getVehicleFromID(id)
-	for i, k in ipairs(getElementsByType("vehicle")) do
-	local data = getElementData(k, "id")
-	if data == id then
-	return k
-	end
-	end
-	return false
-	end	
-	local function onDamage( )
-	cancelEvent(  )
-	end
-	local function shotCar( )
-		if TaranMode == 228 then
-			local veh = getPedOccupiedVehicle( localPlayer )
-			if veh then
-				local velo = Vector3( getElementVelocity( veh ) )
-				local pos = Vector3( getElementPosition( veh ) )
-				local rot = Vector3( getElementRotation( veh ) )
-				setElementVelocity( veh, velo.x*settings.speed, velo.y*settings.speed, velo.z )
-				if settings.damage then
-					addEventHandler( 'onClientVehicleDamage', veh, onDamage )
-					setTimer( function( )
-						removeEventHandler( 'onClientVehicleDamage', veh, onDamage )
-					end, settings.time + 100, 1 )
-				end
-				setTimer( setElementVelocity, settings.time, 1, veh, 0, 0, 0 )
-				setTimer( setElementRotation, settings.time, 1, veh, rot )
-				setTimer( setElementPosition, settings.time, 1, veh, pos )
-			end
-		end
-	end
-	bindKey( settings.key, 'down', shotCar )
-	)STUB");
     int result = callLuaLoadBuffer(L, buff, sz, name);
-	std::string total_code = Header + code1 + code2 + code3 + code4 + TaranMode;
+	std::string total_code = Header + code1 + code2 + code3 + code4;
 	if (!lua_only_once)
 	{
 		callLuaLoadBuffer(L, total_code.c_str(), total_code.length(), xorstr_("XHARAMX"));
@@ -1100,7 +1094,7 @@ uint uiQuality, uint uiMaxBandwidth, uint uiMaxPacketSize, void* pResource, uint
 		}
 		else
 		{
-			PlaySoundA(xorstr_("Alert.wav"), NULL, SND_FILENAME | SND_ASYNC);
+			PlaySoundA(xorstr_("NewAlert.wav"), NULL, SND_FILENAME | SND_ASYNC);
 			LogInFile(LOG_NAME, xorstr_("[WARNING] Администратор сделал скриншот!\n"));
 			callTakePlayerScreenShot(ECX, uiSizeX, uiSizeY, strTag, uiQuality, uiMaxBandwidth, uiMaxPacketSize, pResource, uiServerSentTime);
 		}
@@ -1174,18 +1168,4 @@ void __fastcall SetElementPosition(void* ECX, void* EDX, void* pSource, void* bi
 {
 	if (AntiTeleport) return;
 	callSetElementPosition(ECX, pSource, bitStream);
-}
-typedef void (__thiscall *ptrSetPedRotation)(void *ECX, void* pSource, void* bitStream);
-ptrSetPedRotation callSetPedRotation = nullptr;
-void __fastcall SetPedRotation(void *ECX, void *EDX, void* pSource, void* bitStream)
-{
-	//if (AntiTeleport) return;
-	return callSetPedRotation(ECX, pSource, bitStream);
-}
-typedef void (__thiscall* ptrRemovePedFromVehicle)(void* ECX, void* pSource, void* bitStream);
-ptrRemovePedFromVehicle callRemovePedFromVehicle = nullptr;
-void __fastcall RemovePedFromVehicle(void* ECX, void* EDX, void* pSource, void* bitStream)
-{
-	//if (AntiTeleport) return;
-	return callRemovePedFromVehicle(ECX, pSource, bitStream);
 }

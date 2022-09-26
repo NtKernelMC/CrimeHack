@@ -52,6 +52,8 @@ END
 
 IDR_WAVE1               WAVE                    "razrushenie.wav"
 
+IDR_WAVE2               WAVE                    "stony.wav"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
