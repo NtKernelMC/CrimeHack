@@ -88,10 +88,10 @@ void HackThread()
     VMProtectEnd();
     MH_Initialize();
     LoadEnemyList();
+    LoadCustomModels();
     CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, xorstr_("Software\\CR1M3H"), true);
     if (reg != nullptr)
     {
-        LuaAllowed = reg->ReadInteger(xorstr_("AllowLua"));
         AllowNoScreen = reg->ReadInteger(xorstr_("AllowNoScreen"));
         StreamDist = (float)reg->ReadInteger(xorstr_("StreamDist"));
         delete reg;

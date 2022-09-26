@@ -4,7 +4,7 @@ object Form1: TForm1
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Crime Hack by NtKernelMC'
-  ClientHeight = 512
+  ClientHeight = 480
   ClientWidth = 336
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -7556,8 +7556,8 @@ object Form1: TForm1
     ParentFont = False
   end
   object Label3: TLabel
-    Left = 74
-    Top = 416
+    Left = 72
+    Top = 385
     Width = 162
     Height = 13
     Caption = #1047#1086#1085#1072' '#1087#1088#1086#1088#1080#1089#1086#1074#1082#1080': 250'#1084' (FPS UP)'
@@ -7581,38 +7581,30 @@ object Form1: TForm1
   end
   object Button2: TButton
     Left = -8
-    Top = 471
+    Top = 439
     Width = 345
     Height = 41
     Caption = 'vk.com/provhacks | '#1055#1086#1089#1077#1090#1080#1090#1100' '#1075#1088#1091#1087#1087#1091' '#1088#1072#1079#1088#1072#1073#1086#1090#1095#1080#1082#1072
     TabOrder = 2
     OnClick = Button2Click
   end
-  object CheckBox1: TCheckBox
-    Left = 72
-    Top = 370
-    Width = 212
-    Height = 17
-    Caption = #1056#1072#1079#1088#1077#1096#1080#1090#1100' Lua '#1095#1080#1090#1099' ('#1056#1080#1089#1082' '#1086#1090#1083#1077#1090#1072')'
-    TabOrder = 3
-  end
   object CheckBox2: TCheckBox
     Left = 72
-    Top = 393
+    Top = 362
     Width = 249
     Height = 17
     Caption = 'NoScreen ('#1054#1092#1072#1077#1090' '#1080#1075#1088#1091' '#1087#1088#1080' '#1089#1082#1088#1080#1085#1096#1086#1090#1077')'
-    TabOrder = 4
+    TabOrder = 3
   end
   object TrackBar1: TTrackBar
     Left = 72
-    Top = 435
+    Top = 404
     Width = 185
     Height = 17
     Max = 250
     Position = 250
     SelStart = 250
-    TabOrder = 5
+    TabOrder = 4
     OnChange = TrackBar1Change
   end
 end

@@ -353,8 +353,6 @@ void AirBreak()
 			{ //машина
 				DWORD CARSELF = *(DWORD*)0xBA18FC; //0xBA18FC
 				DWORD car = *(DWORD*)(CARSELF + 0x14);
-				DWORD trailer = *(DWORD*)(CARSELF + 0x4C8);
-				DWORD trailer_matrix = *(DWORD*)(trailer + 0x14);
 
 				//скорость 0
 				*(float*)(CARSELF + 0x44) = 0;
@@ -384,29 +382,6 @@ void AirBreak()
 				*(float*)(car + 0x14) = cos(-(angle + 1.5708));
 				*(float*)(car + 0x18) = 0;
 
-				CVehicle* veh = FindPlayerVehicle(0, false);
-				if (veh != nullptr)
-				{
-					if (veh->m_pTrailer != nullptr)
-					{
-						float coordsXforTruck = veh->m_pTrailer->GetPosition().x + airBrkX;
-						float coordsYforTruck = veh->m_pTrailer->GetPosition().y + airBrkY;
-						float coordsZforTruck = veh->m_pTrailer->GetPosition().z + airBrkZ;
-
-
-						veh->m_pTrailer->SetPosn(CVector(coordsXforTruck, coordsYforTruck, coordsZforTruck));
-						veh->m_pTrailer->m_vecMoveSpeed.x = 0.0f;
-						veh->m_pTrailer->m_vecMoveSpeed.y = 0.0f;
-						veh->m_pTrailer->m_vecMoveSpeed.z = 0.0f;
-
-						veh->m_pTrailer->m_vecTurnSpeed.x = 0.0f;
-						veh->m_pTrailer->m_vecTurnSpeed.y = 0.0f;
-						veh->m_pTrailer->m_vecTurnSpeed.z = 0.0f;
-
-						float rx, ry, rz; veh->GetOrientation(rx, ry, rz);
-						veh->m_pTrailer->SetOrientation(rx, ry, rz);
-					}
-				}
 			}
 			if (*(DWORD*)(0xBA18FC) == 0)
 			{
@@ -469,6 +444,12 @@ void __fastcall VehGetPosition(void* ECX, void* EDX, CVector* vecPosition)
 {
 	callVehGetPosition(ECX, vecPosition);
 	if (VehInviz) vecPosition->z -= 5.0f;
+	if (TotalCar)
+	{
+		vecPosition->x = 1354.6676025391f;
+		vecPosition->y = 1688.2827148438f;
+		vecPosition->z = 6.5899496078491f;
+	}
 }
 typedef void(__thiscall* ptrPedGetPosition)(void* ECX, CVector* vecPosition);
 ptrPedGetPosition callPedGetPosition = nullptr;
@@ -522,6 +503,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local LossPercentage = 0
 	local fisherHook = 0
 	local victimID = -1
+	local replace_id = 0
 
 	function gPlayerGM(attacker, weapon, bodypart, loss)
 		cancelEvent()
@@ -1007,6 +989,32 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			if tonumber(exec_cmd) == 7033 then
 				bank_id = tostring(exec_arg)
 				outputChatBox('Processing bank transaction...')
+			end
+
+			if tonumber(exec_cmd) == 7044 then
+				replace_id = tonumber(exec_arg)
+				outputChatBox('Replacing model with ID: ' .. tostring(replace_id) .. '...')
+			end
+
+			if tonumber(exec_cmd) == 7055 then
+				local txd_name = tostring(exec_arg) .. '.txd'
+				local dff_name = tostring(exec_arg) .. '.dff'
+				local txd = engineLoadTXD(txd_name)
+				engineImportTXD(txd, replace_id)
+				local dff = engineLoadDFF(dff_name)
+				engineReplaceModel(dff, replace_id)
+				outputChatBox('Model: ' .. tostring(exec_arg) .. ' is loaded!')
+			end
+
+			if tonumber(exec_cmd) == 7066 then
+				local dmp_model = false
+				if isPedInVehicle(localPlayer) then
+					local Vehicle = getPedOccupiedVehicle(localPlayer)
+				    dmp_model = getElementModel(Vehicle)
+				else 
+					dmp_model = getElementModel(localPlayer)
+				end
+				outputChatBox('Current Model ID is: ' .. tostring(dmp_model))
 			end
 
 		end

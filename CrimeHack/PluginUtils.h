@@ -3,7 +3,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V4.5 BETA")
+#define PLUGIN_VER xorstr_("V4.6 BETA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -44,7 +44,6 @@ bool TotalCar = false;
 char upd_txt[3000];
 bool AirAllowed = false;
 bool CarGM = false;
-bool LuaAllowed = false;
 bool DeadlyAura = false;
 bool DbgHook = true;
 bool lua_only_once = false;
@@ -64,6 +63,8 @@ char inp_txt8[256];
 char inp_txt9[256];
 char inp_txt10[256];
 char inp_txt11[256];
+char inp_txt12[256];
+char inp_txt13[256];
 bool FakeKill = false;
 bool FisherBot = false;
 volatile bool AntiAFK = false;
@@ -499,6 +500,13 @@ void MakePreInit()
 	}
 	VMProtectEnd();
 }
+bool __stdcall IsDirectoryExists(const std::string& dirName_in)
+{
+	DWORD ftyp = GetFileAttributesA(dirName_in.c_str());
+	if (ftyp == INVALID_FILE_ATTRIBUTES) return false;
+	if (ftyp & FILE_ATTRIBUTE_DIRECTORY) return true;
+	return false;
+};
 void FuckArthemidaIntegrity(std::string dllName)
 {
 	MODULEINFO modinfo = { 0 }; typedef NTSTATUS(__stdcall* pfnNtQueryInformationThread)(
@@ -711,4 +719,35 @@ std::string ReadLastLogLine()
 		cp_text = c_msg;
 	}
 	return cp_text;
+}
+void LoadCustomModels()
+{
+	char cwdr[500]; memset(cwdr, 0, sizeof(cwdr)); _getcwd(cwdr, sizeof(cwdr));
+	strcat(cwdr, xorstr_("\\CustomModels"));
+	if (!IsDirectoryExists(cwdr)) CreateDirectoryA(cwdr, NULL);
+	WIN32_FIND_DATAA findFileData;
+	char cwd[500]; memset(cwd, 0, sizeof(cwd)); _getcwd(cwd, sizeof(cwd));
+	strcat(cwd, xorstr_("\\CustomModels\\*"));
+	HANDLE MyHandle = FindFirstFileA(cwd, &findFileData);
+	if (MyHandle != INVALID_HANDLE_VALUE)
+	{
+		if (findStringIC(findFileData.cFileName, xorstr_(".txd")) || findStringIC(findFileData.cFileName, xorstr_(".dff")))
+		{
+			std::string src_name = std::string(cwdr) + std::string(xorstr_("\\")) + std::string(findFileData.cFileName);
+			std::string dst_name = GetGamePath() + std::string(xorstr_("\\")) + std::string(findFileData.cFileName);
+			CopyFileA(src_name.c_str(), dst_name.c_str(), FALSE);
+			LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found model file: %s\n"), findFileData.cFileName);
+		}
+		while (FindNextFileA(MyHandle, &findFileData) != 0)
+		{
+			if (findStringIC(findFileData.cFileName, xorstr_(".txd")) || findStringIC(findFileData.cFileName, xorstr_(".dff")))
+			{
+				std::string src_name = std::string(cwdr) + std::string(xorstr_("\\")) + std::string(findFileData.cFileName);
+				std::string dst_name = GetGamePath() + std::string(xorstr_("\\")) + std::string(findFileData.cFileName);
+				CopyFileA(src_name.c_str(), dst_name.c_str(), FALSE);
+				LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found model file: %s\n"), findFileData.cFileName);
+			}
+		}
+	}
+	FindClose(MyHandle);
 }

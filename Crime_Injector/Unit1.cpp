@@ -33,13 +33,10 @@ __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner)
 		if (reg->ReadInteger("SettingsCreated") != 228)
 		{
 			reg->WriteInteger("SettingsCreated", 228);
-			reg->WriteInteger("AllowLua", 0x1);
 			reg->WriteInteger("AllowNoScreen", 0x1);
 			reg->WriteInteger("StreamDist", 250);
-        }
-		DWORD intg = reg->ReadInteger("AllowLua");
+		}
 		DWORD intg2 = reg->ReadInteger("AllowNoScreen");
-		Form1->CheckBox1->Checked = (bool)intg;
 		Form1->CheckBox2->Checked = (bool)intg2;
 		int pos = reg->ReadInteger("StreamDist");
 		char fmt[256]; memset(fmt, 0, sizeof(fmt));
@@ -80,7 +77,6 @@ BOOL CALLBACK EnumWindowsProcMy(HWND hwnd,LPARAM lParam)
 	CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, "Software\\CR1M3H", true);
 	if (reg != nullptr)
 	{
-		reg->WriteInteger("AllowLua", Form1->CheckBox1->Checked);
 		reg->WriteInteger("AllowNoScreen", Form1->CheckBox2->Checked);
         reg->WriteInteger("StreamDist", Form1->TrackBar1->Position);
 		delete reg;

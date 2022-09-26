@@ -81,10 +81,10 @@ void ApplyImGuiTheme()
 }
 enum TABS
 {
-    CPP_TAB,
+    HACK_TAB1,
     ENEMY_TAB,
-    LUA_TAB,
-    LUA_TAB2,
+    HACK_TAB2,
+    HACK_TAB3,
     UPDATE_TAB
 };
 int page = 0;
@@ -166,6 +166,9 @@ enum class LUA_CMD
     BANK_GET = 7011,
     BANK_SEND = 7022,
     BANK_SET_NUMBER = 7033,
+    SET_MODEL_NAME = 7044,
+    REPLACE_MODEL_ID = 7055,
+    DUMP_MODEL_ID = 7066,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -227,6 +230,13 @@ void BankTransaction(std::string bank_id, std::string value)
     std::thread exec_cmd2(ExecuteLuaCommand, LUA_CMD::BANK_SEND, value);
     exec_cmd2.detach();
 }
+void LoadCustomModel(std::string file_name, std::string model_id)
+{
+    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SET_MODEL_NAME, file_name);
+    exec_cmd.detach(); Sleep(2000);
+    std::thread exec_cmd2(ExecuteLuaCommand, LUA_CMD::REPLACE_MODEL_ID, model_id);
+    exec_cmd2.detach();
+}
 std::optional<HRESULT> on_present(const decltype(present_hook)& hook, IDirect3DDevice9* device_ptr,
 const RECT*, const RECT*, HWND wnd, const RGNDATA*)
 {
@@ -259,26 +269,31 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         ImGui::SetNextWindowSize(ImVec2(610, 500));
         const char* bank_items[] = { xorstr_("Create account"), xorstr_("Put money"), xorstr_("Get money"), xorstr_("Send money"), };
         static const char* bank_current_item = NULL;
+        static const char* current_select2 = "All players are Offline!";
+        static bool Dummy3 = false;
+        static bool MyDummy = false;
+        static bool Dummy = false;
+        static const char* current_select = "All enemies are Offline!";
         char capWin[350]; memset(capWin, 0, sizeof(capWin));
         sprintf(capWin, xorstr_("Crime Hack by NtKernelMC | build %s | vk.com/provhacks"), PLUGIN_VER);
         ImGui::Begin(capWin, nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar |
         ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse);
         ImGui::Image(texture, ImVec2(610, 166));
         ImGui::BeginChild(xorstr_("tabs"), ImVec2(0, 25), false);
-        if (ImGui::Button(cp1251_to_utf8(xorstr_("C++ читы")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = CPP_TAB;
+        if (ImGui::Button(cp1251_to_utf8(xorstr_("Читы 1")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = HACK_TAB1;
+        ImGui::SameLine();
+        if (ImGui::Button(cp1251_to_utf8(xorstr_("Читы 2")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = HACK_TAB2;
+        ImGui::SameLine();
+        if (ImGui::Button(cp1251_to_utf8(xorstr_("Читы 3")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = HACK_TAB3;
         ImGui::SameLine();
         if (ImGui::Button(cp1251_to_utf8(xorstr_("Черный список")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = ENEMY_TAB;
-        ImGui::SameLine();
-        if (ImGui::Button(cp1251_to_utf8(xorstr_("Lua читы 1")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = LUA_TAB;
-        ImGui::SameLine();
-        if (ImGui::Button(cp1251_to_utf8(xorstr_("Lua читы 2")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = LUA_TAB2;
         ImGui::SameLine();
         if (ImGui::Button(cp1251_to_utf8(xorstr_("Обновление")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = UPDATE_TAB;
         ImGui::EndChild();
         ImGui::BeginChild(xorstr_("main"), ImVec2(0, 0), true, ImGuiWindowFlags_NoScrollbar);
         switch (page)
         {
-        case CPP_TAB:
+        case HACK_TAB1:
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Аирбрэйк")).c_str(), &AirAllowed);
             ImGui::SameLine(); ImGui::Checkbox(cp1251_to_utf8(xorstr_("Коллизия")).c_str(), &ColHack);
             ImGui::SameLine(); 
@@ -305,7 +320,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             }
             ImGui::PopStyleColor(3);
             ImGui::SameLine();
-            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Тоталер тачек")).c_str(), &TotalCar);
+            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Абузер транспорта")).c_str(), &TotalCar);
             ImGui::SameLine();
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
@@ -331,6 +346,11 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                         }
                     }
                 }
+            }
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Узнать ID модели")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DUMP_MODEL_ID, xorstr_("NONE"));
+                exec_cmd.detach();
             }
             ImGui::PopStyleColor(3);
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Спидхак")).c_str(), &SpeedHack);
@@ -377,69 +397,39 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 if (ped != nullptr) ped->Teleport(CVector(-100.92771911621f, -1241.4100341797f, 6.9533462524414f), false);
             }
             ImGui::PopStyleColor(3);
+            ImGui::InputText(cp1251_to_utf8(xorstr_("Имя файла")).c_str(), inp_txt12, sizeof(inp_txt12));
+            ImGui::InputText(cp1251_to_utf8(xorstr_("ID Модели")).c_str(), inp_txt13, sizeof(inp_txt13));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Загрузить модель")).c_str()))
+            {
+                std::thread exec_cmd(LoadCustomModel, inp_txt12, inp_txt13);
+                exec_cmd.detach();
+            }
+            ImGui::PopStyleColor(3);
             break;
         case ENEMY_TAB:
-            if (LuaAllowed)
+            ImGui::BulletText(cp1251_to_utf8(xorstr_("Нажмите 2 раза на врага")).c_str());
+            ImGui::SameLine(); ImGui::Indent(370);
+            ImGui::BulletText(cp1251_to_utf8(xorstr_("Нажмите 2 раза на игрока")).c_str());
+            ImGui::Unindent(370);
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4{ 0.0f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_Header, ImVec4{ 0.26f, 0.59f, 0.98f, 0.35f });
+            ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4{ 0.26f, 0.59f, 0.98f, 0.35f });
+            ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4{ 0.26f, 0.59f, 0.98f, 0.50f });
+            if (ImGui::BeginChild(xorstr_("ChildDrawList"), ImVec2(200, 150), true))
             {
-                ImGui::BulletText(cp1251_to_utf8(xorstr_("Нажмите 2 раза на врага")).c_str());
-                ImGui::SameLine(); ImGui::Indent(370);
-                ImGui::BulletText(cp1251_to_utf8(xorstr_("Нажмите 2 раза на игрока")).c_str());
-                ImGui::Unindent(370);
-                static const char* current_select = "All enemies are Offline!";
-                ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4{ 0.0f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_Header, ImVec4{ 0.26f, 0.59f, 0.98f, 0.35f });
-                ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4{ 0.26f, 0.59f, 0.98f, 0.35f });
-                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4{ 0.26f, 0.59f, 0.98f, 0.50f });
-                if (ImGui::BeginChild(xorstr_("ChildDrawList"), ImVec2(200, 150), true))
+                for (const auto& item : EnemyList)
                 {
-                    for (const auto& item : EnemyList)
+                    if ((strlen(FindEnemy) > 0 && item.first.find(FindEnemy) != std::string::npos) || strlen(FindEnemy) < 1)
                     {
-                        if ((strlen(FindEnemy) > 0 && item.first.find(FindEnemy) != std::string::npos) || strlen(FindEnemy) < 1)
+                        if (item.second)
                         {
-                            if (item.second)
+                            bool is_selected = (current_select == item.first.c_str());
+                            if (ImGui::Selectable(item.first.c_str(), is_selected))
                             {
-                                bool is_selected = (current_select == item.first.c_str());
-                                if (ImGui::Selectable(item.first.c_str(), is_selected))
-                                {
-                                    current_select = item.first.c_str();
-                                    if (is_selected)
-                                    {
-                                        ImGui::SetItemDefaultFocus();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    ImGui::EndChild();
-                }
-                ImGui::PopStyleColor(4);
-                ImGui::SameLine(); ImGui::Indent(247);
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Обновить")).c_str()))
-                {
-                    std::thread ath(ObtainLuaRecords);
-                    ath.detach();
-                }
-                ImGui::PopStyleColor(3);
-                ImGui::Unindent(247);
-                ImGui::SameLine(); ImGui::Indent(370);
-                static const char* current_select2 = "All players are Offline!";
-                ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4{ 0.0f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_Header, ImVec4{ 0.26f, 0.59f, 0.98f, 0.35f });
-                ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4{ 0.26f, 0.59f, 0.98f, 0.35f });
-                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4{ 0.26f, 0.59f, 0.98f, 0.50f });
-                if (ImGui::BeginChild(xorstr_("ChildDrawList2"), ImVec2(200, 150), true))
-                {
-                    for (const auto& item : PlayersList)
-                    {
-                        if ((strlen(FindActor) > 0 && item.find(FindActor) != std::string::npos) || strlen(FindActor) < 1)
-                        {
-                            bool is_selected = (current_select2 == item.c_str());
-                            if (ImGui::Selectable(item.c_str(), is_selected))
-                            {
-                                current_select2 = item.c_str();
+                                current_select = item.first.c_str();
                                 if (is_selected)
                                 {
                                     ImGui::SetItemDefaultFocus();
@@ -447,394 +437,419 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                             }
                         }
                     }
-                    ImGui::EndChild();
                 }
-                ImGui::PopStyleColor(4);
-                ImGui::Unindent(370);
-                ImGui::Spacing(); ImGui::Spacing();
-                ImGui::PushItemWidth(200);
-                ImGui::InputText(cp1251_to_utf8(xorstr_("                  Поиск")).c_str(), FindEnemy, sizeof(FindEnemy));
-                ImGui::PopItemWidth();
-                ImGui::SameLine();
-                ImGui::PushItemWidth(200);
-                ImGui::Indent(370);
-                ImGui::InputText("##", FindActor, sizeof(FindActor));
-                ImGui::Unindent(370);
-                ImGui::PopItemWidth();
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-                ImGui::Spacing(); ImGui::Spacing();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Добавить врага")).c_str()))
+                ImGui::EndChild();
+            }
+            ImGui::PopStyleColor(4);
+            ImGui::SameLine(); ImGui::Indent(247);
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Обновить")).c_str()))
+            {
+                std::thread ath(ObtainLuaRecords);
+                ath.detach();
+            }
+            ImGui::PopStyleColor(3);
+            ImGui::Unindent(247);
+            ImGui::SameLine(); ImGui::Indent(370);
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4{ 0.0f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_Header, ImVec4{ 0.26f, 0.59f, 0.98f, 0.35f });
+            ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4{ 0.26f, 0.59f, 0.98f, 0.35f });
+            ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4{ 0.26f, 0.59f, 0.98f, 0.50f });
+            if (ImGui::BeginChild(xorstr_("ChildDrawList2"), ImVec2(200, 150), true))
+            {
+                for (const auto& item : PlayersList)
                 {
-                    if (!IsEnemyExist(current_select2) || EnemyList.empty())
+                    if ((strlen(FindActor) > 0 && item.find(FindActor) != std::string::npos) || strlen(FindActor) < 1)
                     {
-                        EnemyList.insert(std::pair<std::string, bool>(current_select2, true));
+                        bool is_selected = (current_select2 == item.c_str());
+                        if (ImGui::Selectable(item.c_str(), is_selected))
+                        {
+                            current_select2 = item.c_str();
+                            if (is_selected)
+                            {
+                                ImGui::SetItemDefaultFocus();
+                            }
+                        }
+                    }
+                }
+                ImGui::EndChild();
+            }
+            ImGui::PopStyleColor(4);
+            ImGui::Unindent(370);
+            ImGui::Spacing(); ImGui::Spacing();
+            ImGui::PushItemWidth(200);
+            ImGui::InputText(cp1251_to_utf8(xorstr_("                  Поиск")).c_str(), FindEnemy, sizeof(FindEnemy));
+            ImGui::PopItemWidth();
+            ImGui::SameLine();
+            ImGui::PushItemWidth(200);
+            ImGui::Indent(370);
+            ImGui::InputText("##", FindActor, sizeof(FindActor));
+            ImGui::Unindent(370);
+            ImGui::PopItemWidth();
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            ImGui::Spacing(); ImGui::Spacing();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Добавить врага")).c_str()))
+            {
+                if (!IsEnemyExist(current_select2) || EnemyList.empty())
+                {
+                    EnemyList.insert(std::pair<std::string, bool>(current_select2, true));
+                    UpdateEnemyList();
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Удалить врага")).c_str()))
+            {
+                if (IsEnemyExist(current_select) && !EnemyList.empty())
+                {
+                    auto enemy = EnemyList.find(current_select);
+                    if (enemy != EnemyList.end())
+                    {
+                        EnemyList.erase(enemy);
                         UpdateEnemyList();
                     }
                 }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Удалить врага")).c_str()))
-                {
-                    if (IsEnemyExist(current_select) && !EnemyList.empty())
-                    {
-                        auto enemy = EnemyList.find(current_select);
-                        if (enemy != EnemyList.end())
-                        {
-                            EnemyList.erase(enemy);
-                            UpdateEnemyList();
-                        }
-                    }
-                }
-                ImGui::SameLine();
-                ImGui::Indent(370);
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Метка")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DROP_MARKER, current_select);
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Слежка")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_SPEC, current_select);
-                    exec_cmd.detach();
-                }
-                ImGui::Unindent(370);
-                ImGui::PopStyleColor(3);
             }
-            else ImGui::BulletText(cp1251_to_utf8(xorstr_("Разрешите использовать Lua читы в настройках инжектора!")).c_str());
-            break;
-        case LUA_TAB:
-            if (LuaAllowed)
+            ImGui::SameLine();
+            ImGui::Indent(370);
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Метка")).c_str()))
             {
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Починка")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_FIX, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Заправка")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_FILL, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Еда")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_EAT, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Маска")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_MASK, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Оплатить штрафы")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_PAY, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Зарядка")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_CHARGE, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::PopStyleColor(3);
-                static bool Dummy = false;
-                if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Неуязвимый персонаж")).c_str(), &Dummy))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_GM, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Лечение")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_HEAL, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Броня")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_ARMOR, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Переворот на колеса")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_FLIP, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Прицепить")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_ATTACH, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::PopStyleColor(3);
-                ImGui::InputText("[1]", inp_txt, sizeof(inp_txt));
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Установить модель")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SET_MODEL, inp_txt);
-                    exec_cmd.detach();
-                }
-                ImGui::PopStyleColor(3);
-                ImGui::InputText("[2]", inp_txt2, sizeof(inp_txt2));
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП по гос.номерам")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_PLATE_TP, inp_txt2);
-                    exec_cmd.detach();
-                }
-                ImGui::PopStyleColor(3);
-                ImGui::InputText("[3]", inp_txt3, sizeof(inp_txt3));
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП по ID игрока")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_ID_TP, inp_txt3);
-                    exec_cmd.detach();
-                }
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Права Монорельса")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::LIC_MONORELS, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Права Трамвай")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::LIC_TRAMWAY, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Накрутить деньги")).c_str()))
-                {
-                    PlaySoundA(xorstr_("stony.wav"), NULL, SND_FILENAME | SND_ASYNC);
-                }
-                ImGui::PopStyleColor(3);
-                ImGui::InputText("[4]", inp_txt4, sizeof(inp_txt4));
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Выдать бухло")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_ALCO, inp_txt4);
-                    exec_cmd.detach();
-                }
-                ImGui::PopStyleColor(3);
-                ImGui::InputText("[5]", inp_txt5, sizeof(inp_txt5));
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Купить билет")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_LOTTERY, inp_txt5);
-                    exec_cmd.detach();
-                }
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Обоссать")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_PEE, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Мед.комиссия")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_ARMY_MED, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Огромная маска")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_MED_MASK, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Снять наручники")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_UNCUFF, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Узнать пробег")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_MILEAGE, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::PopStyleColor(3);
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DROP_MARKER, current_select);
+                exec_cmd.detach();
             }
-            else ImGui::BulletText(cp1251_to_utf8(xorstr_("Разрешите Lua читы в настройках инжектора!")).c_str());
-            break;
-        case LUA_TAB2:
-            if (LuaAllowed)
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Слежка")).c_str()))
             {
-                ImGui::InputText("[6]", inp_txt6, sizeof(inp_txt6));
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Установить номера")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_SET_PLATE, inp_txt6);
-                    exec_cmd.detach();
-                }
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Выдать парашют")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_SHUTE, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Арендовать отель")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::RENT_HOTEL, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Кто в розыске?")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::GET_WANTED, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::PopStyleColor(3);
-                ImGui::InputText("[7]", inp_txt7, sizeof(inp_txt7));
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Продлить отель")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::HOTEL_PAY_RENT, inp_txt7);
-                    exec_cmd.detach();
-                }
-                ImGui::PopStyleColor(3);
-                ImGui::InputText("[8]", inp_txt8, sizeof(inp_txt8));
-                ImGui::SameLine(); static bool Dummy3 = false;
-                if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Уменьшитель урона")).c_str(), &Dummy3))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_REDUCE_DAMAGE, inp_txt8);
-                    exec_cmd.detach();
-                }
-                static bool MyDummy = false;
-                if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("AntiAFK")).c_str(), &MyDummy))
-                {
-                    if (MyDummy) AntiAFK = true;
-                    else AntiAFK = false;
-                }
-                ImGui::SameLine();
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП на рыбалку")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_FISHING_POINT, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::PopStyleColor(3);
-                ImGui::SameLine();
-                if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Бот Рыболова")).c_str(), &FisherBot))
-                {
-                    if (FisherBot)
-                    {
-                        std::thread exec_fisher(GoFish);
-                        exec_fisher.detach();
-                    }
-                }
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП (Продажа рыбы)")).c_str()))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_SELL_FISH, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                ImGui::PopStyleColor(3);
-                ImGui::SameLine();
-                if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Выйти с КПЗ")).c_str(), &AntiTeleport))
-                {
-                    if (AntiTeleport)
-                    {
-                        CPed* ped = FindPlayerPed();
-                        if (ped != nullptr)
-                        {
-                            ped->Teleport(CVector(1096.158f, 2557.059f, 13.792f + 2.0f), false);
-                            std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_SET_INT, xorstr_("NONE"));
-                            exec_cmd.detach();
-                        }
-                    }
-                }
-                ImGui::InputText("[9]", inp_txt9, sizeof(inp_txt9));
-                ImGui::SameLine();
-                if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Fake Kill")).c_str(), &FakeKill))
-                {
-                    if (FakeKill)
-                    {
-                        std::thread exec_hook(SetAnotherHook2);
-                        exec_hook.detach();
-                    }
-                }
-                ImGui::InputText(cp1251_to_utf8(xorstr_("Номер счета")).c_str(), inp_txt10, sizeof(inp_txt10));
-                ImGui::InputText(cp1251_to_utf8(xorstr_("Сумма денег")).c_str(), inp_txt11, sizeof(inp_txt11));
-                if (ImGui::BeginCombo(cp1251_to_utf8(xorstr_("[B]")).c_str(), bank_current_item))
-                {
-                    for (int n = 0; n < IM_ARRAYSIZE(bank_items); n++)
-                    {
-                        bool is_selected = (bank_current_item == bank_items[n]);
-                        if (ImGui::Selectable(bank_items[n], is_selected)) bank_current_item = bank_items[n];
-                        {
-                            if (is_selected) ImGui::SetItemDefaultFocus();
-                        }
-                    }
-                    ImGui::EndCombo();
-                }
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Выполнить операцию")).c_str()))
-                {
-                    if (!strcmp(bank_current_item, xorstr_("Create account")))
-                    {
-                        std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BANK_CREATE, xorstr_("NONE"));
-                        exec_cmd.detach();
-                    }
-                    if (!strcmp(bank_current_item, xorstr_("Put money")))
-                    {
-                        std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BANK_PUT, inp_txt11);
-                        exec_cmd.detach();
-                    }
-                    if (!strcmp(bank_current_item, xorstr_("Get money")))
-                    {
-                        std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BANK_GET, inp_txt11);
-                        exec_cmd.detach();
-                    }
-                    if (!strcmp(bank_current_item, xorstr_("Send money")))
-                    {
-                        std::thread exec_cmd(BankTransaction, inp_txt10, inp_txt11);
-                        exec_cmd.detach();
-                    }
-                }
-                ImGui::PopStyleColor(3);
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_SPEC, current_select);
+                exec_cmd.detach();
             }
-            else ImGui::BulletText(cp1251_to_utf8(xorstr_("Разрешите Lua читы в настройках инжектора!!")).c_str());
+            ImGui::Unindent(370);
+            ImGui::PopStyleColor(3);
+            break;
+        case HACK_TAB2:
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Починка")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_FIX, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Заправка")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_FILL, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Еда")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_EAT, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Маска")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_MASK, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Оплатить штрафы")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_PAY, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Зарядка")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_CHARGE, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::PopStyleColor(3);
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Неуязвимый персонаж")).c_str(), &Dummy))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_GM, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Лечение")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_HEAL, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Броня")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_ARMOR, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Переворот на колеса")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_FLIP, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Прицепить")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_ATTACH, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::PopStyleColor(3);
+            ImGui::InputText("[1]", inp_txt, sizeof(inp_txt));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Установить модель")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SET_MODEL, inp_txt);
+                exec_cmd.detach();
+            }
+            ImGui::PopStyleColor(3);
+            ImGui::InputText("[2]", inp_txt2, sizeof(inp_txt2));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП по гос.номерам")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_PLATE_TP, inp_txt2);
+                exec_cmd.detach();
+            }
+            ImGui::PopStyleColor(3);
+            ImGui::InputText("[3]", inp_txt3, sizeof(inp_txt3));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП по ID игрока")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_ID_TP, inp_txt3);
+                exec_cmd.detach();
+            }
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Права Монорельса")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::LIC_MONORELS, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Права Трамвай")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::LIC_TRAMWAY, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Накрутить деньги")).c_str()))
+            {
+                PlaySoundA(xorstr_("stony.wav"), NULL, SND_FILENAME | SND_ASYNC);
+            }
+            ImGui::PopStyleColor(3);
+            ImGui::InputText("[4]", inp_txt4, sizeof(inp_txt4));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Выдать бухло")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_ALCO, inp_txt4);
+                exec_cmd.detach();
+            }
+            ImGui::PopStyleColor(3);
+            ImGui::InputText("[5]", inp_txt5, sizeof(inp_txt5));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Купить билет")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_LOTTERY, inp_txt5);
+                exec_cmd.detach();
+            }
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Обоссать")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_PEE, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Мед.комиссия")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_ARMY_MED, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Огромная маска")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_MED_MASK, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Снять наручники")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_UNCUFF, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Узнать пробег")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_MILEAGE, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::PopStyleColor(3);
+            break;
+        case HACK_TAB3:
+            ImGui::InputText("[6]", inp_txt6, sizeof(inp_txt6));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Установить номера")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_SET_PLATE, inp_txt6);
+                exec_cmd.detach();
+            }
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Выдать парашют")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_SHUTE, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Арендовать отель")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::RENT_HOTEL, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Кто в розыске?")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::GET_WANTED, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::PopStyleColor(3);
+            ImGui::InputText("[7]", inp_txt7, sizeof(inp_txt7));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Продлить отель")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::HOTEL_PAY_RENT, inp_txt7);
+                exec_cmd.detach();
+            }
+            ImGui::PopStyleColor(3);
+            ImGui::InputText("[8]", inp_txt8, sizeof(inp_txt8));
+            ImGui::SameLine(); 
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Уменьшитель урона")).c_str(), &Dummy3))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_REDUCE_DAMAGE, inp_txt8);
+                exec_cmd.detach();
+            }
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("AntiAFK")).c_str(), &MyDummy))
+            {
+                if (MyDummy) AntiAFK = true;
+                else AntiAFK = false;
+            }
+            ImGui::SameLine();
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП на рыбалку")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_FISHING_POINT, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::PopStyleColor(3);
+            ImGui::SameLine();
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Бот Рыболова")).c_str(), &FisherBot))
+            {
+                if (FisherBot)
+                {
+                    std::thread exec_fisher(GoFish);
+                    exec_fisher.detach();
+                }
+            }
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП (Продажа рыбы)")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_SELL_FISH, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::PopStyleColor(3);
+            ImGui::SameLine();
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Выйти с КПЗ")).c_str(), &AntiTeleport))
+            {
+                if (AntiTeleport)
+                {
+                    CPed* ped = FindPlayerPed();
+                    if (ped != nullptr)
+                    {
+                        ped->Teleport(CVector(1096.158f, 2557.059f, 13.792f + 2.0f), false);
+                        std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_SET_INT, xorstr_("NONE"));
+                        exec_cmd.detach();
+                    }
+                }
+            }
+            ImGui::InputText("[9]", inp_txt9, sizeof(inp_txt9));
+            ImGui::SameLine();
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Fake Kill")).c_str(), &FakeKill))
+            {
+                if (FakeKill)
+                {
+                    std::thread exec_hook(SetAnotherHook2);
+                    exec_hook.detach();
+                }
+            }
+            ImGui::InputText(cp1251_to_utf8(xorstr_("Номер счета")).c_str(), inp_txt10, sizeof(inp_txt10));
+            ImGui::InputText(cp1251_to_utf8(xorstr_("Сумма денег")).c_str(), inp_txt11, sizeof(inp_txt11));
+            if (ImGui::BeginCombo(cp1251_to_utf8(xorstr_("[B]")).c_str(), bank_current_item))
+            {
+                for (int n = 0; n < IM_ARRAYSIZE(bank_items); n++)
+                {
+                    bool is_selected = (bank_current_item == bank_items[n]);
+                    if (ImGui::Selectable(bank_items[n], is_selected)) bank_current_item = bank_items[n];
+                    {
+                        if (is_selected) ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Выполнить операцию")).c_str()))
+            {
+                if (!strcmp(bank_current_item, xorstr_("Create account")))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BANK_CREATE, xorstr_("NONE"));
+                    exec_cmd.detach();
+                }
+                if (!strcmp(bank_current_item, xorstr_("Put money")))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BANK_PUT, inp_txt11);
+                    exec_cmd.detach();
+                }
+                if (!strcmp(bank_current_item, xorstr_("Get money")))
+                {
+                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BANK_GET, inp_txt11);
+                    exec_cmd.detach();
+                }
+                if (!strcmp(bank_current_item, xorstr_("Send money")))
+                {
+                    std::thread exec_cmd(BankTransaction, inp_txt10, inp_txt11);
+                    exec_cmd.detach();
+                }
+            }
+            ImGui::PopStyleColor(3);
             break;
         case UPDATE_TAB:
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Проверить актуальность")).c_str()))

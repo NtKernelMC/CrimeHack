@@ -21,7 +21,6 @@ __published:	// IDE-managed Components
 	TButton *Button2;
 	TImage *Image1;
 	TLabel *Label2;
-	TCheckBox *CheckBox1;
 	TCheckBox *CheckBox2;
 	TTrackBar *TrackBar1;
 	TLabel *Label3;

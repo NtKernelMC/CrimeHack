@@ -68,35 +68,32 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             MH_EnableHook(MH_ALL_HOOKS);
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for TakePlayerScreenShot.\n"));
-		if (LuaAllowed)
-		{
-            callAddDebugHook = (ptrAddDebugHook)scan.FindPattern(xorstr_("client.dll"),
-            xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x81\xEC\xF8\x00\x00\x00\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x57\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\x75"),
-            xorstr_("xxxxxx????xxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxxxx"));
-            if (callAddDebugHook != NULL)
-            {
-                LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to AddDebugHook!\n"));
-                MH_RemoveHook(callAddDebugHook);
-                MH_CreateHook(callAddDebugHook, &AddDebugHook, reinterpret_cast<LPVOID*>(&callAddDebugHook));
-                MH_EnableHook(MH_ALL_HOOKS);
-            }
-            else
-            {
-                LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for AddDebugHook! TERMINATING GAME...\n"));
-                TerminateProcess(GetCurrentProcess(), 0x0);
-            }
-            callLuaLoadBuffer = (t_LuaLoadBuffer)scan.FindPattern(xorstr_("client.dll"),
-            xorstr_("\x55\x8B\xEC\x83\xEC\x08\x56\x8B\x75\x0C\x57\xFF"), xorstr_("xxxxxxxxxxxx"));
-            if (callLuaLoadBuffer != nullptr)
-            {
-                LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to Lua Engine!\n"));
-                lua_only_once = false;
-                MH_RemoveHook(callLuaLoadBuffer);
-                MH_CreateHook(callLuaLoadBuffer, &hkLuaLoadBuffer, reinterpret_cast<LPVOID*>(&callLuaLoadBuffer));
-                MH_EnableHook(MH_ALL_HOOKS);
-            }
-            else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for Lua Engine.\n"));
-		}
+        callAddDebugHook = (ptrAddDebugHook)scan.FindPattern(xorstr_("client.dll"),
+        xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x81\xEC\xF8\x00\x00\x00\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x57\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\x75"),
+        xorstr_("xxxxxx????xxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxxxx"));
+        if (callAddDebugHook != NULL)
+        {
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to AddDebugHook!\n"));
+            MH_RemoveHook(callAddDebugHook);
+            MH_CreateHook(callAddDebugHook, &AddDebugHook, reinterpret_cast<LPVOID*>(&callAddDebugHook));
+            MH_EnableHook(MH_ALL_HOOKS);
+        }
+        else
+        {
+            LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for AddDebugHook! TERMINATING GAME...\n"));
+            TerminateProcess(GetCurrentProcess(), 0x0);
+        }
+        callLuaLoadBuffer = (t_LuaLoadBuffer)scan.FindPattern(xorstr_("client.dll"),
+        xorstr_("\x55\x8B\xEC\x83\xEC\x08\x56\x8B\x75\x0C\x57\xFF"), xorstr_("xxxxxxxxxxxx"));
+        if (callLuaLoadBuffer != nullptr)
+        {
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to Lua Engine!\n"));
+            lua_only_once = false;
+            MH_RemoveHook(callLuaLoadBuffer);
+            MH_CreateHook(callLuaLoadBuffer, &hkLuaLoadBuffer, reinterpret_cast<LPVOID*>(&callLuaLoadBuffer));
+            MH_EnableHook(MH_ALL_HOOKS);
+        }
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for Lua Engine.\n"));
 		callGetHealth = (ptrGetHealth)scan.FindPattern(xorstr_("client.dll"), xorstr_("\x80\xB9\xC8"), xorstr_("xxx")); // 1.5.8
         if (callGetHealth == nullptr) callGetHealth = (ptrGetHealth)scan.FindPattern(xorstr_("client.dll"), 
         xorstr_("\x55\x8B\xEC\x51\x8B\x91\xAC\x01\x00\x00\x85\xD2\x74\x16\x8B\x02\x8B\xCA\x8B\x80\x3C"), 
