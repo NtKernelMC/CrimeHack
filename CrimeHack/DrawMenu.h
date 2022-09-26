@@ -230,7 +230,7 @@ void BankTransaction(std::string bank_id, std::string value)
     std::thread exec_cmd2(ExecuteLuaCommand, LUA_CMD::BANK_SEND, value);
     exec_cmd2.detach();
 }
-void LoadCustomModel(std::string file_name, std::string model_id)
+void LoadCustomModel(std::string model_id, std::string file_name)
 {
     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SET_MODEL_NAME, file_name);
     exec_cmd.detach(); Sleep(2000);
