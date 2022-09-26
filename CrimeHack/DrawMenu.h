@@ -320,7 +320,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             }
             ImGui::PopStyleColor(3);
             ImGui::SameLine();
-            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Абузер транспорта")).c_str(), &TotalCar);
+            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Абузер машин")).c_str(), &TotalCar);
             ImGui::SameLine();
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
@@ -347,6 +347,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     }
                 }
             }
+            ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Узнать ID модели")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DUMP_MODEL_ID, xorstr_("NONE"));
@@ -370,9 +371,15 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     AntiRed = true;
                 }
             }
+            ImGui::SameLine();
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Загрузить модель")).c_str()))
+            {
+                std::thread exec_cmd(LoadCustomModel, inp_txt12, inp_txt13);
+                exec_cmd.detach();
+            }
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Умереть нахуй")).c_str()))
             {
                 CPed* ped = FindPlayerPed();
@@ -399,15 +406,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             ImGui::PopStyleColor(3);
             ImGui::InputText(cp1251_to_utf8(xorstr_("Имя файла")).c_str(), inp_txt12, sizeof(inp_txt12));
             ImGui::InputText(cp1251_to_utf8(xorstr_("ID Модели")).c_str(), inp_txt13, sizeof(inp_txt13));
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Загрузить модель")).c_str()))
-            {
-                std::thread exec_cmd(LoadCustomModel, inp_txt12, inp_txt13);
-                exec_cmd.detach();
-            }
-            ImGui::PopStyleColor(3);
             break;
         case ENEMY_TAB:
             ImGui::BulletText(cp1251_to_utf8(xorstr_("Нажмите 2 раза на врага")).c_str());
