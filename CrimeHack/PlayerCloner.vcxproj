@@ -141,6 +141,7 @@
     <ClInclude Include="kthook\include\kthook\x86_64\kthook_x86_64_detail.hpp" />
     <ClInclude Include="kthook\ktsignal\include\ktsignal\ktsignal.hpp" />
     <ClInclude Include="lazy_import.h" />
+    <ClInclude Include="Location.h" />
     <ClInclude Include="MD5.h" />
     <ClInclude Include="MinHook.h" />
     <ClInclude Include="PebHider.h" />

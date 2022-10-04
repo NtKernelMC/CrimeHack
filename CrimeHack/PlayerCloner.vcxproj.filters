@@ -80,6 +80,7 @@
     <ClInclude Include="HWBP.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="Location.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ImGui">

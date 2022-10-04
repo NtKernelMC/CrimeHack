@@ -169,6 +169,7 @@ enum class LUA_CMD
     SET_MODEL_NAME = 7044,
     REPLACE_MODEL_ID = 7055,
     DUMP_MODEL_ID = 7066,
+    CAR_DETACH = 7077,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -542,12 +543,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_FILL, xorstr_("NONE"));
                 exec_cmd.detach();
             }
-            ImGui::SameLine();
+            /*ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Еда")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_EAT, xorstr_("NONE"));
                 exec_cmd.detach();
-            }
+            }*/
             ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Маска")).c_str()))
             {
@@ -564,6 +565,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Зарядка")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_CHARGE, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Отцепить")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_DETACH, xorstr_("NONE"));
                 exec_cmd.detach();
             }
             ImGui::PopStyleColor(3);
@@ -591,12 +598,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Переворот на колеса")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_FLIP, xorstr_("NONE"));
-                exec_cmd.detach();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Прицепить")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_ATTACH, xorstr_("NONE"));
                 exec_cmd.detach();
             }
             ImGui::PopStyleColor(3);
@@ -643,11 +644,11 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::LIC_TRAMWAY, xorstr_("NONE"));
                 exec_cmd.detach();
             }
-            ImGui::SameLine();
+            /*ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Накрутить деньги")).c_str()))
             {
                 PlaySoundA(xorstr_("stony.wav"), NULL, SND_FILENAME | SND_ASYNC);
-            }
+            }*/
             ImGui::PopStyleColor(3);
             ImGui::InputText("[4]", inp_txt4, sizeof(inp_txt4));
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
@@ -665,9 +666,9 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
             ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Купить билет")).c_str()))
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Прицепить")).c_str()))
             {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_LOTTERY, inp_txt5);
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_ATTACH, inp_txt5);
                 exec_cmd.detach();
             }
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Обоссать")).c_str()))

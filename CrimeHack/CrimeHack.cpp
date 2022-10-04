@@ -89,6 +89,7 @@ void HackThread()
     MH_Initialize();
     LoadEnemyList();
     LoadCustomModels();
+    std::thread trk(CalculateGeoData); trk.detach();
     CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, xorstr_("Software\\CR1M3H"), true);
     if (reg != nullptr)
     {

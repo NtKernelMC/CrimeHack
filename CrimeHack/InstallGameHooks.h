@@ -10,8 +10,13 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
         sendMTAChat = (f_SendChat)scan.FindPattern(xorstr_("client.dll"),
         xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x81\xEC\x00\x00\x00\x00\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x57\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x80\x7D\x14\x00\x8B\x75\x0C\x8B\x7D\x08\x89\xB5\x00\x00\x00\x00\x0F\x85\x00\x00\x00\x00\x80\x7D\x10\x00\x75\x1A\x68\x00\x00\x00\x00\x57\xE8\x00\x00\x00\x00\x83\xC4\x08"),
         xorstr_("xxxxxx????xx????xxx????x????xxxxxxxxxxxxx????xxxxxxxxxxxx????xx????xxxxxxx????xx????xxx"));
-        if (sendMTAChat) LogInFile(LOG_NAME, "[LOG] Found address from signature to ExecCommand!\n");
-        else LogInFile(LOG_NAME, "[ERROR] Can`t find a signature for ExecCommand!\n");
+        if (sendMTAChat) LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to ExecCommand!\n"));
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for ExecCommand!\n"));
+        callGetClosestRemotePlayer = (ptrGetClosestRemotePlayer)scan.FindPattern(xorstr_("client.dll"),
+        xorstr_("\x55\x8B\xEC\x83\xE4\xF8\x83\xEC\x1C\x8B"),
+        xorstr_("xxxxxxxxxx")); // 1.5.8-1.5.9
+        if (callGetClosestRemotePlayer) LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to GetClosestRemotePlayer! 0x%X\n"), (DWORD)callGetClosestRemotePlayer);
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for GetClosestRemotePlayer!\n"));
         if (callProcessMessage == nullptr)
         {
             callProcessMessage = (ptrProcessMessage)scan.FindPattern(xorstr_("core.dll"),

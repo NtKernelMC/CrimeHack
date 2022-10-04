@@ -23,13 +23,8 @@ bool __fastcall StartGame(void* ECX, void* EDX, const char* szNick, const char* 
 	}*/
 	return callStartGame(ECX, szNick, szPassword, Type, szSecret);
 }
-typedef void CClientPlayer;
-CClientPlayer* GetClosestRemotePlayer(CVector* vecPosition, float fMaxDistance)
+void* GetClosestRemotePlayer(CVector* vecPosition, float fMaxDistance)
 {
-	SigScan scan; typedef CClientPlayer* (__thiscall* ptrGetClosestRemotePlayer)(void* ECX, CVector* vecPosition, float fMaxDistance);
-	static ptrGetClosestRemotePlayer callGetClosestRemotePlayer = (ptrGetClosestRemotePlayer)scan.FindPattern("client.dll",
-	xorstr_("\x55\x8B\xEC\x83\xE4\xF8\x83\xEC\x1C\x8B"),
-	xorstr_("xxxxxxxxxx"));
 	if (callGetClosestRemotePlayer != nullptr && classPointer != nullptr)
 	{
 		return callGetClosestRemotePlayer(classPointer, vecPosition, fMaxDistance);
@@ -123,7 +118,7 @@ void SafeActions(CPed* ped)
 		{
 			CVector pedPos = ped->GetPosition();
 			CPed* pedSelf = FindPlayerPed(-1);
-			CClientPlayer* victim = GetClosestRemotePlayer(&pedPos, 1.5f);
+			void* victim = GetClosestRemotePlayer(&pedPos, 1.5f);
 			int bodyIDs[3] = { 6, 7, 8 };
 			unsigned int random_bone = GetRandom(bodyIDs);
 			RwV3d bone; ped->GetBonePosition(bone, random_bone, true);
@@ -242,7 +237,7 @@ float fDamage, BYTE ucHitZone, void* pRemoteDamagedPlayer)
 			{
 				CVector pedPos = TargetPed->GetPosition();
 				CPed* pedSelf = FindPlayerPed(-1);
-				CClientPlayer* victim = GetClosestRemotePlayer(&pedPos, 15.0f);
+				void* victim = GetClosestRemotePlayer(&pedPos, 15.0f);
 				RwV3d bone; TargetPed->GetBonePosition(bone, 3, true);
 				CVector targetEnd(bone.x, bone.y, bone.z);
 				if (victim != nullptr && pedSelf != nullptr)
@@ -446,9 +441,9 @@ void __fastcall VehGetPosition(void* ECX, void* EDX, CVector* vecPosition)
 	if (VehInviz) vecPosition->z -= 5.0f;
 	if (TotalCar)
 	{
-		vecPosition->x = 1354.6676025391f;
-		vecPosition->y = 1688.2827148438f;
-		vecPosition->z = 6.5899496078491f;
+		vecPosition->x = 9999.0f;
+		vecPosition->y = 9999.0f;
+		vecPosition->z = 9999.0f;
 	}
 }
 typedef void(__thiscall* ptrPedGetPosition)(void* ECX, CVector* vecPosition);
@@ -504,6 +499,13 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local fisherHook = 0
 	local victimID = -1
 	local replace_id = 0
+	local targetVehicle = false
+
+	addEventHandler("onClientTrailerDetach",root,function(towedBy)
+		if targetVehicle ~= false then
+			attachTrailerToVehicle(towedBy, targetVehicle)
+		end
+	end)
 
 	function gPlayerGM(attacker, weapon, bodypart, loss)
 		cancelEvent()
@@ -848,13 +850,15 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			end
 
 			if tonumber(exec_cmd) == 5022 then
-				for i, k in ipairs(getElementsByType("vehicle")) do
-					local theVehicle = getPedOccupiedVehicle(localPlayer)
-					local x1, y1, z1 = getElementPosition(theVehicle)
-					local x2, y2, z2 = getElementPosition(k)
-					if getDistanceBetweenPoints3D(x1, y1, z1, x2, y2, z2) < 10 then
-						setElementFrozen(k, false)
-						attachTrailerToVehicle (theVehicle, k )
+				for i, k in ipairs(getElementsByType("player")) do
+					local elem_id = getElementData(k, "id") or 0
+					if tonumber(elem_id) == tonumber(exec_arg) then
+						if isPedInVehicle(localPlayer) and isPedInVehicle(k) then
+							local myVehicle = getPedOccupiedVehicle(localPlayer)
+							targetVehicle = getPedOccupiedVehicle(k)
+							setElementFrozen(targetVehicle, false)
+							attachTrailerToVehicle(myVehicle, targetVehicle)
+						end
 					end
 				end
 			end
@@ -1015,6 +1019,14 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 					dmp_model = getElementModel(localPlayer)
 				end
 				outputChatBox('Current Model ID is: ' .. tostring(dmp_model))
+			end
+
+			if tonumber(exec_cmd) == 7077 then
+				if isPedInVehicle(localPlayer) then
+					local theVehicle = getPedOccupiedVehicle(localPlayer)
+					detachTrailerFromVehicle(theVehicle)
+					targetVehicle = false
+				end
 			end
 
 		end
