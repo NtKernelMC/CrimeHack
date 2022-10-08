@@ -646,6 +646,8 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::LIC_TRAMWAY, xorstr_("NONE"));
                 exec_cmd.detach();
             }
+            ImGui::SameLine();
+            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Тюнинг (Анти-крашер)")).c_str(), &AllowTuning);
             /*ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Накрутить деньги")).c_str()))
             {
