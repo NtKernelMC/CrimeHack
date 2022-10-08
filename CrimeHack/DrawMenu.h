@@ -170,6 +170,7 @@ enum class LUA_CMD
     REPLACE_MODEL_ID = 7055,
     DUMP_MODEL_ID = 7066,
     CAR_DETACH = 7077,
+    GET_CONTAINER = 7088,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -274,6 +275,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         static bool Dummy3 = false;
         static bool MyDummy = false;
         static bool Dummy = false;
+        static bool Dummy5 = false;
         static const char* current_select = "All enemies are Offline!";
         char capWin[350]; memset(capWin, 0, sizeof(capWin));
         sprintf(capWin, xorstr_("Crime Hack by NtKernelMC | build %s | vk.com/provhacks"), PLUGIN_VER);
@@ -683,9 +685,9 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 exec_cmd.detach();
             }
             ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Огромная маска")).c_str()))
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Вор контейнера")).c_str(), &Dummy5))
             {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_MED_MASK, xorstr_("NONE"));
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::GET_CONTAINER, xorstr_("NONE"));
                 exec_cmd.detach();
             }
             ImGui::SameLine();

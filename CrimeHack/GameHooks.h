@@ -500,6 +500,16 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local victimID = -1
 	local replace_id = 0
 	local targetVehicle = false
+	local allowContainer = false
+
+	function OpenContainer()
+		if allowContainer == true then
+			local resname = getResourceFromName('province_container')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerServerEvent('container:addBetServer', resourceRoot, 99999999)
+		end
+	end
+	container = setTimer(OpenContainer, 500, 0)
 
 	addEventHandler("onClientTrailerDetach",root,function(towedBy)
 		if targetVehicle ~= false then
@@ -1026,6 +1036,14 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 					local theVehicle = getPedOccupiedVehicle(localPlayer)
 					detachTrailerFromVehicle(theVehicle)
 					targetVehicle = false
+				end
+			end
+
+			if tonumber(exec_cmd) == 7088 then
+                if allowContainer == false then
+					allowContainer = true
+				else
+					allowContainer = false
 				end
 			end
 
