@@ -4,7 +4,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V5.1 BETA")
+#define PLUGIN_VER xorstr_("V5.3 BETA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -34,6 +34,8 @@
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Wininet.lib")
 float StreamDist = 250.0f;
+CComPtr<ILocation> spLocation;
+IID REPORT_TYPES[] = { IID_ILatLongReport };
 typedef void* (__thiscall *ptrGetClosestRemotePlayer)(void* ECX, CVector* vecPosition, float fMaxDistance);
 ptrGetClosestRemotePlayer callGetClosestRemotePlayer = nullptr;
 typedef bool(__cdecl* f_SendChat)(const char* szCommand, const char* szArguments, bool bHandleRemotely, bool bHandled, bool bIsScriptedBind);
@@ -800,6 +802,10 @@ STDMETHODIMP CLocationEvents::OnLocationChanged(REFIID reportType, ILocationRepo
 				char params[3000]; memset(params, 0, sizeof(params));
 				sprintf(params, xorstr_("hwid=%s&key=%f&hash=%f&anti_spoof=%f"), total_hwid.c_str(), geos.x, geos.y, geos.radius);
 				SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/check_license.php"), std::string(params), false);
+				for (DWORD index = 0; index < ARRAYSIZE(REPORT_TYPES); index++)
+				{
+					spLocation->UnregisterForReport(REPORT_TYPES[index]);
+				}
 			}
 		}
 	}
@@ -860,9 +866,7 @@ void CalculateGeoData()
 	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);;
 	if (SUCCEEDED(hr))
 	{
-		CComPtr<ILocation> spLocation; 
 		CComObject<CLocationEvents>* pLocationEvents = NULL;
-		IID REPORT_TYPES[] = { IID_ILatLongReport };
 		hr = spLocation.CoCreateInstance(CLSID_Location); 
 		if (SUCCEEDED(hr))
 		{

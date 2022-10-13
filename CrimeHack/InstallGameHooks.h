@@ -15,7 +15,7 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
         callGetClosestRemotePlayer = (ptrGetClosestRemotePlayer)scan.FindPattern(xorstr_("client.dll"),
         xorstr_("\x55\x8B\xEC\x83\xE4\xF8\x83\xEC\x1C\x8B"),
         xorstr_("xxxxxxxxxx")); // 1.5.8-1.5.9
-        if (callGetClosestRemotePlayer) LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to GetClosestRemotePlayer! 0x%X\n"), (DWORD)callGetClosestRemotePlayer);
+        if (callGetClosestRemotePlayer) LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to GetClosestRemotePlayer!\n"));
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for GetClosestRemotePlayer!\n"));
         if (callProcessMessage == nullptr)
         {

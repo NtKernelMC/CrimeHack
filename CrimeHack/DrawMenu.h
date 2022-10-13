@@ -144,7 +144,7 @@ enum class LUA_CMD
     PL_MED_MASK = 4066,
     PL_UNCUFF = 4077,
     PL_MILEAGE = 4088,
-    EMPTY_CODE = 4099,
+    GO_ASTRAL = 4099,
     CAR_CHARGE = 5011,
     CAR_ATTACH = 5022,
     CAR_SET_PLATE = 5033,
@@ -171,6 +171,10 @@ enum class LUA_CMD
     DUMP_MODEL_ID = 7066,
     CAR_DETACH = 7077,
     GET_CONTAINER = 7088,
+    VEH_GM = 7099,
+    MARK_TP = 8011,
+    BUNKER_TP = 8022,
+    LES_TP = 8033,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -276,6 +280,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         static bool MyDummy = false;
         static bool Dummy = false;
         static bool Dummy5 = false;
+        static bool Dummy6 = false;
         static const char* current_select = "All enemies are Offline!";
         char capWin[350]; memset(capWin, 0, sizeof(capWin));
         sprintf(capWin, xorstr_("Crime Hack by NtKernelMC | build %s | vk.com/provhacks"), PLUGIN_VER);
@@ -300,7 +305,17 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Аирбрэйк")).c_str(), &AirAllowed);
             ImGui::SameLine(); ImGui::Checkbox(cp1251_to_utf8(xorstr_("Коллизия")).c_str(), &ColHack);
             ImGui::SameLine(); 
-            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Заморозить HP Тачек")).c_str(), &CarGM);
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Неуязвимая тачка")).c_str(), &CarGM))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::VEH_GM, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Мир духов")).c_str(), &Dummy6))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::GO_ASTRAL, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
             ImGui::SameLine(); ImGui::Checkbox(cp1251_to_utf8(xorstr_("Аура Смерти")).c_str(), &DeadlyAura);
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Сайлент аим")).c_str(), &SilentAIM);
             ImGui::SameLine(); ImGui::SliderFloat(xorstr_("FOV"), &FOV, 50.0, 500.0f);
@@ -330,25 +345,8 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
             if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП по метке")).c_str()))
             {
-                for (int i = 0; i < (0xAF * 0x28); i += 0x28)
-                {
-                    if (*(short*)(0xBA873D + i) == 4611)
-                    {
-                        BYTE icon = *(BYTE*)((0xBA86F0 + 36) + 0x28 + i);
-                        float* pos = (float*)(0xBA86F8 + 0x28 + i);
-                        CVector dest(*pos, *(pos + 1), *(pos + 2));
-                        if (icon == 41)
-                        {
-                            CVehicle* veh = FindPlayerVehicle(0, false);
-                            if (veh == nullptr)
-                            {
-                                CPed* ped = FindPlayerPed();
-                                if (ped != nullptr) ped->Teleport(dest, false);
-                            }
-                            else veh->Teleport(dest, false);
-                        }
-                    }
-                }
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::MARK_TP, xorstr_("NONE"));
+                exec_cmd.detach();
             }
             ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Узнать ID модели")).c_str()))
@@ -397,14 +395,14 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП в Бункер (Пистолет)")).c_str()))
             {
-                CPed* ped = FindPlayerPed();
-                if (ped != nullptr) ped->Teleport(CVector(213.91273498535f, 1115.1557617188f, 24.144750595093f), false);
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BUNKER_TP, xorstr_("NONE"));
+                exec_cmd.detach();
             }
             ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП в Лес (Винтовка)")).c_str()))
             {
-                CPed* ped = FindPlayerPed();
-                if (ped != nullptr) ped->Teleport(CVector(-100.92771911621f, -1241.4100341797f, 6.9533462524414f), false);
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::LES_TP, xorstr_("NONE"));
+                exec_cmd.detach();
             }
             ImGui::PopStyleColor(3);
             ImGui::InputText(cp1251_to_utf8(xorstr_("Имя файла")).c_str(), inp_txt12, sizeof(inp_txt12));
@@ -648,6 +646,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             }
             ImGui::SameLine();
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Тюнинг (Анти-крашер)")).c_str(), &AllowTuning);
+            /*ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Веста Sport")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BUY_VESTA, xorstr_("NONE"));
+                exec_cmd.detach();
+            }*/
             /*ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Накрутить деньги")).c_str()))
             {
