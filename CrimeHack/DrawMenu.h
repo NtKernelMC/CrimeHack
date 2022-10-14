@@ -175,6 +175,11 @@ enum class LUA_CMD
     MARK_TP = 8011,
     BUNKER_TP = 8022,
     LES_TP = 8033,
+    EMPTY_CODE = 8044,
+    BUY_VESTA = 8055,
+    SHOW_POLICE = 8066,
+    TRIGGER_DUMPER = 8077,
+    GET_CIGARETTE = 8088,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -229,6 +234,12 @@ void GoFish()
         Sleep(1000);
     }
 }
+void DumpTriggers()
+{
+    DbgHook = false;
+    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::TRIGGER_DUMPER, xorstr_("NONE"));
+    exec_cmd.detach(); Sleep(3000); DbgHook = true;
+}
 void BankTransaction(std::string bank_id, std::string value)
 {
     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BANK_SET_NUMBER, bank_id);
@@ -272,6 +283,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
     {
         POINT p; GetCursorPos(&p); ScreenToClient(gameWnd, &p);
         ImGui::GetForegroundDrawList()->AddTriangleFilled(ImVec2(p.x - 10, p.y), ImVec2(p.x, p.y + 10), ImVec2(p.x + 10, p.y), ImColor(185, 17, 17));
+        //ImGui::GetForegroundDrawList()->AddTriangle(ImVec2(p.x - 10, p.y), ImVec2(p.x, p.y + 10), ImVec2(p.x + 10, p.y), ImColor(185, 17, 17));
         ImGui::SetNextWindowSize(ImVec2(610, 500));
         const char* bank_items[] = { xorstr_("Create account"), xorstr_("Put money"), xorstr_("Get money"), xorstr_("Send money"), };
         static const char* bank_current_item = NULL;
@@ -281,6 +293,8 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         static bool Dummy = false;
         static bool Dummy5 = false;
         static bool Dummy6 = false;
+        static bool Dummy7 = false;
+        static bool Dummy8 = false;
         static const char* current_select = "All enemies are Offline!";
         char capWin[350]; memset(capWin, 0, sizeof(capWin));
         sprintf(capWin, xorstr_("Crime Hack by NtKernelMC | build %s | vk.com/provhacks"), PLUGIN_VER);
@@ -512,8 +526,8 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     }
                 }
             }
-            ImGui::SameLine();
             ImGui::Indent(370);
+            ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Метка")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DROP_MARKER, current_select);
@@ -543,12 +557,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_FILL, xorstr_("NONE"));
                 exec_cmd.detach();
             }
-            /*ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Еда")).c_str()))
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Крашер")).c_str()))
             {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_EAT, xorstr_("NONE"));
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BUY_VESTA, xorstr_("NONE"));
                 exec_cmd.detach();
-            }*/
+            }
             ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Маска")).c_str()))
             {
@@ -645,18 +659,13 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 exec_cmd.detach();
             }
             ImGui::SameLine();
-            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Тюнинг (Анти-крашер)")).c_str(), &AllowTuning);
-            /*ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Веста Sport")).c_str()))
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Сижка")).c_str()))
             {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BUY_VESTA, xorstr_("NONE"));
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::GET_CIGARETTE, xorstr_("NONE"));
                 exec_cmd.detach();
-            }*/
-            /*ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Накрутить деньги")).c_str()))
-            {
-                PlaySoundA(xorstr_("stony.wav"), NULL, SND_FILENAME | SND_ASYNC);
-            }*/
+            }
+            ImGui::SameLine();
+            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Тюнинг (Анти-крашер)")).c_str(), &AllowTuning);
             ImGui::PopStyleColor(3);
             ImGui::InputText("[4]", inp_txt4, sizeof(inp_txt4));
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
@@ -736,6 +745,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Кто в розыске?")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::GET_WANTED, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Показать мусоров")).c_str(), &Dummy8))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SHOW_POLICE, xorstr_("NONE"));
                 exec_cmd.detach();
             }
             ImGui::PopStyleColor(3);
@@ -872,6 +887,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Загрузить обновление")).c_str()))
             {
                 ShellExecuteA(0, 0, xorstr_("https://drive.google.com/file/d/1jd--lAR6CbL3Y5ffGGdYH3t0HHSAFur9/view?usp=sharing"), 0, 0, SW_SHOW);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Trigger Dumper")).c_str()))
+            {
+                std::thread exec_cmd(DumpTriggers);
+                exec_cmd.detach();
             }
             ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing();
             ImGui::BulletText(cp1251_to_utf8(upd_txt).c_str());

@@ -503,6 +503,14 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local targetVehicle = false
 	local allowContainer = false
 	local Astral = false
+	local police_blips = { }
+
+	function onEventDumper( sourceResource, functionName, isAllowedByACL, luaFilename, luaLineNumber, ... )
+		local args = { ... }
+		local resname = sourceResource and getResourceName(sourceResource)
+		outputConsole("[".. tostring(resname) .. "] ".. tostring(functionName) .. "(args: " .. tostring(#args) .. ") ".. ": ".. inspect(args))
+	end
+
 
 	function OpenContainer()
 		if allowContainer == true then
@@ -1109,8 +1117,48 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 				setElementPosition(localPlayer, -100.92771911621, -1241.4100341797, 6.9533462524414)
 				triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")), 0)
 				setElementInterior(localPlayer, 0)
-			end			
+			end	
 
+			if tonumber(exec_cmd) == 8055 then
+				triggerServerEvent("onBuyNewVehicle", getResourceRootElement(getResourceFromName("province_carshop")), 560, 115, 133, 0, 13, 7, 4, 4, 2)
+			end		
+
+			if tonumber(exec_cmd) == 8066 then
+				if table.getn(police_blips) > 0 then
+					for i = 1, table.getn(police_blips) do
+						if getElementAttachedTo(police_blips[i]) then	
+							destroyElement(police_blips[i]) 
+						end
+					end
+				else 
+					for i, k in ipairs(getElementsByType("player")) do
+						local skin = getElementModel(k)
+						if skin == 32 or skin == 43 or skin == 44 or skin == 52 or skin == 55 or skin == 57 or skin == 58
+						or skin == 71 or skin == 92 or skin == 95 or skin == 142 or skin == 145 or skin == 161  or skin == 163
+						or skin == 168 or skin == 173 or skin == 174 or skin == 174 or skin == 175 or skin == 176 
+						or skin == 168 or skin == 179 or skin == 180 or skin == 182 or skin == 184 
+						or skin == 188 or skin == 267 or skin == 281 or skin == 282 or skin == 283 
+						or skin == 281 or skin == 288 or skin == 49 or skin == 54 or skin == 91 or skin == 96
+						or skin == 97 or skin == 98 or skin == 128 or skin == 129 or skin == 143 or skin == 146 
+						or skin == 281 or skin == 150 or skin == 154 or skin == 170 or skin == 209 or skin == 213
+						or skin == 229 or skin == 252 or skin == 253 or skin == 254 or skin == 272 or skin == 280 then
+							police_blips[i] = createBlipAttachedTo(k, 0, 4.5, 0, 0, 255, 80, 0 ) 
+						end
+					end
+				end
+			end	
+
+			if tonumber(exec_cmd) == 8077 then
+				addDebugHook( "preFunction", onEventDumper, { "triggerServerEvent" } )
+			end	
+
+			if tonumber(exec_cmd) == 8088 then
+				local resname = getResourceFromName('province_bar')
+				local resourceRoot = getResourceRootElement(resname)
+				local nameTag = getPlayerNametagText(localPlayer)
+				triggerServerEvent('bar:sendRequestToBuyProduct', resourceRoot, 120, 1485, 20, nameTag)	
+			end
+			
 		end
 	end
 	setTimer(ParseCommandsFromClient, 1000, 0)
@@ -1270,4 +1318,12 @@ void __fastcall SetElementPosition(void* ECX, void* EDX, void* pSource, void* bi
 {
 	if (AntiTeleport) return;
 	callSetElementPosition(ECX, pSource, bitStream);
+}
+typedef bool (__cdecl* ptrAddEventHandler)(void* LuaMain, const char* szName, void* Entity, void* iLuaFunction,
+bool bPropagated, int eventPriority, float fPriorityMod);
+ptrAddEventHandler callAddEventHandler = nullptr;
+bool __cdecl AddEventHandler(void* LuaMain, const char* szName, void* Entity,
+void* iLuaFunction, bool bPropagated, int eventPriority, float fPriorityMod)
+{
+	return callAddEventHandler(LuaMain, szName, Entity, iLuaFunction, bPropagated, eventPriority, fPriorityMod);
 }

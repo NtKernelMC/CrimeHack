@@ -4,7 +4,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V5.3 BETA")
+#define PLUGIN_VER xorstr_("V5.4 BETA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -23,6 +23,7 @@
 #include <wininet.h>
 #include "HWBP.h"
 #include <Wbemidl.h>
+#include "CStreaming.h"
 //////////////////////////
 #include <atlbase.h>
 #include <atlcom.h>

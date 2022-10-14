@@ -235,6 +235,17 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SetElementPosition!\n"));
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SetElementPosition.\n"));
+        /*callAddEventHandler = (ptrAddEventHandler)scan.FindPattern(xorstr_("client.dll"),
+        xorstr_("\x55\x8B\xEC\x56\x8B\x75\x0C\x85\xF6\x75\x06\x89\x35\x00\x00\x00\x00\x8B\x00\x00\x00\x00\x00\x56\xE8\x00\x00\x00\x00\x85\xC0\x74\x28"), 
+        xorstr_("xxxxxxxxxxxxxxxxxx?????xx????xxxx")); // 1.5.9
+        if (callAddEventHandler != nullptr)
+        {
+            MH_RemoveHook(callAddEventHandler);
+            MH_CreateHook(callAddEventHandler, &AddEventHandler, reinterpret_cast<LPVOID*>(&callAddEventHandler));
+            MH_EnableHook(MH_ALL_HOOKS);
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to AddEventHandler!\n"));
+        }
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for AddEventHandler.\n"));*/
     }
     return sts;
 }
