@@ -246,6 +246,17 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to AddEventHandler!\n"));
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for AddEventHandler.\n"));*/
+        callForceAddUpgrade = (ptrForceAddUpgrade)scan.FindPattern(xorstr_("client.dll"),
+        xorstr_("\x55\x8B\xEC\x83\xEC\x08\x8D\x45\xFF"),
+        xorstr_("xxxxxxxxx")); // 1.5.8
+        if (callForceAddUpgrade != nullptr)
+        {
+            MH_RemoveHook(callForceAddUpgrade);
+            MH_CreateHook(callForceAddUpgrade, &ForceAddUpgrade, reinterpret_cast<LPVOID*>(&callForceAddUpgrade));
+            MH_EnableHook(MH_ALL_HOOKS);
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to ForceAddUpgrade!\n"));
+        }
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for ForceAddUpgrade.\n"));
     }
     return sts;
 }

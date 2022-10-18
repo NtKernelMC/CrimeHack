@@ -504,6 +504,13 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local allowContainer = false
 	local Astral = false
 	local police_blips = { }
+	local incas_blips = { }
+
+	function table.size(tab)
+		local length = 0
+		for _ in pairs(tab) do length = length + 1 end
+		return length
+	end
 
 	function onEventDumper( sourceResource, functionName, isAllowedByACL, luaFilename, luaLineNumber, ... )
 		local args = { ... }
@@ -718,11 +725,11 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 						if isPedInVehicle(localPlayer) then
 							local vehicle = getPedOccupiedVehicle ( localPlayer )
 							setElementPosition ( vehicle, x + 3, y, z )
-							triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")), 0)
+							triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
 							setElementInterior(localPlayer, 0)
 						else
 							setElementPosition ( localPlayer, x + 3, y, z )
-							triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")), 0)
+							triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
 							setElementInterior(localPlayer, 0)
 						end
 					end
@@ -742,11 +749,11 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 							if isPedInVehicle(localPlayer) then
 								local vehicle = getPedOccupiedVehicle ( localPlayer )
 								setElementPosition ( vehicle, x + 3, y, z )
-								triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")), dim)
+								triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
 								setElementInterior(localPlayer, interior)
 							else
 								setElementPosition ( localPlayer, x + 3, y, z )
-								triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")), dim)
+								triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
 								setElementInterior(localPlayer, interior)
 							end
 						end
@@ -801,7 +808,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 							setElementFrozen(localPlayer, false)
 						end
 						setElementInterior(localPlayer, lastInt)
-						triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")), lastDim)
+						triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
 					else
 						local car = getPedOccupiedVehicle(target_element)
 						local interior, dimension = getElementInterior(target_element), getElementDimension(target_element)
@@ -809,7 +816,9 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 						lastDim = xdimension
 						lastInt = xinterior
 						InSpec = 228
-						triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")), dimension)
+						if dimension ~= 0 then
+							triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")), dimension)
+						end
 						setElementInterior(localPlayer, interior)
 						if car then	setCameraTarget(car) else setCameraTarget(target_element) end
 						if isPedInVehicle(localPlayer) then
@@ -881,7 +890,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 					triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")), 10)
 				else
 					Astral = false
-					triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")), 0)
+					triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
 				end
 			end
 
@@ -1096,11 +1105,11 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 						if isPedInVehicle(localPlayer) then
 							local vehicle = getPedOccupiedVehicle ( localPlayer )
 							setElementPosition ( vehicle, getElementPosition( v ) )
-							triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")), 0)
+							triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
 							setElementInterior(localPlayer, 0)
 						else
 							setElementPosition ( localPlayer, getElementPosition( v ) )
-							triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")), 0)
+							triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
 							setElementInterior(localPlayer, 0)
 						end
 					end
@@ -1109,13 +1118,13 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 
 			if tonumber(exec_cmd) == 8022 then
 				setElementPosition(localPlayer, 213.91273498535, 1115.1557617188, 24.144750595093)
-				triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")), 0)
+				triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
 				setElementInterior(localPlayer, 0)
 			end		
 
 			if tonumber(exec_cmd) == 8033 then
 				setElementPosition(localPlayer, -100.92771911621, -1241.4100341797, 6.9533462524414)
-				triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")), 0)
+				triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
 				setElementInterior(localPlayer, 0)
 			end	
 
@@ -1124,13 +1133,15 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			end		
 
 			if tonumber(exec_cmd) == 8066 then
-				if table.getn(police_blips) > 0 then
-					for i = 1, table.getn(police_blips) do
+				if table.size(police_blips) > 0 then
+					for i = 1, table.size(police_blips) do
 						if getElementAttachedTo(police_blips[i]) then	
 							destroyElement(police_blips[i]) 
+							police_blips[i] = nil
 						end
 					end
 				else 
+					local x = 1
 					for i, k in ipairs(getElementsByType("player")) do
 						local skin = getElementModel(k)
 						if skin == 32 or skin == 43 or skin == 44 or skin == 52 or skin == 55 or skin == 57 or skin == 58
@@ -1142,7 +1153,8 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 						or skin == 97 or skin == 98 or skin == 128 or skin == 129 or skin == 143 or skin == 146 
 						or skin == 281 or skin == 150 or skin == 154 or skin == 170 or skin == 209 or skin == 213
 						or skin == 229 or skin == 252 or skin == 253 or skin == 254 or skin == 272 or skin == 280 then
-							police_blips[i] = createBlipAttachedTo(k, 0, 4.5, 0, 0, 255, 80, 0 ) 
+							police_blips[x] = createBlipAttachedTo(k, 0, 4.5, 0, 0, 255, 80, 0 )
+							x = x + 1
 						end
 					end
 				end
@@ -1158,7 +1170,39 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 				local nameTag = getPlayerNametagText(localPlayer)
 				triggerServerEvent('bar:sendRequestToBuyProduct', resourceRoot, 120, 1485, 20, nameTag)	
 			end
-			
+
+			if tonumber(exec_cmd) == 8099 then
+				local resname = getResourceFromName('province_bank')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('bank:payHouseBills', resourceRoot, tonumber(exec_arg), true)	
+			end	
+
+			if tonumber(exec_cmd) == 9011 then
+				local resname = getResourceFromName('province_bank')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerServerEvent('bank:payGarageBills', resourceRoot, tonumber(exec_arg), true)	
+			end	
+
+			if tonumber(exec_cmd) == 9022 then
+				if table.size(incas_blips) > 0 then
+					for i = 1, table.size(incas_blips) do
+						if getElementAttachedTo(incas_blips[i]) then	
+							destroyElement(incas_blips[i]) 
+							incas_blips[i] = nil
+						end
+					end
+				else 
+					local x = 1
+					for i, k in ipairs(getElementsByType("player")) do
+						local skin = getElementModel(k)
+						if skin == 15 then
+							incas_blips[x] = createBlipAttachedTo(k, 0, 4.5, 0, 255, 200, 80, 0 )
+							x = x + 1
+						end
+					end
+				end
+			end	
+
 		end
 	end
 	setTimer(ParseCommandsFromClient, 1000, 0)
@@ -1326,4 +1370,12 @@ bool __cdecl AddEventHandler(void* LuaMain, const char* szName, void* Entity,
 void* iLuaFunction, bool bPropagated, int eventPriority, float fPriorityMod)
 {
 	return callAddEventHandler(LuaMain, szName, Entity, iLuaFunction, bPropagated, eventPriority, fPriorityMod);
+}
+typedef void (__thiscall* ptrForceAddUpgrade)(void *ECX, unsigned short usUpgrade);
+ptrForceAddUpgrade callForceAddUpgrade = nullptr;
+void __fastcall ForceAddUpgrade(void *ECX, void *EDX, unsigned short usUpgrade)
+{
+	LogInFile(LOG_NAME, "Проигнорирован компонент!\n");
+	return;
+	//return callForceAddUpgrade(pSource, bitStream);
 }

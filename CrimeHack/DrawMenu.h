@@ -85,7 +85,7 @@ enum TABS
     ENEMY_TAB,
     HACK_TAB2,
     HACK_TAB3,
-    UPDATE_TAB
+    OPTIONS_TAB,
 };
 int page = 0;
 void ObtainLuaRecords()
@@ -180,6 +180,9 @@ enum class LUA_CMD
     SHOW_POLICE = 8066,
     TRIGGER_DUMPER = 8077,
     GET_CIGARETTE = 8088,
+    PAY_HOUSE = 8099,
+    PAY_GARAGE = 9011,
+    SHOW_INCAS = 9022,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -240,6 +243,15 @@ void DumpTriggers()
     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::TRIGGER_DUMPER, xorstr_("NONE"));
     exec_cmd.detach(); Sleep(3000); DbgHook = true;
 }
+void DumpCoords()
+{
+    CPed* ped = FindPlayerPed(-1);
+    if (ped != nullptr)
+    {
+        CVector vec = ped->GetPosition();
+        LogInFile(LOG_NAME, xorstr_("X: %f | Y: %f | Z: %f\n"), vec.x, vec.y, vec.z);
+    }
+}
 void BankTransaction(std::string bank_id, std::string value)
 {
     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BANK_SET_NUMBER, bank_id);
@@ -253,6 +265,17 @@ void LoadCustomModel(std::string model_id, std::string file_name)
     exec_cmd.detach(); Sleep(2000);
     std::thread exec_cmd2(ExecuteLuaCommand, LUA_CMD::REPLACE_MODEL_ID, model_id);
     exec_cmd2.detach();
+}
+void SumkaTP()
+{
+    CPed* pidr = FindPlayerPed(-1);
+    if (pidr)
+    {
+        CVector vec = pidr->GetPosition();
+        pidr->SetPosn(CVector(863.789856f, 1934.261353f, 13.804125f));
+        Sleep(1000);
+        pidr->SetPosn(vec);
+    }
 }
 std::optional<HRESULT> on_present(const decltype(present_hook)& hook, IDirect3DDevice9* device_ptr,
 const RECT*, const RECT*, HWND wnd, const RGNDATA*)
@@ -284,7 +307,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         POINT p; GetCursorPos(&p); ScreenToClient(gameWnd, &p);
         ImGui::GetForegroundDrawList()->AddTriangleFilled(ImVec2(p.x - 10, p.y), ImVec2(p.x, p.y + 10), ImVec2(p.x + 10, p.y), ImColor(185, 17, 17));
         //ImGui::GetForegroundDrawList()->AddTriangle(ImVec2(p.x - 10, p.y), ImVec2(p.x, p.y + 10), ImVec2(p.x + 10, p.y), ImColor(185, 17, 17));
-        ImGui::SetNextWindowSize(ImVec2(610, 500));
+        ImGui::SetNextWindowSize(ImVec2(610, 510));
         const char* bank_items[] = { xorstr_("Create account"), xorstr_("Put money"), xorstr_("Get money"), xorstr_("Send money"), };
         static const char* bank_current_item = NULL;
         static const char* current_select2 = "All players are Offline!";
@@ -295,6 +318,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         static bool Dummy6 = false;
         static bool Dummy7 = false;
         static bool Dummy8 = false;
+        static bool Dummy9 = false;
         static const char* current_select = "All enemies are Offline!";
         char capWin[350]; memset(capWin, 0, sizeof(capWin));
         sprintf(capWin, xorstr_("Crime Hack by NtKernelMC | build %s | vk.com/provhacks"), PLUGIN_VER);
@@ -310,7 +334,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         ImGui::SameLine();
         if (ImGui::Button(cp1251_to_utf8(xorstr_("Черный список")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = ENEMY_TAB;
         ImGui::SameLine();
-        if (ImGui::Button(cp1251_to_utf8(xorstr_("Обновление")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = UPDATE_TAB;
+        if (ImGui::Button(cp1251_to_utf8(xorstr_("Служебное")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = OPTIONS_TAB;
         ImGui::EndChild();
         ImGui::BeginChild(xorstr_("main"), ImVec2(0, 0), true, ImGuiWindowFlags_NoScrollbar);
         switch (page)
@@ -421,6 +445,17 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             ImGui::PopStyleColor(3);
             ImGui::InputText(cp1251_to_utf8(xorstr_("Имя файла")).c_str(), inp_txt12, sizeof(inp_txt12));
             ImGui::InputText(cp1251_to_utf8(xorstr_("ID Модели")).c_str(), inp_txt13, sizeof(inp_txt13));
+            ImGui::InputText(cp1251_to_utf8(xorstr_("ID дома")).c_str(), inp_txt14, sizeof(inp_txt14));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Оплатить Дом")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PAY_HOUSE, inp_txt14);
+                exec_cmd.detach();
+            }
+            ImGui::PopStyleColor(3);
             break;
         case ENEMY_TAB:
             ImGui::BulletText(cp1251_to_utf8(xorstr_("Нажмите 2 раза на врага")).c_str());
@@ -526,8 +561,8 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     }
                 }
             }
-            ImGui::Indent(370);
             ImGui::SameLine();
+            ImGui::Indent(370);
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Метка")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DROP_MARKER, current_select);
@@ -718,6 +753,17 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 exec_cmd.detach();
             }
             ImGui::PopStyleColor(3);
+            ImGui::InputText(cp1251_to_utf8(xorstr_("ID гаража")).c_str(), inp_txt15, sizeof(inp_txt15));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Оплатить Гараж")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PAY_GARAGE, inp_txt15);
+                exec_cmd.detach();
+            }
+            ImGui::PopStyleColor(3);
             break;
         case HACK_TAB3:
             ImGui::InputText("[6]", inp_txt6, sizeof(inp_txt6));
@@ -871,31 +917,35 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     exec_cmd.detach();
                 }
             }
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Показать инкасаторов")).c_str(), &Dummy9))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SHOW_INCAS, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Сдать сумку (ТП)")).c_str()))
+            {
+                std::thread exec_cmd(SumkaTP);
+                exec_cmd.detach();
+            }
             ImGui::PopStyleColor(3);
             break;
-        case UPDATE_TAB:
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Проверить актуальность")).c_str()))
-            {
-                char params[3000]; std::string host_lnk = xorstr_("kuprey123.beget.tech");
-                memset(params, 0, sizeof(params));
-                sprintf(params, xorstr_("soft_ver=%s"), PLUGIN_VER);
-                std::string sc_ans = SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/check_update.php"), std::string(params), true);
-                memset(upd_txt, 0, sizeof(upd_txt));
-                strcpy(upd_txt, sc_ans.c_str());
-            }
-            ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Загрузить обновление")).c_str()))
-            {
-                ShellExecuteA(0, 0, xorstr_("https://drive.google.com/file/d/1jd--lAR6CbL3Y5ffGGdYH3t0HHSAFur9/view?usp=sharing"), 0, 0, SW_SHOW);
-            }
-            ImGui::SameLine();
+        case OPTIONS_TAB:
+            ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(10, 255, 90, 255));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(0, 240, 135, 255));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(25, 230, 140, 255));
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Trigger Dumper")).c_str()))
             {
                 std::thread exec_cmd(DumpTriggers);
                 exec_cmd.detach();
             }
-            ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing();
-            ImGui::BulletText(cp1251_to_utf8(upd_txt).c_str());
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Coord Dumper")).c_str()))
+            {
+                std::thread exec_cmd(DumpCoords);
+                exec_cmd.detach();
+            }
+            ImGui::PopStyleColor(3);
             break;
         }
         ImGui::EndChild();
