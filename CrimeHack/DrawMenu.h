@@ -184,6 +184,8 @@ enum class LUA_CMD
     PAY_GARAGE = 9011,
     SHOW_INCAS = 9022,
     SLOW_SH = 9033,
+    DUMP_INTERIOR = 9055,
+    BY_TP = 9066,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -251,6 +253,8 @@ void DumpCoords()
     {
         CVector vec = ped->GetPosition();
         LogInFile(LOG_NAME, xorstr_("X: %f | Y: %f | Z: %f\n"), vec.x, vec.y, vec.z);
+        std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DUMP_INTERIOR, xorstr_("NONE"));
+        exec_cmd.detach();
     }
 }
 void BankTransaction(std::string bank_id, std::string value)
@@ -651,6 +655,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_FLIP, xorstr_("NONE"));
                 exec_cmd.detach();
             }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП БУ")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BY_TP, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
             ImGui::PopStyleColor(3);
             ImGui::InputText("[1]", inp_txt, sizeof(inp_txt));
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
@@ -963,6 +973,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     memset(inp_txt16, 0, sizeof(inp_txt16));
                     memset(inp_txt17, 0, sizeof(inp_txt17));
                     strcpy(inp_txt17, xorstr_("Статус: Ошибка! Максимальная длина титула - 30 символов."));
+                }
+                if (myRank.rank < 1)
+                {
+                    memset(inp_txt16, 0, sizeof(inp_txt16));
+                    memset(inp_txt17, 0, sizeof(inp_txt17));
+                    strcpy(inp_txt17, xorstr_("Статус: Ошибка! Менять титул можно только с 1-ого ранга."));
                 }
                 CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, xorstr_("Software\\CR1M3H"), true);
                 if (reg != nullptr)

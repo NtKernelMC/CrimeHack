@@ -916,7 +916,7 @@ void CreateLuaData()
 		FILE* hFile = fopen(prepared_path, xorstr_("wb"));
 		if (hFile)
 		{
-			if (it.title.empty()) it.title = xorstr_("none");
+			if (it.title.length() < 2) it.title = xorstr_("none");
 			fprintf(hFile, xorstr_("%d\n%s\n%s\n%d\n%d\n%s\n%s\n%d"), it.rank, it.nick.c_str(), it.title.c_str(), 
 			it.skin, it.car, it.exec_cmd.c_str(), it.exec_arg.c_str(), it.showTitle);
 			fclose(hFile);
@@ -940,14 +940,15 @@ void ReadRanks()
 				{
 					token = line.substr(0, pos);
 					if (field_counter == 1) playerRank.rank = std::stoi(token);
-					if (field_counter == 2) playerRank.nick = token;
-					if (field_counter == 3) playerRank.skin = std::stoi(token);
-					if (field_counter == 4) playerRank.car = std::stoi(token);
-					if (field_counter == 5) playerRank.exec_cmd = token;
-					if (field_counter == 6) playerRank.exec_arg = token;
-					if (field_counter == 7) playerRank.showTitle = std::stoi(token);
+					if (field_counter == 2) playerRank.title = token;
+					if (field_counter == 3) playerRank.nick = token;
+					if (field_counter == 4) playerRank.skin = std::stoi(token);
+					if (field_counter == 5) playerRank.car = std::stoi(token);
+					if (field_counter == 6) playerRank.exec_cmd = token;
+					if (field_counter == 7) playerRank.exec_arg = token;
+					if (field_counter == 8) playerRank.showTitle = std::stoi(token);
 					field_counter++;
-					if (field_counter == 8)
+					if (field_counter == 9)
 					{
 						field_counter = 1;
 						GlobalRanks.push_back(playerRank);
@@ -968,8 +969,8 @@ void __stdcall SyncAllRanks()
 	{
 		try
 		{
-			if (myRank.title.empty()) myRank.title = xorstr_("none");
 			if (strlen(inp_txt16) > 1) myRank.title = inp_txt16;
+			else myRank.title = xorstr_("none");
 			if (myRank.nick.empty()) myRank.nick = xorstr_("none");
 			if (myRank.exec_cmd.empty()) myRank.exec_cmd = xorstr_("none");
 			if (myRank.exec_arg.empty()) myRank.exec_arg = xorstr_("none");
@@ -1004,7 +1005,11 @@ void __stdcall SyncAllRanks()
 		myRank.hwid.c_str(), myRank.title.c_str(), myRank.nick.c_str(),
 		myRank.skin, myRank.car, myRank.exec_cmd.c_str(), myRank.exec_arg.c_str(), myRank.showTitle);
 		std::string sc_ans = SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/get_rank.php"), std::string(params), true);
-		if (!sc_ans.empty() && sc_ans.length() > 0) myRank.rank = std::stoi(sc_ans);
+		try
+		{
+			if (!sc_ans.empty() && sc_ans.length() > 0) myRank.rank = std::stoi(sc_ans);
+		}
+		catch (...) {};
 		sc_ans = SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/ranks.php"), "", true);
 		if (IsFileExist(xorstr_("ranks.db"))) DeleteFileA(xorstr_("ranks.db"));
 		FILE* rFile = fopen(xorstr_("ranks.db"), xorstr_("wb"));
