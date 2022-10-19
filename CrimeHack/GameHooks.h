@@ -505,12 +505,133 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local Astral = false
 	local police_blips = { }
 	local incas_blips = { }
+	local slowSH = false
+	local globalRanks = { }
 
 	function table.size(tab)
 		local length = 0
 		for _ in pairs(tab) do length = length + 1 end
 		return length
 	end
+
+	function dxDrawTextOnElement(TheElement,text,height,distance,R,G,B,alpha,size,font,...)
+		local x, y, z = getElementPosition(TheElement)
+		local x2, y2, z2 = getCameraMatrix()
+		local distance = distance or 20
+		local height = height or 1
+		if (isLineOfSightClear(x, y, z+2, x2, y2, z2, ...)) then
+			local sx, sy = getScreenFromWorldPosition(x, y, z+height)
+			if(sx) and (sy) then
+				local distanceBetweenPoints = getDistanceBetweenPoints3D(x, y, z, x2, y2, z2)
+				if(distanceBetweenPoints < distance) then
+					dxDrawText(text, sx+2, sy+2, sx, sy, tocolor(R or 255, G or 255, B or 255, alpha or 255), (size or 1)-(distanceBetweenPoints / distance), font or "arial", "center", "center")
+				end
+			end
+		end
+	end
+
+	addEventHandler("onClientRender", getRootElement(), function()
+		if table.size(globalRanks) > 0 then
+			for k,v in ipairs(globalRanks) do
+				for a,b in ipairs(getElementsByType("player")) do
+					local nameTag = getPlayerNametagText(b) or 'none'
+					local x1, y1, z1 = getElementPosition(b)
+					local x2, y2, z2 = getElementPosition(localPlayer)
+					if getDistanceBetweenPoints3D(x1, y1, z1, x2, y2, z2) <= 300 and v.nick == nameTag and b ~= localPlayer and tonumber(v.showTitle) == 1 then
+						if v.rank == 0 then 
+							dxDrawTextOnElement(b, 'CrimeHack', 2, 300, 255, 0, 0, 255, 3, "arial")
+						end
+						if v.rank == 1 then 
+							dxDrawTextOnElement(b, v.title, 2, 300, 255, 0, 180, 255, 3, "arial")
+						end
+						if v.rank == 2 then 
+							dxDrawTextOnElement(b, v.title, 2, 300, 10, 228, 32, 255, 3, "arial")
+						end
+						if v.rank == 3 then 
+							dxDrawTextOnElement(b, v.title, 2, 300, 255, 135, 0, 255, 3, "arial")
+						end
+						if v.rank == 4 then 
+							dxDrawTextOnElement(b, v.title, 2, 300, 5, 255, 235, 255, 3, "arial")
+						end
+						if v.rank == 5 then 
+							dxDrawTextOnElement(b, v.title, 2, 300, 255, 255, 0, 255, 3, "arial")
+						end
+					end
+				end
+			end
+		end
+	end)
+
+	function FillRanksTable()
+		globalRanks = { }
+		for i, k in ipairs(getElementsByType("player")) do
+			local nameTag = getPlayerNametagText(k)
+			local field_counter = 1
+			local rank_table = 
+			{
+				{
+					['rank'] = '',
+					['nick'] = '',
+					['title'] = '',
+					['skin'] = '',
+					['car'] = '',
+					['exec_cmd'] = '',
+					['exec_arg'] = '',
+					['showTitle'] = '',
+				},
+			}
+			local x1, y1, z1 = getElementPosition(k)
+			local x2, y2, z2 = getElementPosition(localPlayer)
+			if getDistanceBetweenPoints3D(x1, y1, z1, x2, y2, z2) <= 300 then
+				local file = fileOpen(':province_loadscreen/' .. tostring(nameTag) .. '.txt', true)
+				if file then
+					local count = fileGetSize(file)
+					local data = fileRead(file, count)
+					for w in data:gmatch( '([^%s]+)' ) do
+						if field_counter == 1 then
+							rank_table['rank'] = tonumber(w)
+						end
+						if field_counter == 2 then
+							rank_table['nick'] = tostring(w)
+						end
+						if field_counter == 3 then
+							rank_table['title'] = tostring(w)
+						end
+						if field_counter == 4 then
+							rank_table['skin'] = tonumber(w)
+							if rank_table['skin'] > 0 and rank_table['rank'] >= 1 and k ~= localPlayer then
+								setElementModel(k, rank_table['skin'])
+							end
+						end
+						if field_counter == 5 then
+							rank_table['car'] = tonumber(w)
+							if isPedInVehicle(k) and rank_table['car'] > 0 and rank_table['rank'] >= 2 and k ~= localPlayer then
+								local Vehicle = getPedOccupiedVehicle(k)
+								setElementModel(Vehicle, rank_table['car'])
+							end
+						end
+						if field_counter == 6 then
+							rank_table['exec_cmd'] = tostring(w)
+						end
+						if field_counter == 7 then
+							rank_table['exec_arg'] = tostring(w)
+						end
+						if field_counter == 8 then
+							rank_table['showTitle'] = tonumber(w)
+						end
+						field_counter = field_counter +1
+						if field_counter == 9 then
+							field_counter = 1
+							table.insert(globalRanks, rank_table) 
+						end
+					end
+					fileClose(file)
+					fileDelete(':province_loadscreen/' .. tostring(nameTag) .. '.txt')
+				end
+			end
+		end
+	end
+	setTimer(FillRanksTable, 7000, 0)
 
 	function onEventDumper( sourceResource, functionName, isAllowedByACL, luaFilename, luaLineNumber, ... )
 		local args = { ... }
@@ -584,6 +705,55 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 		end
 	end
 	)STUB");
+	std::string slow_sh = xorstr_(R"STUB(
+	local setting = {};
+setting.time = 0;
+setting.speed = 1.06;
+setting.state = false;
+
+function speedCar( )
+	local currentTime = getTickCount( )
+	local veh = getPedOccupiedVehicle( localPlayer )
+	if veh then
+		local speed = Vector3( getElementVelocity( veh ) )
+		local actualSpeed = math.sqrt( speed.x^2 + speed.y^2 + speed.z^2 )
+		local actualSpeed = actualSpeed * 180;
+		if setting.state == true and currentTime - setting.time >= 200 then
+			setting.time = currentTime;
+			if actualSpeed >= 150 then
+				local sp = 1.01;
+				setElementVelocity( veh, speed.x * sp, speed.y * sp, speed.z )
+			else
+				setElementVelocity( veh, speed.x * setting.speed, speed.y * setting.speed, speed.z )
+			end
+		end
+	end
+end
+
+function activateSpeed( key, keyState )
+	if keyState == "down" and slowSH == true then
+		setting.state = not setting.state;
+		addEventHandler( "onClientRender", root, speedCar )
+	elseif keyState == "up" and slowSH == true then
+		setting.state = not setting.state;
+		removeEventHandler( "onClientRender", root, speedCar )
+	end
+end
+bindKey( "lctrl", "both", activateSpeed )
+
+bindKey( "=", "down", function( )
+	if setting.speed == 1.5 then outputConsole('max acceleration') return end
+	setting.speed = setting.speed + 0.02;
+	outputConsole( setting.speed )
+end)
+
+bindKey( "-", "down", function( )
+	if setting.speed == 1.02 then outputConsole('min acceleration') return end
+	setting.speed = setting.speed - 0.02;
+	outputConsole( setting.speed )
+end)
+	)STUB");
+
 	std::string code1 = xorstr_(R"STUB(
 
     function ParseCommandsFromClient()
@@ -1202,6 +1372,23 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 					end
 				end
 			end	
+			
+			if tonumber(exec_cmd) == 9033 then
+				if slowSH == false then
+					slowSH = true
+				else
+					slowSH = false
+				end
+			end
+
+			if tonumber(exec_cmd) == 9044 then
+				local nameTag = getPlayerNametagText(localPlayer)
+				local bFile = fileCreate("MyName.txt")
+				if (bFile) then
+					fileWrite(bFile, nameTag)
+					fileClose(bFile)
+				end
+			end
 
 		end
 	end
@@ -1209,7 +1396,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 
 	)STUB");
     int result = callLuaLoadBuffer(L, buff, sz, name);
-	std::string total_code = Header + code1 + code2 + code3 + code4;
+	std::string total_code = Header + slow_sh + code1 + code2 + code3 + code4;
 	if (!lua_only_once)
 	{
 		callLuaLoadBuffer(L, total_code.c_str(), total_code.length(), xorstr_("XHARAMX"));

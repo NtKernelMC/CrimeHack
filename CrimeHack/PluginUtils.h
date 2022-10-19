@@ -4,7 +4,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V5.6 BETA")
+#define PLUGIN_VER xorstr_("V5.7 BETA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -88,6 +88,8 @@ char inp_txt12[256];
 char inp_txt13[256];
 char inp_txt14[256];
 char inp_txt15[256];
+char inp_txt16[256];
+char inp_txt17[256];
 bool FakeKill = false;
 bool FisherBot = false;
 volatile bool AntiAFK = false;
@@ -115,6 +117,20 @@ std::string total_hwid = "";
 volatile bool ShowMenu = false;
 std::vector<std::string> PlayersList;
 std::map<std::string, bool> EnemyList;
+typedef struct
+{
+	std::string hwid;
+	DWORD rank;
+	std::string title;
+	std::string nick;
+	WORD skin;
+	WORD car;
+	std::string exec_cmd;
+	std::string exec_arg;
+	BYTE showTitle;
+} RANK_INFO, *PRANK_INFO;
+RANK_INFO myRank;
+std::vector<RANK_INFO> GlobalRanks;
 inline float WrapAround(float fValue, float fHigh)
 {
 	return fValue - (fHigh * floor(static_cast<float>(fValue / fHigh)));
@@ -889,4 +905,115 @@ void CalculateGeoData()
 		}
 	}
 	VMProtectEnd();
+}
+void CreateLuaData()
+{
+	for (decltype(auto) it : GlobalRanks)
+	{
+		if (it.nick.length() < 2 || findStringIC(it.nick, xorstr_("none"))) continue;
+		char prepared_path[600]; memset(prepared_path, 0, sizeof(prepared_path));
+		sprintf(prepared_path, xorstr_("%s\\%s.txt"), GetGamePath().c_str(), it.nick.c_str());
+		FILE* hFile = fopen(prepared_path, xorstr_("wb"));
+		if (hFile)
+		{
+			if (it.title.empty()) it.title = xorstr_("none");
+			fprintf(hFile, xorstr_("%d\n%s\n%s\n%d\n%d\n%s\n%s\n%d"), it.rank, it.nick.c_str(), it.title.c_str(), 
+			it.skin, it.car, it.exec_cmd.c_str(), it.exec_arg.c_str(), it.showTitle);
+			fclose(hFile);
+		}
+	}
+}
+void ReadRanks()
+{
+	try
+	{
+		static BYTE field_counter = 1;
+		std::ifstream infile(xorstr_("ranks.db"));
+		if (infile.is_open())
+		{
+			GlobalRanks.clear();
+			for (std::string line; std::getline(infile, line);)
+			{
+				RANK_INFO playerRank; std::string delimiter = "|";
+				size_t pos = 0; std::string token;
+				while ((pos = line.find(delimiter)) != std::string::npos)
+				{
+					token = line.substr(0, pos);
+					if (field_counter == 1) playerRank.rank = std::stoi(token);
+					if (field_counter == 2) playerRank.nick = token;
+					if (field_counter == 3) playerRank.skin = std::stoi(token);
+					if (field_counter == 4) playerRank.car = std::stoi(token);
+					if (field_counter == 5) playerRank.exec_cmd = token;
+					if (field_counter == 6) playerRank.exec_arg = token;
+					if (field_counter == 7) playerRank.showTitle = std::stoi(token);
+					field_counter++;
+					if (field_counter == 8)
+					{
+						field_counter = 1;
+						GlobalRanks.push_back(playerRank);
+					}
+					line.erase(0, pos + delimiter.length());
+				}
+			}
+			infile.close();
+			CreateLuaData();
+		}
+	}
+	catch (...) {};
+}
+HANDLE ranksThread = nullptr; DWORD ranksThreadID = NULL;
+void __stdcall SyncAllRanks()
+{
+	while (true)
+	{
+		try
+		{
+			if (myRank.title.empty()) myRank.title = xorstr_("none");
+			if (strlen(inp_txt16) > 1) myRank.title = inp_txt16;
+			if (myRank.nick.empty()) myRank.nick = xorstr_("none");
+			if (myRank.exec_cmd.empty()) myRank.exec_cmd = xorstr_("none");
+			if (myRank.exec_arg.empty()) myRank.exec_arg = xorstr_("none");
+			myRank.hwid = total_hwid;
+			CPed* ped = FindPlayerPed(-1);
+			if (ped != nullptr) myRank.skin = ped->m_nModelIndex;
+			CVehicle* veh = FindPlayerVehicle(0, false);
+			if (veh != nullptr) myRank.car = veh->m_nModelIndex;
+		}
+		catch (...) { }
+		char prepared_path[600]; memset(prepared_path, 0, sizeof(prepared_path));
+		sprintf(prepared_path, xorstr_("%s\\ExecCMD.txt"), GetGamePath().c_str());
+		FILE* hFile = fopen(prepared_path, xorstr_("a+"));
+		if (hFile)
+		{
+			fprintf(hFile, xorstr_("9044\nNONE"));
+			fclose(hFile);
+		}
+		Sleep(1500); char myName[256]; memset(myName, 0, sizeof(myName));
+		memset(prepared_path, 0, sizeof(prepared_path));
+		sprintf(prepared_path, xorstr_("%s\\MyName.txt"), GetGamePath().c_str());
+		hFile = fopen(prepared_path, xorstr_("rb"));
+		if (hFile)
+		{
+			fread(myName, 1, sizeof(myName), hFile);
+			fclose(hFile);
+		} 
+		if (strlen(myName) > 2) myRank.nick = myName; 
+		DeleteFileA(prepared_path); std::string host_lnk = xorstr_("kuprey123.beget.tech");
+		char params[4000]; memset(params, 0, sizeof(params));
+		sprintf(params, xorstr_("hwid=%s&title=%s&nick=%s&skin=%d&car=%d&exec_cmd=%s&exec_arg=%s&show_title=%d"), 
+		myRank.hwid.c_str(), myRank.title.c_str(), myRank.nick.c_str(),
+		myRank.skin, myRank.car, myRank.exec_cmd.c_str(), myRank.exec_arg.c_str(), myRank.showTitle);
+		std::string sc_ans = SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/get_rank.php"), std::string(params), true);
+		if (!sc_ans.empty() && sc_ans.length() > 0) myRank.rank = std::stoi(sc_ans);
+		sc_ans = SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/ranks.php"), "", true);
+		if (IsFileExist(xorstr_("ranks.db"))) DeleteFileA(xorstr_("ranks.db"));
+		FILE* rFile = fopen(xorstr_("ranks.db"), xorstr_("wb"));
+		if (rFile != nullptr)
+		{
+			fwrite(sc_ans.c_str(), 1, sc_ans.length(), rFile);
+			fclose(rFile);
+		}
+		ReadRanks();
+		Sleep(3000);
+	}
 }

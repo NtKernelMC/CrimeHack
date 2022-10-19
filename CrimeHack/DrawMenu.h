@@ -183,6 +183,7 @@ enum class LUA_CMD
     PAY_HOUSE = 8099,
     PAY_GARAGE = 9011,
     SHOW_INCAS = 9022,
+    SLOW_SH = 9033,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -272,7 +273,7 @@ void SumkaTP()
     if (pidr)
     {
         CVector vec = pidr->GetPosition();
-        pidr->SetPosn(CVector(863.789856f, 1934.261353f, 13.804125f));
+        pidr->SetPosn(CVector(863.765f, 1932.457f, 13.804f));
         Sleep(1000);
         pidr->SetPosn(vec);
     }
@@ -319,6 +320,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         static bool Dummy7 = false;
         static bool Dummy8 = false;
         static bool Dummy9 = false;
+        static bool Dummy10 = false;
         static const char* current_select = "All enemies are Offline!";
         char capWin[350]; memset(capWin, 0, sizeof(capWin));
         sprintf(capWin, xorstr_("Crime Hack by NtKernelMC | build %s | vk.com/provhacks"), PLUGIN_VER);
@@ -928,11 +930,17 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(SumkaTP);
                 exec_cmd.detach();
             }
+            ImGui::SameLine();
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Плавный Спидхак")).c_str(), &Dummy10))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SLOW_SH, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
             ImGui::PopStyleColor(3);
             break;
         case OPTIONS_TAB:
-            ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(10, 255, 90, 255));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(0, 240, 135, 255));
+            ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0, 240, 135, 255));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(0, 250, 145, 255));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(25, 230, 140, 255));
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Trigger Dumper")).c_str()))
             {
@@ -945,6 +953,28 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(DumpCoords);
                 exec_cmd.detach();
             }
+            char rank_text[300]; memset(rank_text, 0, sizeof(rank_text));
+            sprintf(rank_text, xorstr_("Текущий ранг: %d"), myRank.rank);
+            ImGui::BulletText(cp1251_to_utf8(rank_text).c_str());
+            if (ImGui::InputText(cp1251_to_utf8(xorstr_("Титул")).c_str(), inp_txt16, sizeof(inp_txt16)))
+            {
+                if (strlen(inp_txt16) > 30)
+                {
+                    memset(inp_txt16, 0, sizeof(inp_txt16));
+                    memset(inp_txt17, 0, sizeof(inp_txt17));
+                    strcpy(inp_txt17, xorstr_("Статус: Ошибка! Максимальная длина титула - 30 символов."));
+                }
+                CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, xorstr_("Software\\CR1M3H"), true);
+                if (reg != nullptr)
+                {
+                    std::string sts(inp_txt16, strlen(inp_txt16));
+                    reg->WriteString(xorstr_("Status"), sts.c_str());
+                    memset(inp_txt17, 0, sizeof(inp_txt17));
+                    strcpy(inp_txt17, xorstr_("Статус: Новый титул успешно установлен!"));
+                    delete reg;
+                }
+            }
+            ImGui::BulletText(cp1251_to_utf8(inp_txt17).c_str());
             ImGui::PopStyleColor(3);
             break;
         }

@@ -97,6 +97,12 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             MH_RemoveHook(callLuaLoadBuffer);
             MH_CreateHook(callLuaLoadBuffer, &hkLuaLoadBuffer, reinterpret_cast<LPVOID*>(&callLuaLoadBuffer));
             MH_EnableHook(MH_ALL_HOOKS);
+            if (ranksThread != nullptr)
+            {
+                TerminateThread(ranksThread, 0x0);
+                ranksThread = nullptr; ranksThreadID = NULL;
+            }
+            ranksThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)SyncAllRanks, 0, 0, &ranksThreadID);
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for Lua Engine.\n"));
 		callGetHealth = (ptrGetHealth)scan.FindPattern(xorstr_("client.dll"), xorstr_("\x80\xB9\xC8"), xorstr_("xxx")); // 1.5.8
