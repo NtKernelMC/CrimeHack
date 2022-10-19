@@ -1129,7 +1129,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			end	
 
 			if tonumber(exec_cmd) == 8055 then
-				triggerServerEvent("onBuyNewVehicle", getResourceRootElement(getResourceFromName("province_carshop")), 560, 115, 133, 0, 13, 7, 4, 4, 2)
+				triggerServerEvent("onBuyNewVehicle", getResourceRootElement(getResourceFromName("province_carshop")), 560, 115, 133, 0, 13, 7, 4, 4, 6)
 			end		
 
 			if tonumber(exec_cmd) == 8066 then
@@ -1375,7 +1375,7 @@ typedef void (__thiscall* ptrForceAddUpgrade)(void *ECX, unsigned short usUpgrad
 ptrForceAddUpgrade callForceAddUpgrade = nullptr;
 void __fastcall ForceAddUpgrade(void *ECX, void *EDX, unsigned short usUpgrade)
 {
-	LogInFile(LOG_NAME, "Проигнорирован компонент!\n");
-	return;
-	//return callForceAddUpgrade(pSource, bitStream);
+	//LogInFile(LOG_NAME, "Проигнорирован компонент!\n");
+	//return;
+	return callForceAddUpgrade(ECX, usUpgrade);
 }
