@@ -144,7 +144,7 @@ enum class LUA_CMD
     PL_MED_MASK = 4066,
     PL_UNCUFF = 4077,
     PL_MILEAGE = 4088,
-    GO_ASTRAL = 4099,
+    EMPTY_CODE2 = 4099,
     CAR_CHARGE = 5011,
     CAR_ATTACH = 5022,
     CAR_SET_PLATE = 5033,
@@ -186,6 +186,7 @@ enum class LUA_CMD
     SLOW_SH = 9033,
     DUMP_INTERIOR = 9055,
     BY_TP = 9066,
+    ALLOW_TITLE = 9077,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -277,7 +278,7 @@ void SumkaTP()
     if (pidr)
     {
         CVector vec = pidr->GetPosition();
-        pidr->SetPosn(CVector(863.765f, 1932.457f, 13.804f));
+        pidr->SetPosn(CVector(863.673f, 1935.557f, 13.804f));
         Sleep(1000);
         pidr->SetPosn(vec);
     }
@@ -352,12 +353,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Неуязвимая тачка")).c_str(), &CarGM))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::VEH_GM, xorstr_("NONE"));
-                exec_cmd.detach();
-            }
-            ImGui::SameLine();
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Мир духов")).c_str(), &Dummy6))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::GO_ASTRAL, xorstr_("NONE"));
                 exec_cmd.detach();
             }
             ImGui::SameLine(); ImGui::Checkbox(cp1251_to_utf8(xorstr_("Аура Смерти")).c_str(), &DeadlyAura);
@@ -655,12 +650,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_FLIP, xorstr_("NONE"));
                 exec_cmd.detach();
             }
-            ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП БУ")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BY_TP, xorstr_("NONE"));
-                exec_cmd.detach();
-            }
             ImGui::PopStyleColor(3);
             ImGui::InputText("[1]", inp_txt, sizeof(inp_txt));
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
@@ -735,12 +724,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_ATTACH, inp_txt5);
                 exec_cmd.detach();
             }
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Обоссать")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_PEE, xorstr_("NONE"));
-                exec_cmd.detach();
-            }
-            ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Мед.комиссия")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_ARMY_MED, xorstr_("NONE"));
@@ -963,31 +946,34 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(DumpCoords);
                 exec_cmd.detach();
             }
-            char rank_text[300]; memset(rank_text, 0, sizeof(rank_text));
-            sprintf(rank_text, xorstr_("Текущий ранг: %d"), myRank.rank);
-            ImGui::BulletText(cp1251_to_utf8(rank_text).c_str());
-            if (ImGui::InputText(cp1251_to_utf8(xorstr_("Титул")).c_str(), inp_txt16, sizeof(inp_txt16)))
+            if (myRank.showTitle)
             {
-                if (strlen(inp_txt16) > 30)
+                char rank_text[300]; memset(rank_text, 0, sizeof(rank_text));
+                sprintf(rank_text, xorstr_("Текущий ранг: %d"), myRank.rank);
+                ImGui::BulletText(cp1251_to_utf8(rank_text).c_str());
+                if (ImGui::InputText(cp1251_to_utf8(xorstr_("Титул")).c_str(), inp_txt16, sizeof(inp_txt16)))
                 {
-                    memset(inp_txt16, 0, sizeof(inp_txt16));
-                    memset(inp_txt17, 0, sizeof(inp_txt17));
-                    strcpy(inp_txt17, xorstr_("Статус: Ошибка! Максимальная длина титула - 30 символов."));
-                }
-                if (myRank.rank < 1)
-                {
-                    memset(inp_txt16, 0, sizeof(inp_txt16));
-                    memset(inp_txt17, 0, sizeof(inp_txt17));
-                    strcpy(inp_txt17, xorstr_("Статус: Ошибка! Менять титул можно только с 1-ого ранга."));
-                }
-                CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, xorstr_("Software\\CR1M3H"), true);
-                if (reg != nullptr)
-                {
-                    std::string sts(inp_txt16, strlen(inp_txt16));
-                    reg->WriteString(xorstr_("Status"), sts.c_str());
-                    memset(inp_txt17, 0, sizeof(inp_txt17));
-                    strcpy(inp_txt17, xorstr_("Статус: Новый титул успешно установлен!"));
-                    delete reg;
+                    if (strlen(inp_txt16) > 30)
+                    {
+                        memset(inp_txt16, 0, sizeof(inp_txt16));
+                        memset(inp_txt17, 0, sizeof(inp_txt17));
+                        strcpy(inp_txt17, xorstr_("Статус: Ошибка! Максимальная длина титула - 30 символов."));
+                    }
+                    if (myRank.rank < 1)
+                    {
+                        memset(inp_txt16, 0, sizeof(inp_txt16));
+                        memset(inp_txt17, 0, sizeof(inp_txt17));
+                        strcpy(inp_txt17, xorstr_("Статус: Ошибка! Менять титул можно только с 1-ого ранга."));
+                    }
+                    CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, xorstr_("Software\\CR1M3H"), true);
+                    if (reg != nullptr)
+                    {
+                        std::string sts(inp_txt16, strlen(inp_txt16));
+                        reg->WriteString(xorstr_("Status"), sts.c_str());
+                        memset(inp_txt17, 0, sizeof(inp_txt17));
+                        strcpy(inp_txt17, xorstr_("Статус: Новый титул успешно установлен!"));
+                        delete reg;
+                    }
                 }
             }
             ImGui::BulletText(cp1251_to_utf8(inp_txt17).c_str());

@@ -96,9 +96,12 @@ void HackThread()
         AllowNoScreen = reg->ReadInteger(xorstr_("AllowNoScreen"));
         StreamDist = (float)reg->ReadInteger(xorstr_("StreamDist"));
         myRank.showTitle = (BYTE)reg->ReadInteger(xorstr_("ShowTitle"));
-        memset(inp_txt16, 0, sizeof(inp_txt16)); memset(inp_txt17, 0, sizeof(inp_txt17));
-        strcpy(inp_txt16, cp1251_to_utf8(reg->ReadString(xorstr_("Status")).c_str()).c_str());
-        strcpy(inp_txt17, xorstr_("Статус: --"));
+        if (myRank.showTitle)
+        {
+            memset(inp_txt16, 0, sizeof(inp_txt16)); memset(inp_txt17, 0, sizeof(inp_txt17));
+            strcpy(inp_txt16, cp1251_to_utf8(reg->ReadString(xorstr_("Status")).c_str()).c_str());
+            strcpy(inp_txt17, xorstr_("Статус: --"));
+        }
         delete reg;
     }
     LogInFile(LOG_NAME, xorstr_("[PLUGIN] Crime Hack %s by NtKernelMC loaded!\n"), PLUGIN_VER);

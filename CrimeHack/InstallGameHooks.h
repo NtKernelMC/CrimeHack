@@ -97,12 +97,23 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             MH_RemoveHook(callLuaLoadBuffer);
             MH_CreateHook(callLuaLoadBuffer, &hkLuaLoadBuffer, reinterpret_cast<LPVOID*>(&callLuaLoadBuffer));
             MH_EnableHook(MH_ALL_HOOKS);
-            if (ranksThread != nullptr)
+            if (myRank.showTitle)
             {
-                TerminateThread(ranksThread, 0x0);
-                ranksThread = nullptr; ranksThreadID = NULL;
+                if (ranksThread != nullptr)
+                {
+                    TerminateThread(ranksThread, 0x0);
+                    ranksThread = nullptr; ranksThreadID = NULL;
+                }
+                ranksThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)SyncAllRanks, 0, 0, &ranksThreadID);
+                char prepared_path[600]; memset(prepared_path, 0, sizeof(prepared_path));
+                sprintf(prepared_path, xorstr_("%s\\ExecCMD.txt"), GetGamePath().c_str());
+                FILE* hFile = fopen(prepared_path, xorstr_("a+"));
+                if (hFile)
+                {
+                    fprintf(hFile, xorstr_("9077\nNONE"));
+                    fclose(hFile);
+                }
             }
-            ranksThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)SyncAllRanks, 0, 0, &ranksThreadID);
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for Lua Engine.\n"));
 		callGetHealth = (ptrGetHealth)scan.FindPattern(xorstr_("client.dll"), xorstr_("\x80\xB9\xC8"), xorstr_("xxx")); // 1.5.8

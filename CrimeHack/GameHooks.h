@@ -502,11 +502,11 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local replace_id = 0
 	local targetVehicle = false
 	local allowContainer = false
-	local Astral = false
 	local police_blips = { }
 	local incas_blips = { }
 	local slowSH = false
 	local globalRanks = { }
+	local allowTitles = false
 
 	function table.size(tab)
 		local length = 0
@@ -538,7 +538,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 					local nameTag = getPlayerNametagText(b) or 'none'
 					local x1, y1, z1 = getElementPosition(b)
 					local x2, y2, z2 = getElementPosition(localPlayer)
-					if getDistanceBetweenPoints3D(x1, y1, z1, x2, y2, z2) <= 300 and v.nick == nameTag and v.showTitle == 1 and b ~= localPlayer then 
+					if getDistanceBetweenPoints3D(x1, y1, z1, x2, y2, z2) <= 300 and v.nick == nameTag and b ~= localPlayer then 
 						if v.rank == 0 then 
 							dxDrawTextOnElement(b, 'CrimeHack', 1.3, 300, 255, 0, 0, 255, 2, "arial")
 						end
@@ -564,70 +564,72 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	end)
 
 	function FillRanksTable()
-		globalRanks = { }
-		for i, k in ipairs(getElementsByType("player")) do
-			local nameTag = getPlayerNametagText(k)
-			local field_counter = 1
-			local rank_table = 
-			{
+		if allowTitles == true then
+			globalRanks = { }
+			for i, k in ipairs(getElementsByType("player")) do
+				local nameTag = getPlayerNametagText(k)
+				local field_counter = 1
+				local rank_table = 
 				{
-					['rank'] = '',
-					['nick'] = '',
-					['title'] = '',
-					['skin'] = '',
-					['car'] = '',
-					['exec_cmd'] = '',
-					['exec_arg'] = '',
-					['showTitle'] = '',
-				},
-			}
-			local x1, y1, z1 = getElementPosition(k)
-			local x2, y2, z2 = getElementPosition(localPlayer)
-			if getDistanceBetweenPoints3D(x1, y1, z1, x2, y2, z2) <= 300 then
-				local file = fileOpen(':province_loadscreen/' .. tostring(nameTag) .. '.txt', true)
-				if file then
-					local count = fileGetSize(file)
-					local data = fileRead(file, count)
-					for w in data:gmatch( '([^%s]+)' ) do
-						if field_counter == 1 then
-							rank_table['rank'] = tonumber(w)
-						end
-						if field_counter == 2 then
-							rank_table['nick'] = tostring(w)
-						end
-						if field_counter == 3 then
-							rank_table['title'] = tostring(w)
-						end
-						if field_counter == 4 then
-							rank_table['skin'] = tonumber(w)
-							if rank_table['skin'] ~= nil and rank_table['rank'] >= 1 and k ~= localPlayer then
-								setElementModel(k, rank_table['skin'])
+					{
+						['rank'] = '',
+						['nick'] = '',
+						['title'] = '',
+						['skin'] = '',
+						['car'] = '',
+						['exec_cmd'] = '',
+						['exec_arg'] = '',
+						['showTitle'] = '',
+					},
+				}
+				local x1, y1, z1 = getElementPosition(k)
+				local x2, y2, z2 = getElementPosition(localPlayer)
+				if getDistanceBetweenPoints3D(x1, y1, z1, x2, y2, z2) <= 300 then
+					local file = fileOpen(':province_loadscreen/' .. tostring(nameTag) .. '.txt', true)
+					if file then
+						local count = fileGetSize(file)
+						local data = fileRead(file, count)
+						for w in data:gmatch( '([^%s]+)' ) do
+							if field_counter == 1 then
+								rank_table['rank'] = tonumber(w)
+							end
+							if field_counter == 2 then
+								rank_table['nick'] = tostring(w)
+							end
+							if field_counter == 3 then
+								rank_table['title'] = tostring(w)
+							end
+							if field_counter == 4 then
+								rank_table['skin'] = tonumber(w)
+								if rank_table['skin'] ~= nil and rank_table['rank'] >= 1 and k ~= localPlayer then
+									setElementModel(k, rank_table['skin'])
+								end
+							end
+							if field_counter == 5 then
+								rank_table['car'] = tonumber(w)
+								if isPedInVehicle(k) and rank_table['car'] ~= nil and rank_table['rank'] >= 2 and k ~= localPlayer then
+									local Vehicle = getPedOccupiedVehicle(k)
+									setElementModel(Vehicle, rank_table['car'])
+								end
+							end
+							if field_counter == 6 then
+								rank_table['exec_cmd'] = tostring(w)
+							end
+							if field_counter == 7 then
+								rank_table['exec_arg'] = tostring(w)
+							end
+							if field_counter == 8 then
+								rank_table['showTitle'] = tonumber(w)
+							end
+							field_counter = field_counter +1
+							if field_counter == 9 then
+								field_counter = 1
+								table.insert(globalRanks, rank_table) 
 							end
 						end
-						if field_counter == 5 then
-							rank_table['car'] = tonumber(w)
-							if isPedInVehicle(k) and rank_table['car'] ~= nil and rank_table['rank'] >= 2 and k ~= localPlayer then
-								local Vehicle = getPedOccupiedVehicle(k)
-								setElementModel(Vehicle, rank_table['car'])
-							end
-						end
-						if field_counter == 6 then
-							rank_table['exec_cmd'] = tostring(w)
-						end
-						if field_counter == 7 then
-							rank_table['exec_arg'] = tostring(w)
-						end
-						if field_counter == 8 then
-							rank_table['showTitle'] = tonumber(w)
-						end
-						field_counter = field_counter +1
-						if field_counter == 9 then
-							field_counter = 1
-							table.insert(globalRanks, rank_table) 
-						end
+						fileClose(file)
+						fileDelete(':province_loadscreen/' .. tostring(nameTag) .. '.txt')
 					end
-					fileClose(file)
-					fileDelete(':province_loadscreen/' .. tostring(nameTag) .. '.txt')
 				end
 			end
 		end
@@ -896,11 +898,9 @@ end)
 						if isPedInVehicle(localPlayer) then
 							local vehicle = getPedOccupiedVehicle ( localPlayer )
 							setElementPosition ( vehicle, x + 3, y, z )
-							triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
 							setElementInterior(localPlayer, 0)
 						else
 							setElementPosition ( localPlayer, x + 3, y, z )
-							triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
 							setElementInterior(localPlayer, 0)
 						end
 					end
@@ -920,11 +920,9 @@ end)
 							if isPedInVehicle(localPlayer) then
 								local vehicle = getPedOccupiedVehicle ( localPlayer )
 								setElementPosition ( vehicle, x + 3, y, z )
-								triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
 								setElementInterior(localPlayer, interior)
 							else
 								setElementPosition ( localPlayer, x + 3, y, z )
-								triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
 								setElementInterior(localPlayer, interior)
 							end
 						end
@@ -979,7 +977,6 @@ end)
 							setElementFrozen(localPlayer, false)
 						end
 						setElementInterior(localPlayer, lastInt)
-						triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
 					else
 						local car = getPedOccupiedVehicle(target_element)
 						local interior, dimension = getElementInterior(target_element), getElementDimension(target_element)
@@ -987,9 +984,6 @@ end)
 						lastDim = xdimension
 						lastInt = xinterior
 						InSpec = 228
-						if dimension ~= 0 then
-							triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")), dimension)
-						end
 						setElementInterior(localPlayer, interior)
 						if car then	setCameraTarget(car) else setCameraTarget(target_element) end
 						if isPedInVehicle(localPlayer) then
@@ -1056,13 +1050,7 @@ end)
 			end
 
 			if tonumber(exec_cmd) == 4099 then
-				if Astral == false then
-					Astral = true	
-					triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")), 10)
-				else
-					Astral = false
-					triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
-				end
+			
 			end
 
 			if tonumber(exec_cmd) == 5011 then
@@ -1276,11 +1264,9 @@ end)
 						if isPedInVehicle(localPlayer) then
 							local vehicle = getPedOccupiedVehicle ( localPlayer )
 							setElementPosition ( vehicle, getElementPosition( v ) )
-							triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
 							setElementInterior(localPlayer, 0)
 						else
 							setElementPosition ( localPlayer, getElementPosition( v ) )
-							triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
 							setElementInterior(localPlayer, 0)
 						end
 					end
@@ -1289,13 +1275,11 @@ end)
 
 			if tonumber(exec_cmd) == 8022 then
 				setElementPosition(localPlayer, 213.91273498535, 1115.1557617188, 24.144750595093)
-				triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
 				setElementInterior(localPlayer, 0)
 			end		
 
 			if tonumber(exec_cmd) == 8033 then
 				setElementPosition(localPlayer, -100.92771911621, -1241.4100341797, 6.9533462524414)
-				triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")))
 				setElementInterior(localPlayer, 0)
 			end	
 
@@ -1399,8 +1383,11 @@ end)
 
 			if tonumber(exec_cmd) == 9066 then
 				setElementInterior(localPlayer, 29)
-				triggerServerEvent("carshop:setPlayerDimension", getResourceRootElement(getResourceFromName("province_carshop")), 90)
 				setElementPosition(localPlayer, -2474.250488, 1607.083252, 2989.875000)
+			end
+
+			if tonumber(exec_cmd) == 9077 then
+				allowTitles = true
 			end
 
 		end
