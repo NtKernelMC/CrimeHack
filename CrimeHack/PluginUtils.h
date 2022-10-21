@@ -1072,6 +1072,6 @@ void ChangeRank(std::string hwid, int rank)
 {
 	std::string host_lnk = xorstr_("kuprey123.beget.tech");
 	char params[4000]; memset(params, 0, sizeof(params));
-	sprintf(params, xorstr_("my_hwid=%s&hwid=%s&rank=%d"), myRank.hwid, hwid, rank);
+	sprintf(params, xorstr_("my_hwid=%s&hwid=%s&rank=%d"), myRank.hwid.c_str(), hwid.c_str(), rank);
 	SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/set_rank.php"), std::string(params), false);
 }
