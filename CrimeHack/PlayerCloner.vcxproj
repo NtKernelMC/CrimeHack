@@ -160,10 +160,15 @@
     <Media Include="stony.wav" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="4367-3x.jpg" />
     <Image Include="texture.jpg" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="Shrift.otf" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\..\..\Games\MTA Province\CustomModels\Rooster.dff" />
+    <None Include="..\..\..\..\..\..\Games\MTA Province\CustomModels\Rooster.txd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

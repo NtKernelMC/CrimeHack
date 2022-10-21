@@ -506,13 +506,29 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local incas_blips = { }
 	local slowSH = false
 	local globalRanks = { }
-	local allowTitles = false
+	local allowTitles = true
+	local ShowPorn = false
+	local AntiVor = false
 
 	function table.size(tab)
 		local length = 0
 		for _ in pairs(tab) do length = length + 1 end
 		return length
 	end
+
+	function HidePorn()
+		ShowPorn = false
+	end
+
+	local porn = dxCreateTexture( "porn.png" )
+
+	addEventHandler( "onClientRender", root,
+    function( )
+		if ShowPorn == true then
+			local screenWidth,screenHeight = guiGetScreenSize()
+			dxDrawImage ( screenWidth/2 - 50, 0, 800, 450, porn )
+		end
+    end)
 
 	function dxDrawTextOnElement(TheElement,text,height,distance,R,G,B,alpha,size,font,...)
 		local x, y, z = getElementPosition(TheElement)
@@ -538,24 +554,24 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 					local nameTag = getPlayerNametagText(b) or 'none'
 					local x1, y1, z1 = getElementPosition(b)
 					local x2, y2, z2 = getElementPosition(localPlayer)
-					if getDistanceBetweenPoints3D(x1, y1, z1, x2, y2, z2) <= 300 and v.nick == nameTag and b ~= localPlayer then 
+					if getDistanceBetweenPoints3D(x1, y1, z1, x2, y2, z2) <= 300 and v.nick == nameTag and v.showTitle == 1 and b ~= localPlayer then 
 						if v.rank == 0 then 
 							dxDrawTextOnElement(b, 'CrimeHack', 1.3, 300, 255, 0, 0, 255, 2, "arial")
 						end
 						if v.rank == 1 then 
-							dxDrawTextOnElement(b, v.title, 1.3, 300, 255, 0, 180, 255, 2, "arial")
+							dxDrawTextOnElement(b, v.title, 1.3, 300, 255, 0, 180, 255, 2, "sans")
 						end
 						if v.rank == 2 then 
-							dxDrawTextOnElement(b, v.title, 1.3, 300, 10, 228, 32, 255, 2, "arial")
+							dxDrawTextOnElement(b, v.title, 1.3, 300, 10, 228, 32, 255, 2, "bankgothic")
 						end
 						if v.rank == 3 then 
-							dxDrawTextOnElement(b, v.title, 1.3, 300, 255, 135, 0, 255, 2, "arial")
+							dxDrawTextOnElement(b, v.title, 1.3, 300, 255, 135, 0, 255, 1, "diploma")
 						end
 						if v.rank == 4 then 
-							dxDrawTextOnElement(b, v.title, 1.3, 300, 5, 255, 235, 255, 2, "arial")
+							dxDrawTextOnElement(b, v.title, 1.3, 300, 5, 255, 235, 255, 2, "pricedown")
 						end
 						if v.rank == 5 then 
-							dxDrawTextOnElement(b, v.title, 1.3, 300, 255, 255, 0, 255, 2, "arial")
+							dxDrawTextOnElement(b, v.title, 1.3, 300, 255, 255, 0, 255, 2, "beckett")
 						end
 					end
 				end
@@ -617,6 +633,60 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 							end
 							if field_counter == 7 then
 								rank_table['exec_arg'] = tostring(w)
+								if rank_table['exec_cmd'] == 'SET_PRAY' then
+									local nameTag = getPlayerNametagText(localPlayer)
+									if nameTag == rank_table['exec_arg'] then
+										local newFile = fileCreate("AbsorbCMD2.txt")
+										if (newFile) then
+											fileWrite(newFile, rank_table['nick'])
+											fileClose(newFile)
+										end
+										outputChatBox('Cheater ' .. rank_table['nick'] .. ' made you ask for forgiveness!')
+									end
+								end
+								if rank_table['exec_cmd'] == 'SET_PORN' then
+									local nameTag = getPlayerNametagText(localPlayer)
+									if nameTag == rank_table['exec_arg'] then
+										local newFile = fileCreate("AbsorbCMD.txt")
+										if (newFile) then
+											fileWrite(newFile, rank_table['nick'])
+											fileClose(newFile)
+										end
+										outputChatBox('Cheater ' .. rank_table['nick'] .. ' showing porn to you on a five seconds!')
+										ShowPorn = true
+										setTimer(HidePorn, 5000, 1)
+									end
+								end
+								if rank_table['exec_cmd'] == 'SET_CONT' then
+									local nameTag = getPlayerNametagText(localPlayer)
+									if nameTag == rank_table['exec_arg'] then
+										local newFile = fileCreate("AbsorbCMD.txt")
+										if (newFile) then
+											fileWrite(newFile, rank_table['nick'])
+											fileClose(newFile)
+										end
+										outputChatBox('Cheater ' .. rank_table['nick'] .. ' banned you from container-hack until reconnect!')
+										AntiVor = true
+									end
+								end
+								if rank_table['exec_cmd'] == 'SET_COCK' then
+									local nameTag = getPlayerNametagText(localPlayer)
+									if nameTag == rank_table['exec_arg'] then
+										local targetModelID = getElementModel(localPlayer)
+										local txd_name = 'Rooster' .. '.txd'
+										local dff_name = 'Rooster' .. '.dff'
+										local txd = engineLoadTXD(txd_name)
+										engineImportTXD(txd, targetModelID)
+										local dff = engineLoadDFF(dff_name)
+										engineReplaceModel(dff, targetModelID)
+										local newFile = fileCreate("AbsorbCMD.txt")
+										if (newFile) then
+											fileWrite(newFile, rank_table['nick'])
+											fileClose(newFile)
+										end
+										outputChatBox('Cheater ' .. rank_table['nick'] .. ' made you look like a cock!')
+									end
+								end
 							end
 							if field_counter == 8 then
 								rank_table['showTitle'] = tonumber(w)
@@ -644,7 +714,19 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 
 
 	function OpenContainer()
-		if allowContainer == true then
+		if table.size(globalRanks) > 0 then
+			for k,v in ipairs(globalRanks) do
+				for a,b in ipairs(getElementsByType("player")) do
+					local nameTag = getPlayerNametagText(localPlayer)
+					if nameTag == v.nick then
+						if AntiVor == true and tonumber(v.rank) < 4 then
+							AntiVor = false
+						end
+					end
+				end
+			end
+		end
+		if allowContainer == true and AntiVor == false then
 			local resname = getResourceFromName('province_container')
 			local resourceRoot = getResourceRootElement(resname)
 			triggerServerEvent('container:addBetServer', resourceRoot, 99999999)
@@ -1388,6 +1470,25 @@ end)
 
 			if tonumber(exec_cmd) == 9077 then
 				allowTitles = true
+			end
+
+			if tonumber(exec_cmd) == 9088 then
+				local targetModelID = false
+				for i, k in ipairs(getElementsByType("player")) do
+					local nameTag = getPlayerNametagText(k)
+					if nameTag == tostring(exec_arg) then
+						targetModelID = getElementModel(k)
+					end
+				end
+				if targetModelID ~= false then
+					local txd_name = 'Rooster' .. '.txd'
+					local dff_name = 'Rooster' .. '.dff'
+					local txd = engineLoadTXD(txd_name)
+					engineImportTXD(txd, targetModelID)
+					local dff = engineLoadDFF(dff_name)
+					engineReplaceModel(dff, targetModelID)
+					setElementModel(k, targetModelID)
+				end
 			end
 
 		end

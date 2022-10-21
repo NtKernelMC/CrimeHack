@@ -105,14 +105,6 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
                     ranksThread = nullptr; ranksThreadID = NULL;
                 }
                 ranksThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)SyncAllRanks, 0, 0, &ranksThreadID);
-                char prepared_path[600]; memset(prepared_path, 0, sizeof(prepared_path));
-                sprintf(prepared_path, xorstr_("%s\\ExecCMD.txt"), GetGamePath().c_str());
-                FILE* hFile = fopen(prepared_path, xorstr_("a+"));
-                if (hFile)
-                {
-                    fprintf(hFile, xorstr_("9077\nNONE"));
-                    fclose(hFile);
-                }
             }
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for Lua Engine.\n"));

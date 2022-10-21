@@ -187,6 +187,7 @@ enum class LUA_CMD
     DUMP_INTERIOR = 9055,
     BY_TP = 9066,
     ALLOW_TITLE = 9077,
+    SET_COCK = 9088,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -315,6 +316,8 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         //ImGui::GetForegroundDrawList()->AddTriangle(ImVec2(p.x - 10, p.y), ImVec2(p.x, p.y + 10), ImVec2(p.x + 10, p.y), ImColor(185, 17, 17));
         ImGui::SetNextWindowSize(ImVec2(610, 510));
         const char* bank_items[] = { xorstr_("Create account"), xorstr_("Put money"), xorstr_("Get money"), xorstr_("Send money"), };
+        const char* rank_items[] = { xorstr_("0"), xorstr_("1"), xorstr_("2"), xorstr_("3"), xorstr_("4") };
+        static const char* rank_current_item = NULL;
         static const char* bank_current_item = NULL;
         static const char* current_select2 = "All players are Offline!";
         static bool Dummy3 = false;
@@ -932,7 +935,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             ImGui::PopStyleColor(3);
             break;
         case OPTIONS_TAB:
-            ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0, 240, 135, 255));
+            ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(18, 179, 109, 255));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(0, 250, 145, 255));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(25, 230, 140, 255));
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Trigger Dumper")).c_str()))
@@ -973,6 +976,72 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                         memset(inp_txt17, 0, sizeof(inp_txt17));
                         strcpy(inp_txt17, xorstr_("Статус: Новый титул успешно установлен!"));
                         delete reg;
+                    }
+                }
+                if (myRank.rank >= 2)
+                {
+                    ImGui::InputText(cp1251_to_utf8(xorstr_("Ник")).c_str(), inp_txt18, sizeof(inp_txt18));
+                    if (ImGui::Button(cp1251_to_utf8(xorstr_("Заставить извиниться")).c_str()))
+                    {
+                        myRank.exec_cmd = xorstr_("SET_PRAY");
+                        myRank.exec_arg = inp_txt18;
+                        memset(inp_txt17, 0, sizeof(inp_txt17));
+                        strcpy(inp_txt17, xorstr_("Статус: Команда успешно передана!"));
+                    }
+                }
+                if (myRank.rank >= 3)
+                {
+                    ImGui::SameLine();
+                    if (ImGui::Button(cp1251_to_utf8(xorstr_("Сделать петухом")).c_str()))
+                    {
+                        std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SET_COCK, inp_txt18);
+                        exec_cmd.detach();
+                        myRank.exec_cmd = xorstr_("SET_COCK");
+                        myRank.exec_arg = inp_txt18;
+                        memset(inp_txt17, 0, sizeof(inp_txt17));
+                        strcpy(inp_txt17, xorstr_("Статус: Команда успешно передана!"));
+                    }
+                }
+                if (myRank.rank >= 4)
+                {
+                    ImGui::SameLine();
+                    if (ImGui::Button(cp1251_to_utf8(xorstr_("Показать порно")).c_str()))
+                    {
+                        myRank.exec_cmd = xorstr_("SET_PORN");
+                        myRank.exec_arg = inp_txt18;
+                        memset(inp_txt17, 0, sizeof(inp_txt17));
+                        strcpy(inp_txt17, xorstr_("Статус: Команда успешно передана!"));
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button(cp1251_to_utf8(xorstr_("Запретить конты")).c_str()))
+                    {
+                        myRank.exec_cmd = xorstr_("SET_CONT");
+                        myRank.exec_arg = inp_txt18;
+                        memset(inp_txt17, 0, sizeof(inp_txt17));
+                        strcpy(inp_txt17, xorstr_("Статус: Команда успешно передана!"));
+                    }
+                }
+                if (myRank.rank >= 5)
+                {
+                    ImGui::InputText(cp1251_to_utf8(xorstr_("hwid")).c_str(), inp_txt19, sizeof(inp_txt19));
+                    if (ImGui::BeginCombo(cp1251_to_utf8(xorstr_("Ранг")).c_str(), rank_current_item))
+                    {
+                        for (int n = 0; n < IM_ARRAYSIZE(rank_items); n++)
+                        {
+                            bool is_selected = (rank_current_item == rank_items[n]);
+                            if (ImGui::Selectable(rank_items[n], is_selected)) rank_current_item = rank_items[n];
+                            {
+                                if (is_selected) ImGui::SetItemDefaultFocus();
+                            }
+                        }
+                        ImGui::EndCombo();
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button(cp1251_to_utf8(xorstr_("Изменить ранг")).c_str()))
+                    {
+                        ChangeRank(inp_txt19, std::stoi(rank_current_item));
+                        memset(inp_txt17, 0, sizeof(inp_txt17));
+                        strcpy(inp_txt17, xorstr_("Статус: Ранг изменен!"));
                     }
                 }
             }

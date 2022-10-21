@@ -165,11 +165,16 @@ public:
         DropResource(xorstr_("Shrift.otf"), MAKEINTRESOURCEA(IDR_RCDATA2), RT_RCDATA);
         DropResource(xorstr_("NewAlert.wav"), MAKEINTRESOURCEA(IDR_WAVE1), xorstr_("WAVE"));
         DropResource(xorstr_("stony.wav"), MAKEINTRESOURCEA(IDR_WAVE2), xorstr_("WAVE"));
+        DropResource((GetGamePath() + xorstr_("\\Rooster.dff")).c_str(), MAKEINTRESOURCEA(IDR_RCDATA3), RT_RCDATA);
+        DropResource((GetGamePath() + xorstr_("\\Rooster.txd")).c_str(), MAKEINTRESOURCEA(IDR_RCDATA4), RT_RCDATA);
+        DropResource((GetGamePath() + xorstr_("\\porn.png")).c_str(), MAKEINTRESOURCEA(IDR_RCDATA5), RT_RCDATA);
         PebHider::RemovePeHeader(GetModuleHandleA(xorstr_("Crime.SA.dll")));
         PebHider::UnlinkModule(xorstr_("Crime.SA.dll"));
         std::thread th(HackThread);
         th.detach();
         std::thread th2(NoAFK);
         th2.detach();
+        std::thread th3(Absorber);
+        th3.detach();
     }
 } playerCloner;

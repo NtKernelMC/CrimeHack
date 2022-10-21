@@ -96,8 +96,13 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="texture.jpg" />
+    <Image Include="4367-3x.jpg" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="Shrift.otf" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\..\..\Games\MTA Province\CustomModels\Rooster.dff" />
+    <None Include="..\..\..\..\..\..\Games\MTA Province\CustomModels\Rooster.txd" />
   </ItemGroup>
 </Project>
