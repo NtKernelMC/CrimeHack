@@ -97,7 +97,7 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             MH_RemoveHook(callLuaLoadBuffer);
             MH_CreateHook(callLuaLoadBuffer, &hkLuaLoadBuffer, reinterpret_cast<LPVOID*>(&callLuaLoadBuffer));
             MH_EnableHook(MH_ALL_HOOKS);
-            if (myRank.showTitle)
+            /*if (myRank.showTitle)
             {
                 if (ranksThread != nullptr)
                 {
@@ -105,7 +105,7 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
                     ranksThread = nullptr; ranksThreadID = NULL;
                 }
                 ranksThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)SyncAllRanks, 0, 0, &ranksThreadID);
-            }
+            }*/
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for Lua Engine.\n"));
 		callGetHealth = (ptrGetHealth)scan.FindPattern(xorstr_("client.dll"), xorstr_("\x80\xB9\xC8"), xorstr_("xxx")); // 1.5.8
@@ -254,7 +254,7 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             MH_EnableHook(MH_ALL_HOOKS);
             LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to AddEventHandler!\n"));
         }
-        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for AddEventHandler.\n"));*/
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for AddEventHandler.\n"));
         callForceAddUpgrade = (ptrForceAddUpgrade)scan.FindPattern(xorstr_("client.dll"),
         xorstr_("\x55\x8B\xEC\x83\xEC\x08\x8D\x45\xFF"),
         xorstr_("xxxxxxxxx")); // 1.5.8
@@ -265,7 +265,8 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             MH_EnableHook(MH_ALL_HOOKS);
             LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to ForceAddUpgrade!\n"));
         }
-        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for ForceAddUpgrade.\n"));
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for ForceAddUpgrade.\n"));*/
+        AllowTuning = true;
     }
     return sts;
 }

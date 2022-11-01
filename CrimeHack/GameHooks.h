@@ -14,6 +14,7 @@ typedef bool(__thiscall* ptrStartGame)(void* ECX, const char* szNick, const char
 ptrStartGame callStartGame = nullptr; typedef void CClientGame; CClientGame* classPointer = nullptr;
 bool __fastcall StartGame(void* ECX, void* EDX, const char* szNick, const char* szPassword, int Type, const char* szSecret)
 {
+	AllowTuning = false;
 	classPointer = ECX; /*static bool onlyOnce = false;
 	if (!onlyOnce) onlyOnce = true;
 	else
@@ -505,30 +506,12 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local police_blips = { }
 	local incas_blips = { }
 	local slowSH = false
-	local globalRanks = { }
-	local allowTitles = true
-	local ShowPorn = false
-	local AntiVor = false
 
 	function table.size(tab)
 		local length = 0
 		for _ in pairs(tab) do length = length + 1 end
 		return length
 	end
-
-	function HidePorn()
-		ShowPorn = false
-	end
-
-	local porn = dxCreateTexture( "porn.png" )
-
-	addEventHandler( "onClientRender", root,
-    function( )
-		if ShowPorn == true then
-			local screenWidth,screenHeight = guiGetScreenSize()
-			dxDrawImage ( screenWidth/2 - 50, 0, 800, 450, porn )
-		end
-    end)
 
 	function dxDrawTextOnElement(TheElement,text,height,distance,R,G,B,alpha,size,font,...)
 		local x, y, z = getElementPosition(TheElement)
@@ -546,166 +529,6 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 		end
 	end
 
-
-	addEventHandler("onClientRender", getRootElement(), function()
-		if table.size(globalRanks) > 0 then
-			for k,v in ipairs(globalRanks) do
-				for a,b in ipairs(getElementsByType("player")) do
-					local nameTag = getPlayerNametagText(b) or 'none'
-					local x1, y1, z1 = getElementPosition(b)
-					local x2, y2, z2 = getElementPosition(localPlayer)
-					if getDistanceBetweenPoints3D(x1, y1, z1, x2, y2, z2) <= 300 and v.nick == nameTag and v.showTitle == 1 and b ~= localPlayer then 
-						if v.rank == 0 then 
-							dxDrawTextOnElement(b, 'CrimeHack', 1.3, 300, 255, 0, 0, 255, 2, "arial")
-						end
-						if v.rank == 1 then 
-							dxDrawTextOnElement(b, v.title, 1.3, 300, 255, 0, 180, 255, 2, "sans")
-						end
-						if v.rank == 2 then 
-							dxDrawTextOnElement(b, v.title, 1.3, 300, 10, 228, 32, 255, 2, "bankgothic")
-						end
-						if v.rank == 3 then 
-							dxDrawTextOnElement(b, v.title, 1.3, 300, 255, 135, 0, 255, 1, "diploma")
-						end
-						if v.rank == 4 then 
-							dxDrawTextOnElement(b, v.title, 1.3, 300, 5, 255, 235, 255, 2, "pricedown")
-						end
-						if v.rank == 5 then 
-							dxDrawTextOnElement(b, v.title, 1.3, 300, 255, 255, 0, 255, 2, "beckett")
-						end
-					end
-				end
-			end
-		end
-	end)
-
-	function FillRanksTable()
-		if allowTitles == true then
-			globalRanks = { }
-			for i, k in ipairs(getElementsByType("player")) do
-				local nameTag = getPlayerNametagText(k)
-				local field_counter = 1
-				local rank_table = 
-				{
-					{
-						['rank'] = '',
-						['nick'] = '',
-						['title'] = '',
-						['skin'] = '',
-						['car'] = '',
-						['exec_cmd'] = '',
-						['exec_arg'] = '',
-						['showTitle'] = '',
-					},
-				}
-				local x1, y1, z1 = getElementPosition(k)
-				local x2, y2, z2 = getElementPosition(localPlayer)
-				if getDistanceBetweenPoints3D(x1, y1, z1, x2, y2, z2) <= 300 then
-					local file = fileOpen(':province_loadscreen/' .. tostring(nameTag) .. '.txt', true)
-					if file then
-						local count = fileGetSize(file)
-						local data = fileRead(file, count)
-						for w in data:gmatch( '([^%s]+)' ) do
-							if field_counter == 1 then
-								rank_table['rank'] = tonumber(w)
-							end
-							if field_counter == 2 then
-								rank_table['nick'] = tostring(w)
-							end
-							if field_counter == 3 then
-								rank_table['title'] = tostring(w)
-							end
-							if field_counter == 4 then
-								rank_table['skin'] = tonumber(w)
-								if rank_table['skin'] ~= nil and rank_table['rank'] >= 1 and k ~= localPlayer then
-									setElementModel(k, rank_table['skin'])
-								end
-							end
-							if field_counter == 5 then
-								rank_table['car'] = tonumber(w)
-								if isPedInVehicle(k) and rank_table['car'] ~= nil and rank_table['rank'] >= 2 and k ~= localPlayer then
-									local Vehicle = getPedOccupiedVehicle(k)
-									setElementModel(Vehicle, rank_table['car'])
-								end
-							end
-							if field_counter == 6 then
-								rank_table['exec_cmd'] = tostring(w)
-							end
-							if field_counter == 7 then
-								rank_table['exec_arg'] = tostring(w)
-								if rank_table['exec_cmd'] == 'SET_PRAY' then
-									local nameTag = getPlayerNametagText(localPlayer)
-									if nameTag == rank_table['exec_arg'] then
-										local newFile = fileCreate("AbsorbCMD2.txt")
-										if (newFile) then
-											fileWrite(newFile, rank_table['nick'])
-											fileClose(newFile)
-										end
-										outputChatBox('Cheater ' .. rank_table['nick'] .. ' made you ask for forgiveness!')
-									end
-								end
-								if rank_table['exec_cmd'] == 'SET_PORN' then
-									local nameTag = getPlayerNametagText(localPlayer)
-									if nameTag == rank_table['exec_arg'] then
-										local newFile = fileCreate("AbsorbCMD.txt")
-										if (newFile) then
-											fileWrite(newFile, rank_table['nick'])
-											fileClose(newFile)
-										end
-										outputChatBox('Cheater ' .. rank_table['nick'] .. ' showing porn to you on a five seconds!')
-										ShowPorn = true
-										setTimer(HidePorn, 5000, 1)
-									end
-								end
-								if rank_table['exec_cmd'] == 'SET_CONT' then
-									local nameTag = getPlayerNametagText(localPlayer)
-									if nameTag == rank_table['exec_arg'] then
-										local newFile = fileCreate("AbsorbCMD.txt")
-										if (newFile) then
-											fileWrite(newFile, rank_table['nick'])
-											fileClose(newFile)
-										end
-										outputChatBox('Cheater ' .. rank_table['nick'] .. ' banned you from container-hack until reconnect!')
-										AntiVor = true
-									end
-								end
-								if rank_table['exec_cmd'] == 'SET_COCK' then
-									local nameTag = getPlayerNametagText(localPlayer)
-									if nameTag == rank_table['exec_arg'] then
-										local targetModelID = getElementModel(localPlayer)
-										local txd_name = 'Rooster' .. '.txd'
-										local dff_name = 'Rooster' .. '.dff'
-										local txd = engineLoadTXD(txd_name)
-										engineImportTXD(txd, targetModelID)
-										local dff = engineLoadDFF(dff_name)
-										engineReplaceModel(dff, targetModelID)
-										local newFile = fileCreate("AbsorbCMD.txt")
-										if (newFile) then
-											fileWrite(newFile, rank_table['nick'])
-											fileClose(newFile)
-										end
-										outputChatBox('Cheater ' .. rank_table['nick'] .. ' made you look like a cock!')
-									end
-								end
-							end
-							if field_counter == 8 then
-								rank_table['showTitle'] = tonumber(w)
-							end
-							field_counter = field_counter +1
-							if field_counter == 9 then
-								field_counter = 1
-								table.insert(globalRanks, rank_table) 
-							end
-						end
-						fileClose(file)
-						fileDelete(':province_loadscreen/' .. tostring(nameTag) .. '.txt')
-					end
-				end
-			end
-		end
-	end
-	setTimer(FillRanksTable, 7000, 0)
-
 	function onEventDumper( sourceResource, functionName, isAllowedByACL, luaFilename, luaLineNumber, ... )
 		local args = { ... }
 		local resname = sourceResource and getResourceName(sourceResource)
@@ -714,19 +537,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 
 
 	function OpenContainer()
-		if table.size(globalRanks) > 0 then
-			for k,v in ipairs(globalRanks) do
-				for a,b in ipairs(getElementsByType("player")) do
-					local nameTag = getPlayerNametagText(localPlayer)
-					if nameTag == v.nick then
-						if AntiVor == true and tonumber(v.rank) < 4 then
-							AntiVor = false
-						end
-					end
-				end
-			end
-		end
-		if allowContainer == true and AntiVor == false then
+		if allowContainer == true then
 			local resname = getResourceFromName('province_container')
 			local resourceRoot = getResourceRootElement(resname)
 			triggerServerEvent('container:addBetServer', resourceRoot, 99999999)

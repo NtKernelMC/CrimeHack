@@ -703,8 +703,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::GET_CIGARETTE, xorstr_("NONE"));
                 exec_cmd.detach();
             }
-            ImGui::SameLine();
-            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Тюнинг (Анти-крашер)")).c_str(), &AllowTuning);
             ImGui::PopStyleColor(3);
             ImGui::InputText("[4]", inp_txt4, sizeof(inp_txt4));
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
@@ -949,7 +947,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(DumpCoords);
                 exec_cmd.detach();
             }
-            if (myRank.showTitle)
+            /*if (myRank.showTitle)
             {
                 char rank_text[300]; memset(rank_text, 0, sizeof(rank_text));
                 sprintf(rank_text, xorstr_("Текущий ранг: %d"), myRank.rank);
@@ -1046,6 +1044,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 }
             }
             ImGui::BulletText(cp1251_to_utf8(inp_txt17).c_str());
+            */
             ImGui::PopStyleColor(3);
             break;
         }
