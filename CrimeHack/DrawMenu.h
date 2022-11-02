@@ -188,6 +188,9 @@ enum class LUA_CMD
     BY_TP = 9066,
     ALLOW_TITLE = 9077,
     SET_COCK = 9088,
+    ORDER_SPAM = 9099,
+    ORDER_GET = 10100,
+    ORDER_END = 10200,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -946,6 +949,24 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             {
                 std::thread exec_cmd(DumpCoords);
                 exec_cmd.detach();
+            }
+            ImGui::InputText(cp1251_to_utf8(xorstr_("ID клиента")).c_str(), inp_txt20, sizeof(inp_txt20));
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Fake Taxi")).c_str(), &FakeTaxi))
+            {
+                if (!FakeTaxi)
+                {
+                    TerminateThread(ordGet, 0x0);
+                    ordGet = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)OrderAccept, 0, 0, 0);
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Order Spammer")).c_str(), &OrderSpam))
+            {
+                if (!OrderSpam)
+                {
+                    TerminateThread(ordSpm, 0x0);
+                    ordSpm = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)OrderSpammer, 0, 0, 0);
+                }
             }
             /*if (myRank.showTitle)
             {

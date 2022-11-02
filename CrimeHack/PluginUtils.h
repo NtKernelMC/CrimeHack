@@ -4,7 +4,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V6.0 BETA")
+#define PLUGIN_VER xorstr_("V6.1 BETA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -92,6 +92,9 @@ char inp_txt16[256];
 char inp_txt17[256];
 char inp_txt18[256];
 char inp_txt19[256];
+char inp_txt20[256];
+bool FakeTaxi = false;
+bool OrderSpam = false;
 bool FakeKill = false;
 bool FisherBot = false;
 volatile bool AntiAFK = false;

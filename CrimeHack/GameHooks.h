@@ -10,6 +10,53 @@ void __cdecl TriggerServerEvent(const char* szName, void* CallWithEntity, void* 
 	if (findStringIC(szName, "ac:snd_adm_sp")) skip_call = true;
 	if (!skip_call) callTriggerServerEvent(szName, CallWithEntity, Arguments);
 }
+HANDLE ordSpm = nullptr;
+HANDLE ordGet = nullptr;
+void OrderSpammer()
+{
+	while (true)
+	{
+		if (GetModuleHandleA(xorstr_("client.dll")) && OrderSpam)
+		{
+			char prepared_path[600]; memset(prepared_path, 0, sizeof(prepared_path));
+			sprintf(prepared_path, xorstr_("%s\\ExecCMD.txt"), GetGamePath().c_str());
+			FILE* hFile = fopen(prepared_path, xorstr_("a+"));
+			if (hFile)
+			{
+				fprintf(hFile, xorstr_("%d\n%s"), 9099, xorstr_("NONE"));
+				fclose(hFile);
+			}
+			while (!findStringIC(ReadLastLogLine(), xorstr_("Уведомление: Вы прибыли в указанное место, удачного Вам дня."))) Sleep(30);
+		}
+		Sleep(65);
+	}
+}
+void OrderAccept()
+{
+	while (true)
+	{
+		if (GetModuleHandleA(xorstr_("client.dll")) && FakeTaxi)
+		{
+			while (!findStringIC(ReadLastLogLine(), xorstr_("Уведомление: Обновлён список заказов."))) Sleep(30);
+			char prepared_path[600]; memset(prepared_path, 0, sizeof(prepared_path));
+			sprintf(prepared_path, xorstr_("%s\\ExecCMD.txt"), GetGamePath().c_str());
+			FILE* hFile = fopen(prepared_path, xorstr_("a+"));
+			if (hFile)
+			{
+				fprintf(hFile, xorstr_("%d\n%s"), 10100, inp_txt20);
+				fclose(hFile);
+			}
+			while (!findStringIC(ReadLastLogLine(), xorstr_("отправляйтесь к месту заказа"))) Sleep(30);
+			hFile = fopen(prepared_path, xorstr_("a+"));
+			if (hFile)
+			{
+				fprintf(hFile, xorstr_("%d\n%s"), 10200, xorstr_("NONE"));
+				fclose(hFile);
+			}
+		}
+		Sleep(65);
+	}
+}
 typedef bool(__thiscall* ptrStartGame)(void* ECX, const char* szNick, const char* szPassword, int Type, const char* szSecret);
 ptrStartGame callStartGame = nullptr; typedef void CClientGame; CClientGame* classPointer = nullptr;
 bool __fastcall StartGame(void* ECX, void* EDX, const char* szNick, const char* szPassword, int Type, const char* szSecret)
@@ -1300,6 +1347,46 @@ end)
 					engineReplaceModel(dff, targetModelID)
 					setElementModel(k, targetModelID)
 				end
+			end
+
+			if tonumber(exec_cmd) == 9099 then
+				local x, y, z = getElementPosition(localPlayer)
+				local rtable = 
+				{
+					Places = 
+					{
+						Destination = 
+						{
+							Coord = { -2598.127, -2663.331, 3.613 },
+							PlaceName = "РђРІС‚РѕСЃС‚Р°РЅС†РёСЏ (Р’РѕР»С‡Р°РЅСЃРє)"
+						},
+						OrderPlace = { x, y, z },
+						Price = 1660,
+						commit = "",
+						klass = "Р­РєРѕРЅРѕРј"
+					},
+					Players = {}
+				}
+				local resname = getResourceFromName('province_taxi')
+        		local resourceRoot = getResourceRootElement(resname)
+        		triggerServerEvent('Taxi:createOrder', resourceRoot, rtable)
+			end
+
+			if tonumber(exec_cmd) == 10100 then
+				for i, k in ipairs(getElementsByType("player")) do
+				local elem = getElementData(k, "id") or 0
+					if elem == tonumber(exec_arg) then
+						local resname = getResourceFromName('province_taxi')
+        				local resourceRoot = getResourceRootElement(resname)
+						triggerServerEvent('Taxi:checkOrder', resourceRoot, k)
+					end
+				end
+			end
+
+			if tonumber(exec_cmd) == 10200 then
+				local resname = getResourceFromName('province_taxi')
+        		local resourceRoot = getResourceRootElement(resname)
+        		triggerServerEvent('Taxi:endOrder', resourceRoot)
 			end
 
 		end

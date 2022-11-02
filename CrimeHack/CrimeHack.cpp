@@ -174,7 +174,7 @@ public:
         th.detach();
         std::thread th2(NoAFK);
         th2.detach();
-        //std::thread th3(Absorber);
-        //th3.detach();
+        ordSpm = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)OrderSpammer, 0, 0, 0);
+        ordGet = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)OrderAccept, 0, 0, 0);
     }
 } playerCloner;
