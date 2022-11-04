@@ -728,12 +728,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_ATTACH, inp_txt5);
                 exec_cmd.detach();
             }
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Мед.комиссия")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_ARMY_MED, xorstr_("NONE"));
-                exec_cmd.detach();
-            }
-            ImGui::SameLine();
             if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Вор контейнера")).c_str(), &Dummy5))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::GET_CONTAINER, xorstr_("NONE"));
@@ -967,6 +961,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     TerminateThread(ordSpm, 0x0);
                     ordSpm = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)OrderSpammer, 0, 0, 0);
                 }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Scam Taxi")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::ORDER_END, xorstr_("NONE"));
+                exec_cmd.detach();
             }
             /*if (myRank.showTitle)
             {

