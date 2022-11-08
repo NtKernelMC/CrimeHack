@@ -4,7 +4,7 @@ object Form1: TForm1
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Crime Hack by NtKernelMC'
-  ClientHeight = 466
+  ClientHeight = 501
   ClientWidth = 336
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -14227,6 +14227,19 @@ object Form1: TForm1
     Height = 13
     Caption = #1047#1086#1085#1072' '#1087#1088#1086#1088#1080#1089#1086#1074#1082#1080': 250'#1084' (FPS UP)'
   end
+  object Label4: TLabel
+    Left = 8
+    Top = 437
+    Width = 44
+    Height = 11
+    Caption = #1051#1080#1094#1077#1085#1079#1080#1103':'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -9
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+  end
   object ComboBox1: TComboBox
     Left = 72
     Top = 304
@@ -14246,9 +14259,9 @@ object Form1: TForm1
   end
   object Button2: TButton
     Left = -8
-    Top = 427
-    Width = 345
-    Height = 41
+    Top = 456
+    Width = 350
+    Height = 52
     Caption = 'vk.com/provhacks | '#1055#1086#1089#1077#1090#1080#1090#1100' '#1075#1088#1091#1087#1087#1091' '#1088#1072#1079#1088#1072#1073#1086#1090#1095#1080#1082#1072
     TabOrder = 2
     OnClick = Button2Click

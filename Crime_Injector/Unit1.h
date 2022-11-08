@@ -24,6 +24,7 @@ __published:	// IDE-managed Components
 	TCheckBox *CheckBox2;
 	TTrackBar *TrackBar1;
 	TLabel *Label3;
+	TLabel *Label4;
 	void __fastcall Button1Click(TObject *Sender);
 	void __fastcall ComboBox1DropDown(TObject *Sender);
 	void __fastcall Button2Click(TObject *Sender);

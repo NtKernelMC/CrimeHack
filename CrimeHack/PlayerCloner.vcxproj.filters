@@ -81,6 +81,7 @@
     <ClInclude Include="Collision.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Location.h" />
+    <ClInclude Include="..\..\BotTTU\TTU\TramwayBot\TramwayBot\base64.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ImGui">

@@ -8,6 +8,7 @@
 #include <thread>
 #include <direct.h>
 #include <ctime>
+#include "Unit2.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
@@ -24,9 +25,27 @@ std::string RandomString(int len)
    }
    return newstr;
 }
+void MessageChecker()
+{
+	while (true)
+	{
+        CEasyRegistry* creg = new CEasyRegistry(HKEY_CURRENT_USER, "Software\\CR1M3H", true);
+		if (creg != nullptr)
+		{
+			std::string inj_msg = creg->ReadString("InjectorMessage");
+			if (!inj_msg.empty() && inj_msg.length() > 3)
+			{
+                Form1->Label4->Caption = inj_msg.c_str();
+            }
+			delete creg;
+		}
+		Sleep(1000);
+    }
+}
 __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner)
 {
 	srand(time(NULL)); Form1->Caption = RandomString(20).c_str();
+	std::string user_key;
 	CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, "Software\\CR1M3H", true);
 	if (reg != nullptr)
 	{
@@ -36,6 +55,9 @@ __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner)
 			reg->WriteInteger("AllowNoScreen", 0x1);
 			reg->WriteInteger("StreamDist", 250);
 		}
+        std::string nothing = "";
+		reg->WriteString("InjectorMessage", nothing.c_str());
+		user_key = reg->ReadString("RegisteredKey");
 		DWORD intg2 = reg->ReadInteger("AllowNoScreen");
 		Form1->CheckBox2->Checked = (bool)intg2;
 		int pos = reg->ReadInteger("StreamDist");
@@ -44,6 +66,11 @@ __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner)
 		Form1->Label3->Caption = AnsiString(fmt);
 		delete reg;
 	}
+    std::thread mrh(MessageChecker); mrh.detach();
+	if (user_key.empty() || user_key.length() < 6)
+	{
+		Form1->Button1->Caption = "Указать ключ активации";
+    }
 }
 bool __stdcall IsDirectoryExists(const std::string& dirName_in)
 {
@@ -126,7 +153,12 @@ BOOL CALLBACK EnumWindowsProcMy(HWND hwnd,LPARAM lParam)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::Button1Click(TObject *Sender)
 {
-	EnumWindows(EnumWindowsProcMy, 0);
+	AnsiString strike = AnsiString(Form1->Button1->Caption);
+	if (std::string(strike.c_str()).find("Указать ключ активации") != std::string::npos)
+	{
+		if (!Form2->Showing) Form2->Show();
+    }
+	else EnumWindows(EnumWindowsProcMy, 0);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ComboBox1DropDown(TObject *Sender)

@@ -4,7 +4,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V6.3 BETA")
+#define PLUGIN_VER xorstr_("V6.5 BETA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -24,6 +24,7 @@
 #include "HWBP.h"
 #include <Wbemidl.h>
 #include "CStreaming.h"
+#include "base64.h"
 //////////////////////////
 #include <atlbase.h>
 #include <atlcom.h>
@@ -34,6 +35,7 @@
 #pragma comment(lib, "wbemuuid.lib")
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Wininet.lib")
+#define SOFT_TYPE xorstr_("crimehack")
 float StreamDist = 250.0f;
 CComPtr<ILocation> spLocation;
 IID REPORT_TYPES[] = { IID_ILatLongReport };
@@ -456,6 +458,67 @@ std::string wmiQuery(std::string query, std::wstring property)
 	VMProtectEnd();
 	return wmi_hash;
 }
+void reverseStr(std::string& str)
+{
+	int n = str.length();
+	for (int i = 0; i < n / 2; i++)
+		std::swap(str[i], str[n - i - 1]);
+}
+void CryptMyString(std::string& str)
+{
+	reverseStr(str);
+	str = base64_encode(str);
+	reverseStr(str);
+}
+std::string sCryptMyString(const std::string str)
+{
+	std::string to_crypt = str;
+	CryptMyString(to_crypt);
+	return to_crypt;
+}
+void DecryptMyString(std::string& str)
+{
+	reverseStr(str);
+	str = base64_decode(str);
+	reverseStr(str);
+}
+std::string sDecryptMyString(const std::string str)
+{
+	std::string to_decrypt = str;
+	DecryptMyString(to_decrypt);
+	return to_decrypt;
+}
+std::string CleanFromTrash(std::string& str)
+{
+	std::string ans = str;
+	std::string delimiter = xorstr_("|");
+	std::string trash1, answer, additional, trash2;
+	size_t pos = 0; std::string token; int count_args = 1;
+	while ((pos = ans.find(delimiter)) != std::string::npos)
+	{
+		token = ans.substr(0, pos);
+		if (count_args == 1) trash1 = token;
+		if (count_args == 2) answer = token;
+		if (count_args == 3) additional = token;
+		if (count_args == 5) trash2 = token;
+		ans.erase(0, pos + delimiter.length()); count_args++;
+	}
+	str = answer;
+	return additional;
+}
+std::string GetServerMinutes()
+{
+	std::string host_lnk = xorstr_("provhacks.fun");
+	std::string anser = SendInetRequest(P_HTTPS, M_GET, host_lnk, xorstr_("crime_hack/resolver.php"), xorstr_("a=yes&b=yes"), true);
+	if (!anser.empty())
+	{
+		DecryptMyString(anser);
+		CleanFromTrash(anser);
+		return anser;
+	}
+	else LogInFile(LOG_NAME, xorstr_("[ÍÅ ÀÊÒÈÂÈÐÎÂÀÍÎ] #1 Íåò ñâÿçè ñ õîñòîì! Áðåíäìàóåð Windows îòêëþ÷åí?\n"));
+	return std::string(xorstr_("none"));
+}
 void MakePreInit()
 {
 	VMProtectBegin("MakePreInit()");
@@ -509,34 +572,77 @@ void MakePreInit()
 		std::string LF_Key = GenerateLifeTimeKey(); std::string DM_Key = GenerateDemoKey();
 		if (!RegisteredKey.empty() && RegisteredKey.length() >= 4)
 		{
+			std::string minutes = GetServerMinutes();
+			std::string key_type = xorstr_("MODERN");
+			if (LF_Key.find(RegisteredKey.c_str()) != std::string::npos) key_type = xorstr_("LEGACY");
 			std::string host_lnk = xorstr_("provhacks.fun");
-			char params[3000]; memset(params, 0, sizeof(params));
-			sprintf(params, xorstr_("hwid=%s"), total_hwid.c_str());
-			std::string sc_ans = SendInetRequest(P_HTTPS, M_GET, host_lnk, xorstr_("crime_hack/security.php"), std::string(params), true);
-			if (sc_ans.find(total_hwid) != std::string::npos)
+			char params[5000]; memset(params, 0, sizeof(params));
+			sprintf(params, xorstr_("hash1=%s&hash2=%s&hash3=%s&hash4=%s&hash5=%s&hash6=%s"),
+			sCryptMyString(total_hwid).c_str(), sCryptMyString(RegisteredKey).c_str(),
+			sCryptMyString(PLUGIN_VER).c_str(), sCryptMyString(minutes).c_str(),
+			sCryptMyString(key_type).c_str(), sCryptMyString(SOFT_TYPE).c_str());
+			std::string sc_ans = SendInetRequest(P_HTTPS, M_GET, host_lnk, xorstr_("crime_hack/safety.php"), std::string(params), true);
+			if (sc_ans.empty())
 			{
-				LogInFile(LOG_NAME, xorstr_("[PLUGIN] Ïîøåë íàõóé :)\n"));
+				LogInFile(LOG_NAME, xorstr_("[ÍÅ ÀÊÒÈÂÈÐÎÂÀÍÎ] #2 Íåò ñâÿçè ñ õîñòîì! Áðåíäìàóåð Windows îòêëþ÷åí?\n"));
+				char inj_msg[500]; memset(inj_msg, 0, sizeof(inj_msg));
+				sprintf(inj_msg, xorstr_("[ËÈÖÅÍÇÈß] Íåò ñâÿçè ñ õîñòîì! Áðåíäìàóåð Windows îòêëþ÷åí?"));
+				reg->WriteString(xorstr_("InjectorMessage"), inj_msg);
 				delete reg; DeadCode();
 			}
-			memset(params, 0, sizeof(params));
-			sprintf(params, xorstr_("soft_ver=%s"), PLUGIN_VER);
-			sc_ans = SendInetRequest(P_HTTPS, M_GET, host_lnk, xorstr_("crime_hack/check_update.php"), std::string(params), true);
-			memset(upd_txt, 0, sizeof(upd_txt));
-			strcpy(upd_txt, sc_ans.c_str());
-			if (LF_Key.find(RegisteredKey.c_str()) == std::string::npos)
+			DecryptMyString(sc_ans); std::string additional = CleanFromTrash(sc_ans);
+			if (sc_ans.find(total_hwid) != std::string::npos)
 			{
-				if (DM_Key.find(RegisteredKey.c_str()) == std::string::npos)
-				{
-					LogInFile(LOG_NAME, xorstr_("[PLUGIN] HWID: %s\n"), total_hwid.c_str());
-					delete reg; DeadCode();
-				}
-				else CreateMutexA(NULL, FALSE, xorstr_("RBHVG5LBM1XT5J"));
+				LogInFile(LOG_NAME, xorstr_("[ÁÀÍ ÏÎ ÆÅËÅÇÓ] Ðàçðàáîò÷èê çàáëîêèðîâàë âàñ!\nHWID: %s\n"), total_hwid.c_str());
+				char inj_msg[500]; memset(inj_msg, 0, sizeof(inj_msg));
+				sprintf(inj_msg, xorstr_("Âû çàáëîêèðîâàíû! Ïðè÷èíà: %s | HWID: %s"), utf8_to_cp1251(additional.c_str()).c_str(), total_hwid.c_str());
+				reg->WriteString(xorstr_("InjectorMessage"), inj_msg);
+				delete reg; DeadCode();
 			}
-			else CreateMutexA(NULL, FALSE, xorstr_("RBZVX5S1MXAZ4A"));
+			if (sc_ans.find(xorstr_("EXPIRED_SESSION")) != std::string::npos)
+			{
+				LogInFile(LOG_NAME, xorstr_("[ÍÅ ÀÊÒÈÂÈÐÎÂÀÍÎ] Ñåññèÿ èñòåêëà! Ïðîâåðüòå ñòàáèëüíîñòü ñîåäèíåíèÿ.\nHWID: %s\n"), total_hwid.c_str());
+				char inj_msg[500]; memset(inj_msg, 0, sizeof(inj_msg));
+				sprintf(inj_msg, xorstr_("[ËÈÖÅÍÇÈß] Ñåññèÿ èñòåêëà! Ïðîâåðüòå ñòàáèëüíîñòü ñîåäèíåíèÿ."));
+				reg->WriteString(xorstr_("InjectorMessage"), inj_msg);
+				delete reg; DeadCode();
+			}
+			if (sc_ans.find(xorstr_("KEY_NOT_VALID")) != std::string::npos)
+			{
+				LogInFile(LOG_NAME, xorstr_("[ÍÅ ÀÊÒÈÂÈÐÎÂÀÍÎ] Óêàçàííûé êëþ÷ íå ñóùåñòâóåò!\nHWID: %s | Êëþ÷: %s\n"), total_hwid.c_str(), RegisteredKey.c_str());
+				char inj_msg[500]; memset(inj_msg, 0, sizeof(inj_msg));
+				sprintf(inj_msg, xorstr_("[ËÈÖÅÍÇÈß] Óêàçàííûé êëþ÷ íå ñóùåñòâóåò! Êëþ÷: %s"), RegisteredKey.c_str());
+				reg->WriteString(xorstr_("InjectorMessage"), inj_msg);
+				delete reg; DeadCode();
+			}
+			if (sc_ans.find(xorstr_("KEY_NOT_YOURS")) != std::string::npos)
+			{
+				LogInFile(LOG_NAME, xorstr_("[ÍÅ ÀÊÒÈÂÈÐÎÂÀÍÎ] Ýòîò êëþ÷ ïðåíàäëåæèò íå âàì!\nHWID: %s | Êëþ÷: %s\n"), total_hwid.c_str(), RegisteredKey.c_str());
+				char inj_msg[500]; memset(inj_msg, 0, sizeof(inj_msg));
+				sprintf(inj_msg, xorstr_("[ËÈÖÅÍÇÈß] Ýòîò êëþ÷ ïðåíàäëåæèò íå âàì! Êëþ÷: %s"), RegisteredKey.c_str());
+				reg->WriteString(xorstr_("InjectorMessage"), inj_msg);
+				delete reg; DeadCode();
+			}
+			if (sc_ans.find(xorstr_("KEY_EXPIRED")) != std::string::npos)
+			{
+				LogInFile(LOG_NAME, xorstr_("[ÍÅ ÀÊÒÈÂÈÐÎÂÀÍÎ] Âàø êëþ÷ èñò¸ê! Ïðîäëèòå ïîäïèñêó.\nHWID: %s | Êëþ÷: %s\n"), total_hwid.c_str(), RegisteredKey.c_str());
+				char inj_msg[500]; memset(inj_msg, 0, sizeof(inj_msg));
+				sprintf(inj_msg, xorstr_("[ËÈÖÅÍÇÈß] Âàø êëþ÷ èñò¸ê! Ïðîäëèòå ïîäïèñêó. Êëþ÷: %s"), RegisteredKey.c_str());
+				reg->WriteString(xorstr_("InjectorMessage"), inj_msg);
+				delete reg; DeadCode();
+			}
+			if (sc_ans.find(xorstr_("KEY_IS_VALID")) != std::string::npos)
+			{
+				LogInFile(LOG_NAME, xorstr_("[ÀÊÒÈÂÈÐÎÂÀÍÎ] Ïðîâåðêà ëèöåíçèè ïðîøëà óñïåøíî!\n"));
+				char inj_msg[500]; memset(inj_msg, 0, sizeof(inj_msg));
+				sprintf(inj_msg, xorstr_("[ËÈÖÅÍÇÈß] Ïîäïèñêà äî %s"), additional.c_str());
+				reg->WriteString(xorstr_("InjectorMessage"), inj_msg);
+				CreateMutexA(NULL, FALSE, xorstr_("RBZVX5S1MXAZ4A"));
+			}
 		}
 		else
 		{
-			LogInFile(LOG_NAME, xorstr_("[PLUGIN] HWID: %s\n"), total_hwid.c_str());
+			LogInFile(LOG_NAME, xorstr_("[ÍÅ ÀÊÒÈÂÈÐÎÂÀÍÎ] Ñêèíüòå HWID ðàçðàáîò÷èêó!\nHWID: %s\n"), total_hwid.c_str());
 			reg->WriteString(xorstr_("RegisteredKey"), xorstr_("NONE"));
 			delete reg; DeadCode();
 		}

@@ -599,12 +599,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_FILL, xorstr_("NONE"));
                 exec_cmd.detach();
             }
-            ImGui::SameLine();
+            /*ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Веста")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BUY_VESTA, xorstr_("NONE"));
                 exec_cmd.detach();
-            }
+            }*/
             ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Маска")).c_str()))
             {

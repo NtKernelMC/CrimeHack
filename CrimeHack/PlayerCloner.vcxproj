@@ -116,6 +116,7 @@
     <ClCompile Include="Registry.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\BotTTU\TTU\TramwayBot\TramwayBot\base64.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="DrawMenu.h" />
     <ClInclude Include="GameHooks.h" />
