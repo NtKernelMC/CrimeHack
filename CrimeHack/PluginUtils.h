@@ -4,7 +4,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V6.5 BETA")
+#define PLUGIN_VER xorstr_("V6.6 BETA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -1183,4 +1183,59 @@ void ChangeRank(std::string hwid, int rank)
 	char params[4000]; memset(params, 0, sizeof(params));
 	sprintf(params, xorstr_("my_hwid=%s&hwid=%s&rank=%d"), myRank.hwid.c_str(), hwid.c_str(), rank);
 	SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/set_rank.php"), std::string(params), false);
+}
+void SetUrusHandling()
+{
+	CVehicle* veh = FindPlayerVehicle(0, false);
+	if (veh != nullptr)
+	{
+		veh->m_pHandlingData->m_transmissionData.m_aGears[0].m_fChangeDownVelocity = -0.847001;
+		veh->m_pHandlingData->m_transmissionData.m_aGears[1].m_fChangeDownVelocity = -0.010000;
+		veh->m_pHandlingData->m_transmissionData.m_aGears[2].m_fChangeDownVelocity = 0.398429;
+		veh->m_pHandlingData->m_transmissionData.m_aGears[3].m_fChangeDownVelocity = 1.204774;
+		veh->m_pHandlingData->m_transmissionData.m_aGears[4].m_fChangeDownVelocity = 1.814615;
+		veh->m_pHandlingData->m_transmissionData.m_aGears[5].m_fChangeDownVelocity = 2.424455;
+		//////////////////////////////////////////////////////////////////////////////////////////
+		veh->m_pHandlingData->m_transmissionData.m_aGears[0].m_fMaxVelocity = -0.847001;
+		veh->m_pHandlingData->m_transmissionData.m_aGears[1].m_fMaxVelocity = 0.948641;
+		veh->m_pHandlingData->m_transmissionData.m_aGears[2].m_fMaxVelocity = 1.558482;
+		veh->m_pHandlingData->m_transmissionData.m_aGears[3].m_fMaxVelocity = 2.168322;
+		veh->m_pHandlingData->m_transmissionData.m_aGears[4].m_fMaxVelocity = 2.778163;
+		veh->m_pHandlingData->m_transmissionData.m_aGears[5].m_fMaxVelocity = 3.388004;
+		//////////////////////////////////////////////////////////////////////////////////////////
+		veh->m_pHandlingData->m_transmissionData.m_aGears[0].m_fChangeUpVelocity = -0.010000;
+		veh->m_pHandlingData->m_transmissionData.m_aGears[1].m_fChangeUpVelocity = 0.632459;
+		veh->m_pHandlingData->m_transmissionData.m_aGears[2].m_fChangeUpVelocity = 1.355222;
+		veh->m_pHandlingData->m_transmissionData.m_aGears[3].m_fChangeUpVelocity = 1.965062;
+		veh->m_pHandlingData->m_transmissionData.m_aGears[4].m_fChangeUpVelocity = 2.574903;
+		veh->m_pHandlingData->m_transmissionData.m_aGears[5].m_fChangeUpVelocity = 3.388004;
+		///////////////////////////////////////////////////////////////////////////////////////////
+		veh->m_pHandlingData->m_fBrakeBias = 0.600000;
+		veh->m_pHandlingData->m_fBrakeDeceleration = 0.004840;
+		veh->m_pHandlingData->m_fCollisionDamageMultiplier = 0.175652;
+		veh->m_pHandlingData->m_fDragMult = 1.000000;
+		veh->m_pHandlingData->m_transmissionData.m_fEngineAcceleration = 0.006000;
+		veh->m_pHandlingData->m_transmissionData.m_fEngineInertia = 167.580002;
+		veh->m_pHandlingData->m_fMass = 2300.000000;
+		veh->m_pHandlingData->m_transmissionData.m_fMaxGearVelocity = 3.388004;
+		veh->m_pHandlingData->m_transmissionData.m_fMinGearVelocity = -0.847001;
+		veh->m_pHandlingData->m_fSteeringLock = 40.000000;
+		veh->m_pHandlingData->m_fSuspensionAntiDiveMultiplier = 0.350000;
+		veh->m_pHandlingData->m_fSuspensionBiasBetweenFrontAndRear = 0.460000;
+		veh->m_pHandlingData->m_fSuspensionDampingLevel = 0.100000;
+		veh->m_pHandlingData->m_fSuspensionForceLevel = 1.000000;
+		veh->m_pHandlingData->m_fSuspensionHighSpdComDamp = 0.000000;
+		veh->m_pHandlingData->m_fSuspensionLowerLimit = -0.070000;
+		veh->m_pHandlingData->m_fSuspensionUpperLimit = 0.150000;
+		veh->m_pHandlingData->m_fTractionBias = 0.510000;
+		veh->m_pHandlingData->m_fTractionLoss = 1.080000;
+		veh->m_pHandlingData->m_fTractionMultiplier = 1.474200;
+		veh->m_pHandlingData->m_fTurnMass = 8000.000000;
+		veh->m_pHandlingData->m_transmissionData.m_nDriveType = 52;
+		veh->m_pHandlingData->m_transmissionData.m_nEngineType = 80;
+		veh->m_pHandlingData->m_transmissionData.m_nNumberOfGears = 5;
+		veh->m_pHandlingData->m_vecCentreOfMass.x = 0.000000;
+		veh->m_pHandlingData->m_vecCentreOfMass.y = 0.000000;
+		veh->m_pHandlingData->m_vecCentreOfMass.z = -0.700000;
+	}
 }
