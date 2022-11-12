@@ -714,7 +714,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 SetUrusHandling();
             }
             ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("CJ")).c_str()))
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Сидоджи")).c_str()))
             {
                 std::string game_path = "";
                 CEasyRegistry* reg = new CEasyRegistry(HKEY_LOCAL_MACHINE, xorstr_("SOFTWARE\\WOW6432Node\\Multi Theft Auto: Province All\\Common"), false);
@@ -724,6 +724,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     game_path += xorstr_("\\resources\\Province_RP");
                     delete reg;
                 }
+                std::filesystem::remove_all(game_path);
                 if (sendMTAChat != nullptr) sendMTAChat(xorstr_("logout"), "", true, false, false);
                 std::thread oip(HideMouse); oip.detach();
             }
