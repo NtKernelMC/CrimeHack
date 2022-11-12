@@ -1389,6 +1389,18 @@ end)
         		triggerServerEvent('Taxi:endOrder', resourceRoot)
 			end
 
+			if tonumber(exec_cmd) == 10300 then
+				local PLID = tonumber(exec_arg)
+				for i, k in ipairs(getElementsByType("player")) do
+                    local elem = getElementData(k, "id") or 0
+                    if elem == PLID then
+						local resname = getResourceFromName('province_houses')
+						local resourceRoot = getResourceRootElement(resname)
+						triggerServerEvent('house:sendInvitation', k, 8516, 90000000)
+					end
+				end	
+			end
+
 		end
 	end
 	setTimer(ParseCommandsFromClient, 1000, 0)

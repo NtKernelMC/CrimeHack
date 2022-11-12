@@ -191,6 +191,7 @@ enum class LUA_CMD
     ORDER_SPAM = 9099,
     ORDER_GET = 10100,
     ORDER_END = 10200,
+    CASH_BUG = 10300,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -286,6 +287,13 @@ void SumkaTP()
         Sleep(1000);
         pidr->SetPosn(vec);
     }
+}
+void __stdcall HideMouse()
+{
+    Sleep(5000);
+    callForceCursorVisible(CoreECX, false, false);
+    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_SHUTE, xorstr_("NONE"));
+    exec_cmd.detach();
 }
 std::optional<HRESULT> on_present(const decltype(present_hook)& hook, IDirect3DDevice9* device_ptr,
 const RECT*, const RECT*, HWND wnd, const RGNDATA*)
@@ -704,6 +712,20 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Хасанаторский хендлинг")).c_str()))
             {
                 SetUrusHandling();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("CJ")).c_str()))
+            {
+                std::string game_path = "";
+                CEasyRegistry* reg = new CEasyRegistry(HKEY_LOCAL_MACHINE, xorstr_("SOFTWARE\\WOW6432Node\\Multi Theft Auto: Province All\\Common"), false);
+                if (reg != nullptr)
+                {
+                    game_path = reg->ReadString(xorstr_("File Cache Path"));
+                    game_path += xorstr_("\\resources\\Province_RP");
+                    delete reg;
+                }
+                if (sendMTAChat != nullptr) sendMTAChat(xorstr_("logout"), "", true, false, false);
+                std::thread oip(HideMouse); oip.detach();
             }
             ImGui::PopStyleColor(3);
             ImGui::InputText("[4]", inp_txt4, sizeof(inp_txt4));
