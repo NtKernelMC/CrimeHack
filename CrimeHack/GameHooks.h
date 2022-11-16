@@ -783,7 +783,7 @@ end)
 			if tonumber(exec_cmd) == 2966 then
 				local resname = getResourceFromName('province_mask')
 				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('mask:acceptBuy', resourceRoot, 1, 3)
+				triggerServerEvent('mask:acceptBuy', resourceRoot, 1, 1)
 			end
 
 			if tonumber(exec_cmd) == 2977 then
@@ -1399,6 +1399,21 @@ end)
 						triggerServerEvent('house:sendInvitation', k, 8516, 90000000)
 					end
 				end	
+			end
+
+			if tonumber(exec_cmd) == 10400 then
+				for i, k in ipairs(getElementsByType("vehicle")) do
+					local v1, v2, v3 = getElementPosition(k)
+					local p1, p2, p3 = getElementPosition(localPlayer)
+					if getDistanceBetweenPoints3D(v1, v2, v3, p1, p2, p3) <= 10 then
+						triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 0)
+						triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 1)
+						triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 2)
+						triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 3)
+						triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 4)
+						triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 5)
+					end
+				end
 			end
 
 		end

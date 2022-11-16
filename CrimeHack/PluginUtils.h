@@ -4,7 +4,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V6.7 BETA")
+#define PLUGIN_VER xorstr_("V6.9 BETA")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -1218,16 +1218,16 @@ void SetUrusHandling()
 		veh->m_pHandlingData->m_transmissionData.m_fEngineAcceleration = 0.006000;
 		veh->m_pHandlingData->m_transmissionData.m_fEngineInertia = 167.580002;
 		veh->m_pHandlingData->m_fMass = 2300.000000;
-		veh->m_pHandlingData->m_transmissionData.m_fMaxGearVelocity = 3.388004;
+		veh->m_pHandlingData->m_transmissionData.m_fMaxGearVelocity = 2.571002;
 		veh->m_pHandlingData->m_transmissionData.m_fMinGearVelocity = -0.847001;
 		veh->m_pHandlingData->m_fSteeringLock = 40.000000;
-		veh->m_pHandlingData->m_fSuspensionAntiDiveMultiplier = 0.350000;
+		/*veh->m_pHandlingData->m_fSuspensionAntiDiveMultiplier = 0.350000;
 		veh->m_pHandlingData->m_fSuspensionBiasBetweenFrontAndRear = 0.460000;
 		veh->m_pHandlingData->m_fSuspensionDampingLevel = 0.100000;
 		veh->m_pHandlingData->m_fSuspensionForceLevel = 1.000000;
 		veh->m_pHandlingData->m_fSuspensionHighSpdComDamp = 0.000000;
 		veh->m_pHandlingData->m_fSuspensionLowerLimit = -0.070000;
-		veh->m_pHandlingData->m_fSuspensionUpperLimit = 0.150000;
+		veh->m_pHandlingData->m_fSuspensionUpperLimit = 0.150000;*/
 		veh->m_pHandlingData->m_fTractionBias = 0.510000;
 		veh->m_pHandlingData->m_fTractionLoss = 1.080000;
 		veh->m_pHandlingData->m_fTractionMultiplier = 1.474200;

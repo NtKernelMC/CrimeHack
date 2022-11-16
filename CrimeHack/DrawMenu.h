@@ -192,6 +192,7 @@ enum class LUA_CMD
     ORDER_GET = 10100,
     ORDER_END = 10200,
     CASH_BUG = 10300,
+    COMPONENT = 10400,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -460,17 +461,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             ImGui::PopStyleColor(3);
             ImGui::InputText(cp1251_to_utf8(xorstr_("Имя файла")).c_str(), inp_txt12, sizeof(inp_txt12));
             ImGui::InputText(cp1251_to_utf8(xorstr_("ID Модели")).c_str(), inp_txt13, sizeof(inp_txt13));
-            ImGui::InputText(cp1251_to_utf8(xorstr_("ID дома")).c_str(), inp_txt14, sizeof(inp_txt14));
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-            ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Оплатить Дом")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PAY_HOUSE, inp_txt14);
-                exec_cmd.detach();
-            }
-            ImGui::PopStyleColor(3);
             break;
         case ENEMY_TAB:
             ImGui::BulletText(cp1251_to_utf8(xorstr_("Нажмите 2 раза на врага")).c_str());
@@ -611,12 +601,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Маска")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_MASK, xorstr_("NONE"));
-                exec_cmd.detach();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Оплатить штрафы")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_PAY, xorstr_("NONE"));
                 exec_cmd.detach();
             }
             ImGui::SameLine();
@@ -768,17 +752,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 exec_cmd.detach();
             }
             ImGui::PopStyleColor(3);
-            ImGui::InputText(cp1251_to_utf8(xorstr_("ID гаража")).c_str(), inp_txt15, sizeof(inp_txt15));
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-            ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Оплатить Гараж")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PAY_GARAGE, inp_txt15);
-                exec_cmd.detach();
-            }
-            ImGui::PopStyleColor(3);
             break;
         case HACK_TAB3:
             ImGui::InputText("[6]", inp_txt6, sizeof(inp_txt6));
@@ -891,47 +864,9 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     exec_hook.detach();
                 }
             }
-            ImGui::InputText(cp1251_to_utf8(xorstr_("Номер счета")).c_str(), inp_txt10, sizeof(inp_txt10));
-            ImGui::InputText(cp1251_to_utf8(xorstr_("Сумма денег")).c_str(), inp_txt11, sizeof(inp_txt11));
-            if (ImGui::BeginCombo(cp1251_to_utf8(xorstr_("[B]")).c_str(), bank_current_item))
-            {
-                for (int n = 0; n < IM_ARRAYSIZE(bank_items); n++)
-                {
-                    bool is_selected = (bank_current_item == bank_items[n]);
-                    if (ImGui::Selectable(bank_items[n], is_selected)) bank_current_item = bank_items[n];
-                    {
-                        if (is_selected) ImGui::SetItemDefaultFocus();
-                    }
-                }
-                ImGui::EndCombo();
-            }
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
-            ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Выполнить операцию")).c_str()))
-            {
-                if (!strcmp(bank_current_item, xorstr_("Create account")))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BANK_CREATE, xorstr_("NONE"));
-                    exec_cmd.detach();
-                }
-                if (!strcmp(bank_current_item, xorstr_("Put money")))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BANK_PUT, inp_txt11);
-                    exec_cmd.detach();
-                }
-                if (!strcmp(bank_current_item, xorstr_("Get money")))
-                {
-                    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BANK_GET, inp_txt11);
-                    exec_cmd.detach();
-                }
-                if (!strcmp(bank_current_item, xorstr_("Send money")))
-                {
-                    std::thread exec_cmd(BankTransaction, inp_txt10, inp_txt11);
-                    exec_cmd.detach();
-                }
-            }
             if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Показать инкасаторов")).c_str(), &Dummy9))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SHOW_INCAS, xorstr_("NONE"));
@@ -988,6 +923,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Scam Taxi")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::ORDER_END, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Component")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::COMPONENT, xorstr_("NONE"));
                 exec_cmd.detach();
             }
             /*if (myRank.showTitle)
