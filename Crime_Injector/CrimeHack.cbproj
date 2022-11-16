@@ -110,7 +110,7 @@
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=vk.com/provhacks;FileDescription=Приватный мультичит для MTA:Province!;FileVersion=1.0.0.0;InternalName=;LegalCopyright=vk.com/provhacks;LegalTrademarks=Province Hacks (c) 2022;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=CrimeHack.exe;ProductVersion=1.0.0.0;Comments=Приватный софт</VerInfo_Keys>
-        <Icon_MainIcon>Dimpoart-Remake-Fimbo-head.ico</Icon_MainIcon>
+        <Icon_MainIcon>Yellowicon-Halloween-Jack-O-Lantern.ico</Icon_MainIcon>
         <AppExecutionLevel>requireAdministrator</AppExecutionLevel>
         <UsePackages>false</UsePackages>
         <LinkPackageStatics>rtl.lib;vcl.lib;vclimg.lib</LinkPackageStatics>
@@ -207,8 +207,8 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile Condition="'$(DynamicRTL)'=='true'" LocalName="$(BDS)\Redist\osx64\libcgcrtl.dylib" Class="DependencyModule">
-                    <Platform Name="OSX64">
+                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin\cc32c270mt.dll" Class="DependencyModule">
+                    <Platform Name="Win32">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -242,9 +242,8 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="..\CrimeHack\output\Crime.SA.vmp.dll" Configuration="Debug" Class="ProjectFile">
+                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'!='true'" LocalName="$(BDS)\bin\cc32c270.dll" Class="DependencyModule">
                     <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -258,13 +257,14 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin\cc32c270mt.dll" Class="DependencyModule">
-                    <Platform Name="Win32">
+                <DeployFile Condition="'$(DynamicRTL)'=='true'" LocalName="$(BDS)\Redist\osx64\libcgcrtl.dylib" Class="DependencyModule">
+                    <Platform Name="OSX64">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'!='true'" LocalName="$(BDS)\bin\cc32c270.dll" Class="DependencyModule">
+                <DeployFile LocalName="..\CrimeHack\output\Crime.SA.vmp.dll" Configuration="Debug" Class="ProjectFile">
                     <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

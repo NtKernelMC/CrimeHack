@@ -1496,8 +1496,8 @@ uint uiQuality, uint uiMaxBandwidth, uint uiMaxPacketSize, void* pResource, uint
 	{
 		if (NoScreen)
 		{
-			LogInFile(LOG_NAME, xorstr_("[WARNING] Заблокирован скриншот от администратора!\n[WARNING] Игра закрылась автоматически."));
-			TerminateProcess(GetCurrentProcess(), 0x0);
+			LogInFile(LOG_NAME, xorstr_("[WARNING] Заблокирован скриншот от администратора!\n"));
+			PlaySoundA(xorstr_("NewAlert.wav"), NULL, SND_FILENAME | SND_ASYNC);
 		}
 		else
 		{
