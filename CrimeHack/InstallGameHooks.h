@@ -121,7 +121,8 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
 		}
         else LogInFile(LOG_NAME, "[ERROR] Can`t find a sig to GetHealth.\n");
         callTriggerServerEvent = (ptrTriggerServerEvent)scan.FindPattern("client.dll",
-        xorstr_("\x55\x8B\xEC\x51\x8B\x45\x04"), xorstr_("xxxxxxx"));
+            xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x48\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x53\x56\x57\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\x45"),
+            xorstr_("xxxxxx????xxxxxxxxxxx????xxxxxxxxxxxxxxxxxxxx"));
         if (callTriggerServerEvent != nullptr)
         {
             MH_RemoveHook(callTriggerServerEvent);
