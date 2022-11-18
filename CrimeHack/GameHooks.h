@@ -3,11 +3,11 @@ ptrTriggerServerEvent callTriggerServerEvent = nullptr;
 void __cdecl TriggerServerEvent(const char* szName, void* CallWithEntity, void* Arguments)
 {
 	bool skip_call = false;
-	if (findStringIC(szName, "trafficlights:addFine") && AntiRed) skip_call = true;
-	if (findStringIC(szName, "newGps:Teleportation")) skip_call = true;
-	if (findStringIC(szName, "SetPlayerCarDamage")) skip_call = true;
-	if (findStringIC(szName, "carshop:updateHpInfo")) skip_call = true;
-	if (findStringIC(szName, "ac:snd_adm_sp")) skip_call = true;
+	if ((findStringIC(szName, xorstr_("trafficlights:addFine")) || findStringIC(szName, xorstr_("police:check"))) && AntiRed) skip_call = true;
+	if (findStringIC(szName, xorstr_("newGps:Teleportation"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("SetPlayerCarDamage"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("carshop:updateHpInfo"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("ac:snd_adm_sp"))) skip_call = true;
 	if (!skip_call) callTriggerServerEvent(szName, CallWithEntity, Arguments);
 }
 HANDLE ordSpm = nullptr;
@@ -1051,7 +1051,7 @@ end)
 			if tonumber(exec_cmd) == 5077 then
 				if DamageReducer == 0 then
 					DamageReducer = 228
-					LossPercentage = tonumber(exec_arg)
+					LossPercentage = 75
 					addEventHandler("onClientPlayerDamage", localPlayer, godModeP)
 				else
 					DamageReducer = 0

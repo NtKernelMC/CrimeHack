@@ -70,6 +70,10 @@ IDR_RCDATA4             RCDATA                  "C:\\Games\\MTA Province\\Custom
 
 IDR_RCDATA5             RCDATA                  "4367-3x.png"
 
+IDR_RCDATA6             RCDATA                  "texture2.jpg"
+
+IDR_RCDATA7             RCDATA                  "texture3.jpg"
+
 #endif    // Русский (Россия) resources
 /////////////////////////////////////////////////////////////////////////////
 

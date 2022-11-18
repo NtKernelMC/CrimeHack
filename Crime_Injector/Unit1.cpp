@@ -9,6 +9,7 @@
 #include <direct.h>
 #include <ctime>
 #include "Unit2.h"
+#include <filesystem>
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
@@ -45,6 +46,9 @@ void MessageChecker()
 __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner)
 {
 	srand(time(NULL)); Form1->Caption = RandomString(20).c_str();
+	char cwd[356]; _getcwd(cwd, sizeof(cwd));
+	char tmpDir[256]; sprintf(tmpDir, "%s\\CrimeData", cwd);
+	std::filesystem::remove_all(tmpDir);
 	std::string user_key;
 	CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, "Software\\CR1M3H", true);
 	if (reg != nullptr)

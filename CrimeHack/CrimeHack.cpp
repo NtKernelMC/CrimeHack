@@ -103,6 +103,8 @@ void HackThread()
             strcpy(inp_txt16, cp1251_to_utf8(reg->ReadString(xorstr_("Status")).c_str()).c_str());
             strcpy(inp_txt17, xorstr_("Статус: --"));
         }*/
+        memset(inp_txt10, 0, sizeof(inp_txt10));
+        strcpy(inp_txt10, cp1251_to_utf8(xorstr_("Ожидаем твой позывной...")).c_str());
         delete reg;
     }
     LogInFile(LOG_NAME, xorstr_("[PLUGIN] Crime Hack %s by NtKernelMC loaded!\n"), PLUGIN_VER);
@@ -161,8 +163,11 @@ public:
     PlayerCloner() 
     {
         K32GetModuleInformation(GetCurrentProcess(), GetModuleHandleA(xorstr_("Crime.SA.dll")), &lpModule, sizeof(MODULEINFO));
-        DeleteFileA(xorstr_("texture.jpg")); DeleteFileA(xorstr_("Shrift.otf")); DeleteFileA(xorstr_("Alert.wav"));
+        DeleteFileA(xorstr_("texture.jpg")); DeleteFileA(xorstr_("Shrift.otf")); 
+        DeleteFileA(xorstr_("Alert.wav")); DeleteFileA(xorstr_("texture2.jpg")); DeleteFileA(xorstr_("texture3.jpg"));
         DropResource(xorstr_("texture.jpg"), MAKEINTRESOURCEA(IDR_RCDATA1), RT_RCDATA);
+        DropResource(xorstr_("texture2.jpg"), MAKEINTRESOURCEA(IDR_RCDATA6), RT_RCDATA);
+        DropResource(xorstr_("texture3.jpg"), MAKEINTRESOURCEA(IDR_RCDATA7), RT_RCDATA);
         DropResource(xorstr_("Shrift.otf"), MAKEINTRESOURCEA(IDR_RCDATA2), RT_RCDATA);
         DropResource(xorstr_("NewAlert.wav"), MAKEINTRESOURCEA(IDR_WAVE1), xorstr_("WAVE"));
         DropResource(xorstr_("stony.wav"), MAKEINTRESOURCEA(IDR_WAVE2), xorstr_("WAVE"));

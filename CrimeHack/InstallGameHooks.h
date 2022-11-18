@@ -304,7 +304,7 @@ void* get_function_address(int VTableIndex)
 }
 kthook::kthook_signal<PresentSignature> present_hook{ get_function_address(17) };
 kthook::kthook_signal<ResetSignature> reset_hook{ get_function_address(16) };
-LPDIRECT3DTEXTURE9 texture;
+LPDIRECT3DTEXTURE9 texture; LPDIRECT3DTEXTURE9 texture2; LPDIRECT3DTEXTURE9 texture3;
 #include "DrawMenu.h" // Render our menu
 std::optional<HRESULT> on_lost(const decltype(reset_hook)& hook, IDirect3DDevice9* device_ptr, D3DPRESENT_PARAMETERS* parameters) 
 {

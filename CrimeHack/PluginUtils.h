@@ -4,7 +4,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V7.0 RELEASE")
+#define PLUGIN_VER xorstr_("V7.1 RELEASE")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -51,6 +51,8 @@ typedef struct
 	DOUBLE radius;
 } GeoData, *PGeoData;
 GeoData geos;
+bool authorized = false;
+std::string client_pseudo = xorstr_("NONE");
 bool AllowTuning = false;
 bool AllowNoScreen = false;
 bool AntiRadar = false;
@@ -507,8 +509,22 @@ std::string CleanFromTrash(std::string& str)
 	str = answer;
 	return additional;
 }
-std::string GetServerMinutes()
+void GetClientPseudo(std::string user_key)
 {
+	std::string host_lnk = xorstr_("provhacks.fun");
+	char params[5000]; memset(params, 0, sizeof(params));
+	sprintf(params, xorstr_("hash1=%s&hash2=%s"), sCryptMyString(user_key).c_str(), sCryptMyString(SOFT_TYPE).c_str());
+	std::string anser = SendInetRequest(P_HTTPS, M_GET, host_lnk, xorstr_("crime_hack/get_pseudo.php"), std::string(params), true);
+	if (!anser.empty())
+	{
+		DecryptMyString(anser);
+		CleanFromTrash(anser);
+		client_pseudo = anser;
+	}
+}
+std::string GetServerMinutes(std::string user_key)
+{
+	GetClientPseudo(user_key);
 	std::string host_lnk = xorstr_("provhacks.fun");
 	std::string anser = SendInetRequest(P_HTTPS, M_GET, host_lnk, xorstr_("crime_hack/resolver.php"), xorstr_("a=yes&b=yes"), true);
 	if (!anser.empty())
@@ -573,7 +589,7 @@ void MakePreInit()
 		std::string LF_Key = GenerateLifeTimeKey(); std::string DM_Key = GenerateDemoKey();
 		if (!RegisteredKey.empty() && RegisteredKey.length() >= 4)
 		{
-			std::string minutes = GetServerMinutes();
+			std::string minutes = GetServerMinutes(RegisteredKey);
 			std::string key_type = xorstr_("MODERN");
 			if (LF_Key.find(RegisteredKey.c_str()) != std::string::npos) key_type = xorstr_("LEGACY");
 			std::string host_lnk = xorstr_("provhacks.fun");

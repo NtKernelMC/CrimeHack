@@ -98,6 +98,9 @@
   <ItemGroup>
     <Image Include="texture.jpg" />
     <Image Include="4367-3x.jpg" />
+    <Image Include="4367-3x.png" />
+    <Image Include="texture2.jpg" />
+    <Image Include="texture3.jpg" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="Shrift.otf" />
