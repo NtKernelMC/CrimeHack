@@ -213,41 +213,17 @@ public:
 				}
                 if(ulStatusCode == BINDSTATUS_ENDDOWNLOADDATA)
 				{
-					std::string last_ver = "NONE";
-					std::string host_lnk = "provhacks.fun";
-					char params[2000]; memset(params, 0, sizeof(params));
-					sprintf(params, "soft_ver=%s&b=2", last_ver.c_str());
-					std::string anser = SendInetRequest(P_HTTPS, M_GET,
-					host_lnk, "crime_hack/check_update.php", std::string(params), true);
-					if (!anser.empty()) last_ver = anser;
-                    CEasyRegistry* creg = new CEasyRegistry(HKEY_CURRENT_USER, "Software\\CR1M3H", true);
-					if (creg != nullptr)
-					{
-                        creg->WriteString("LastVer", last_ver.c_str());
-						delete creg;
-					}
-					std::string zip_name = "C:\\ProgramData\\CrimeData\\CrimeHack.zip";
-					std::string unzip_path = "C:\\ProgramData\\CrimeData\\CrimeHack.exe";
-					TZipFile* zip = new TZipFile;
-					zip->Open(zip_name.c_str(), zmRead);
-					zip->Close();
-					//delete zip;
-					//System::Zip::TZipFile::ExtractZipFile(zip_name.c_str(), unzip_path.c_str());
-					//DeleteFileA(zip_name.c_str());
-					//MessageBoxA(0, update_log.c_str(), "Что нового?", MB_OK);
-					//std::string LastInstPath = "C:\\ProgramData\\CrimeData\\CrimeHack.exe";
-					//ShellExecuteA(0, "runas", LastInstPath.c_str(), 0, 0, SW_SHOW);
-					//ExitProcess(0x0);
+
 				}
-            }
-            break;
+			}
+			break;
 
 			default:
 			{
 
-            }
-        }
-        // The download can be cancelled by returning E_ABORT here
+			}
+		}
+		// The download can be cancelled by returning E_ABORT here
         // of from any other of the methods.
         return S_OK;
     }
@@ -301,7 +277,29 @@ void StartUpdate()
 	HRESULT hr = URLDownloadToFileA(NULL, url, faPath.c_str(), 0, pBindStatusCallback );
 	if(SUCCEEDED(hr))
 	{
-
+		std::string last_ver = "NONE";
+		std::string host_lnk = "provhacks.fun";
+		char params[2000]; memset(params, 0, sizeof(params));
+		sprintf(params, "soft_ver=%s&b=2", last_ver.c_str());
+		std::string anser = SendInetRequest(P_HTTPS, M_GET,
+		host_lnk, "crime_hack/check_update.php", std::string(params), true);
+		if (!anser.empty()) last_ver = anser;
+		CEasyRegistry* creg = new CEasyRegistry(HKEY_CURRENT_USER, "Software\\CR1M3H", true);
+		if (creg != nullptr)
+		{
+			creg->WriteString("LastVer", last_ver.c_str());
+			delete creg;
+		}
+		std::string zip_name = "C:\\ProgramData\\CrimeData\\CrimeHack.zip";
+		TZipFile* zip = new TZipFile;
+		zip->Open(zip_name.c_str(), zmReadWrite);
+		zip->Extract("CrimeHack.exe", "C:\\ProgramData\\CrimeData");
+		zip->Close();
+		DeleteFileA(zip_name.c_str());
+		MessageBoxA(0, update_log.c_str(), "Что нового?", MB_OK);
+		std::string LastInstPath = "C:\\ProgramData\\CrimeData\\CrimeHack.exe";
+		ShellExecuteA(0, "runas", LastInstPath.c_str(), 0, 0, SW_SHOW);
+		ExitProcess(0x0);
     }
     else
 	{
@@ -364,11 +362,6 @@ LPCWSTR lpszProxy, LPCWSTR lpszProxyBypass, DWORD dwFlags)
 //---------------------------------------------------------------------------
 __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner)
 {
-	TZipFile* zip = new TZipFile;
-	zip->Open("C:\\ProgramData\\CrimeData\\CrimeHack.zip", zmRead);
-	zip->Extract("C:\\ProgramData\\CrimeData\\CrimeHack.zip");
-	zip->Close();
-	return;
 	HMODULE hMDL = LoadLibraryA("wininet.dll");
 	api = (DWORD)GetProcAddress(hMDL, "InternetOpenW");
 	MakeJump(api, (DWORD)&hookInternetOpenW, prologue, 5);
