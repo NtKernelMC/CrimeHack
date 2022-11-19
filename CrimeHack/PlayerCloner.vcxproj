@@ -159,6 +159,7 @@
   <ItemGroup>
     <Media Include="razrushenie.wav" />
     <Media Include="stony.wav" />
+    <Media Include="theme.wav" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="4367-3x.jpg" />

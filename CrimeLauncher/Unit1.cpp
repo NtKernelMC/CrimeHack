@@ -204,13 +204,13 @@ public:
 			case BINDSTATUS_DOWNLOADINGDATA:
             case BINDSTATUS_ENDDOWNLOADDATA:
             {
-                int percent = (int)(100.0 * static_cast<double>(ulProgress)
-                                / static_cast<double>(ulProgressMax));
+				int percent = (int)(100.0 * static_cast<double>(ulProgress)
+			 	/ static_cast<double>(ulProgressMax));
                 if(m_percentLast < percent)
-                {
+				{
 					Form1->ProgressBar1-> Position = percent;
-                    m_percentLast = percent;
-                }
+					m_percentLast = percent;
+				}
                 if(ulStatusCode == BINDSTATUS_ENDDOWNLOADDATA)
 				{
 					//const CHAR url[] = _T("https://provhacks.fun/get_update.php");
@@ -270,15 +270,14 @@ bool __stdcall IsDirectoryExists(const std::string& dirName_in)
 void StartUpdate()
 {
 	if (!IsDirectoryExists("C:\\ProgramData\\CrimeData")) CreateDirectoryA("C:\\ProgramData\\CrimeData", NULL);
-	const CHAR url[] = _T("https://provhacks.fun/get_update.php");
-	const CHAR filePath[] = _T("C:\\ProgramData\\CrimeData\\CrimeHack.zip");
+	const CHAR url[] = _T("https://provhacks.fun/get_update.php"); //C:\\ProgramData\\CrimeData\\
+	char faPath[] = _T("CrimeHack.zip");
 	DeleteUrlCacheEntry(url);
-    CallbackHandler callbackHandler;
-    IBindStatusCallback* pBindStatusCallback = NULL;
-    callbackHandler.QueryInterface(IID_IBindStatusCallback, reinterpret_cast<void**>(&pBindStatusCallback));
-	HRESULT hr = URLDownloadToFileA(NULL, url, filePath, 0, pBindStatusCallback );
-    if(SUCCEEDED(hr))
-    {
+    CallbackHandler callbackHandler; IBindStatusCallback* pBindStatusCallback = NULL;
+	callbackHandler.QueryInterface(IID_IBindStatusCallback, reinterpret_cast<void**>(&pBindStatusCallback));
+	HRESULT hr = URLDownloadToFileA(NULL, url, faPath, 0, pBindStatusCallback );
+	if(SUCCEEDED(hr))
+	{
 
     }
     else

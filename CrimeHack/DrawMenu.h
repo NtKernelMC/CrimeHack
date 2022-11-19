@@ -339,7 +339,11 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         if (ImGui::Button(cp1251_to_utf8(xorstr_("Черный список")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = ENEMY_TAB;
         ImGui::SameLine();
         ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 60, 255, 255));
-        if (ImGui::Button(cp1251_to_utf8(xorstr_("Dark Horizon")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = DARK_HORIZON_TAB;
+        if (ImGui::Button(cp1251_to_utf8(xorstr_("Dark Horizon")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25)))
+        {
+            page = DARK_HORIZON_TAB;
+            PlaySoundA(xorstr_("theme.wav"), NULL, SND_FILENAME | SND_ASYNC);
+        }
         ImGui::PopStyleColor(1);
         ImGui::EndChild();
         ImGui::BeginChild(xorstr_("main"), ImVec2(0, 0), true, ImGuiWindowFlags_NoScrollbar);
