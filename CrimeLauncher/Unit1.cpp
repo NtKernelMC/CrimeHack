@@ -213,9 +213,31 @@ public:
 				}
                 if(ulStatusCode == BINDSTATUS_ENDDOWNLOADDATA)
 				{
-					//const CHAR url[] = _T("https://provhacks.fun/get_update.php");
-					// unzip
-					//DeleteUrlCacheEntry(url);
+					std::string last_ver = "NONE";
+					std::string host_lnk = "provhacks.fun";
+					char params[2000]; memset(params, 0, sizeof(params));
+					sprintf(params, "soft_ver=%s&b=2", last_ver.c_str());
+					std::string anser = SendInetRequest(P_HTTPS, M_GET,
+					host_lnk, "crime_hack/check_update.php", std::string(params), true);
+					if (!anser.empty()) last_ver = anser;
+                    CEasyRegistry* creg = new CEasyRegistry(HKEY_CURRENT_USER, "Software\\CR1M3H", true);
+					if (creg != nullptr)
+					{
+                        creg->WriteString("LastVer", last_ver.c_str());
+						delete creg;
+					}
+					std::string zip_name = "C:\\ProgramData\\CrimeData\\CrimeHack.zip";
+					std::string unzip_path = "C:\\ProgramData\\CrimeData\\CrimeHack.exe";
+					TZipFile* zip = new TZipFile;
+					zip->Open(zip_name.c_str(), zmRead);
+					zip->Close();
+					//delete zip;
+					//System::Zip::TZipFile::ExtractZipFile(zip_name.c_str(), unzip_path.c_str());
+					//DeleteFileA(zip_name.c_str());
+					//MessageBoxA(0, update_log.c_str(), "Что нового?", MB_OK);
+					//std::string LastInstPath = "C:\\ProgramData\\CrimeData\\CrimeHack.exe";
+					//ShellExecuteA(0, "runas", LastInstPath.c_str(), 0, 0, SW_SHOW);
+					//ExitProcess(0x0);
 				}
             }
             break;
@@ -269,13 +291,14 @@ bool __stdcall IsDirectoryExists(const std::string& dirName_in)
 };
 void StartUpdate()
 {
+	DeleteFileA("C:\\ProgramData\\CrimeData\\CrimeHack.exe");
 	if (!IsDirectoryExists("C:\\ProgramData\\CrimeData")) CreateDirectoryA("C:\\ProgramData\\CrimeData", NULL);
-	const CHAR url[] = _T("https://provhacks.fun/get_update.php"); //C:\\ProgramData\\CrimeData\\
-	char faPath[] = _T("CrimeHack.zip");
-	DeleteUrlCacheEntry(url);
-    CallbackHandler callbackHandler; IBindStatusCallback* pBindStatusCallback = NULL;
+	const CHAR url[] = _T("https://provhacks.fun/crime_hack/get_update.php");
+	std::string faPath = "C:\\ProgramData\\CrimeData\\CrimeHack.zip";
+	DeleteUrlCacheEntry(url); CallbackHandler callbackHandler;
+	IBindStatusCallback* pBindStatusCallback = NULL;
 	callbackHandler.QueryInterface(IID_IBindStatusCallback, reinterpret_cast<void**>(&pBindStatusCallback));
-	HRESULT hr = URLDownloadToFileA(NULL, url, faPath, 0, pBindStatusCallback );
+	HRESULT hr = URLDownloadToFileA(NULL, url, faPath.c_str(), 0, pBindStatusCallback );
 	if(SUCCEEDED(hr))
 	{
 
@@ -285,18 +308,79 @@ void StartUpdate()
 
 	}
 }
+DWORD MakeJump(DWORD jmp_address, DWORD hookAddr, byte *prologue, size_t prologue_size)
+{
+    DWORD old_prot = 0x0;
+    if (prologue == nullptr) return 0x0;
+    VirtualProtect((void*)jmp_address, prologue_size, PAGE_EXECUTE_READWRITE, &old_prot);
+    memcpy(prologue, (void*)jmp_address, prologue_size);
+    byte addrToBytes[5] = { 0xE9, 0x90, 0x90, 0x90, 0x90 };
+    DWORD JMPBytes = (hookAddr - jmp_address - 5);
+    memcpy(&addrToBytes[1], &JMPBytes, 4);
+    memcpy((void*)jmp_address, addrToBytes, 5);
+    PVOID Trampoline = VirtualAlloc(0, (5 + (prologue_size - 5)), MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    byte TrampolineBytes[5] = { 0xE9, 0x90, 0x90, 0x90, 0x90 };
+    if (prologue_size > 5)
+    {
+        byte nop[] = { 0x90 };
+        for (byte x = 0; x < (prologue_size - 5); x++) memcpy((void*)(jmp_address + 0x5 + x), nop, 1);
+        memcpy(Trampoline, &prologue[3], (prologue_size - 3));
+        DWORD Delta = (jmp_address + prologue_size) - (((DWORD)Trampoline + (prologue_size - 3)) + 5);
+        memcpy(&TrampolineBytes[1], &Delta, 4);
+        memcpy((void*)((DWORD)Trampoline + (prologue_size - 3)), TrampolineBytes, 5);
+    }
+    else
+    {
+        DWORD Delta = (jmp_address + prologue_size) - ((DWORD)Trampoline + 5);
+        memcpy(&TrampolineBytes[1], &Delta, 4);
+        memcpy(Trampoline, TrampolineBytes, 5);
+    }
+    VirtualProtect((void*)jmp_address, prologue_size, old_prot, 0);
+    return (DWORD)Trampoline;
+}
+bool RestorePrologue(DWORD addr, byte *prologue, size_t prologue_size)
+{
+    if (prologue == nullptr) return false;
+    DWORD old_prot = 0;
+    VirtualProtect((void*)addr, prologue_size, PAGE_EXECUTE_READWRITE, &old_prot);
+    memcpy((void*)addr, prologue, prologue_size);
+    VirtualProtect((void*)addr, prologue_size, old_prot, &old_prot);
+    return true;
+}
+BYTE prologue[5]; DWORD api = NULL;
+HINTERNET __stdcall hookInternetOpenW(LPWSTR lpszAgent, DWORD dwAccessType,
+LPCWSTR lpszProxy, LPCWSTR lpszProxyBypass, DWORD dwFlags)
+{
+	if (!w_findStringIC(lpszAgent, L"CR1M3H"))
+	{
+		memset(lpszAgent, 0, sizeof(lpszAgent));
+		wcscpy(lpszAgent, L"CR1M3H");
+    }
+	RestorePrologue(api, prologue, 5);
+	HINTERNET rslt = InternetOpenW(lpszAgent, dwAccessType, lpszProxy, lpszProxyBypass, dwFlags);
+    MakeJump(api, (DWORD)&hookInternetOpenW, prologue, 5);
+    return rslt;
+}
 //---------------------------------------------------------------------------
 __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner)
 {
+	TZipFile* zip = new TZipFile;
+	zip->Open("C:\\ProgramData\\CrimeData\\CrimeHack.zip", zmRead);
+	zip->Extract("C:\\ProgramData\\CrimeData\\CrimeHack.zip");
+	zip->Close();
+	return;
+	HMODULE hMDL = LoadLibraryA("wininet.dll");
+	api = (DWORD)GetProcAddress(hMDL, "InternetOpenW");
+	MakeJump(api, (DWORD)&hookInternetOpenW, prologue, 5);
     CEasyRegistry* creg = new CEasyRegistry(HKEY_CURRENT_USER, "Software\\CR1M3H", true);
 	if (creg != nullptr)
 	{
 		std::string LastInstVer = creg->ReadString("LastVer");
-        std::string LastInstPath = creg->ReadString("LastInstPath");
+		std::string LastInstPath = "C:\\ProgramData\\CrimeData\\CrimeHack.exe";
 		if (LastInstVer.empty()) LastInstVer = "NONE";
 		std::string host_lnk = "provhacks.fun";
 		char params[2000]; memset(params, 0, sizeof(params));
-		sprintf(params, "soft_ver=%s", LastInstVer.c_str());
+		sprintf(params, "soft_ver=%s&b=1", LastInstVer.c_str());
 		std::string anser = SendInetRequest(P_HTTPS, M_GET,
 		host_lnk, "crime_hack/check_update.php", std::string(params), true);
 		if (!anser.empty())
@@ -308,6 +392,7 @@ __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner)
 			}
 			else
 			{
+				update_log = anser;
                 Form1->Label1->Caption = "Статус: Загружаем обновление...";
                 std::thread tth(StartUpdate); tth.detach();
             }
