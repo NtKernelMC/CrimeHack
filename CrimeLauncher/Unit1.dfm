@@ -12125,7 +12125,7 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 24
-    Top = 64
+    Top = 67
     Width = 465
     Height = 25
     TabOrder = 0

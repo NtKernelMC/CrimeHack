@@ -773,7 +773,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 ImGui::Image(texture2, ImVec2(300, 248));
                 ImGui::SameLine(); ImGui::BeginGroup();
                 ImGui::TextColored(ImVec4(1, 1, 0, 1), cp1251_to_utf8(xorstr_("Подразделение \"Темный Горизонт\"")).c_str());
-                ImGui::Text(cp1251_to_utf8(xorstr_("> Приветствует брат!")).c_str());
+                ImGui::Text(cp1251_to_utf8(xorstr_("> Приветствуем брат!")).c_str());
                 ImGui::Text(cp1251_to_utf8(xorstr_("Род деятельности: [ДАННЫЕ УДАЛЕНЫ]")).c_str());
                 ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
                 ImGui::Text(cp1251_to_utf8(xorstr_(">> Введи свой позывной <<")).c_str());

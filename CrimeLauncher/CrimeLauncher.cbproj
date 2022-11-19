@@ -135,6 +135,12 @@
             <BuildOrder>1</BuildOrder>
             <PCH>true</PCH>
         </PCHCompile>
+        <CppCompile Include="Registry.cpp">
+            <BuildOrder>3</BuildOrder>
+        </CppCompile>
+        <None Include="Registry.h">
+            <BuildOrder>4</BuildOrder>
+        </None>
         <CppCompile Include="Unit1.cpp">
             <Form>Form1</Form>
             <FormType>dfm</FormType>
