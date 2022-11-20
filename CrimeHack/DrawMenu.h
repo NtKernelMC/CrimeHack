@@ -861,6 +861,34 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                         }
                     }
                 }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("√нев небес")).c_str()))
+                {
+                    CPed* local_ped = FindPlayerPed(-1);
+                    if (local_ped != nullptr)
+                    {
+                        for (decltype(auto) ped : CPools::ms_pPedPool)
+                        {
+                            if (ped != nullptr && ped != local_ped && ped->m_pVehicle == nullptr)
+                            {
+                                if (ped->IsVisible() && ped->GetIsOnScreen() && ped->m_fHealth != 0.0f)
+                                {
+                                    for (decltype(auto) vehicle : CPools::ms_pVehiclePool)
+                                    {
+                                        if (vehicle != nullptr && vehicle->m_pDriver == nullptr) 
+                                        {
+                                            CVector remote_pos = ped->GetPosition();
+                                            remote_pos.z += 5.0f;
+                                            vehicle->SetPosn(remote_pos);
+                                            vehicle->m_vecMoveSpeed.z -= 1.5f;
+                                            SyncUnoccupiedData(vehicle);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 ImGui::PopStyleColor(3);
             }
             break;

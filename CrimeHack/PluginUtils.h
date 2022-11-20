@@ -4,7 +4,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V7.2 RELEASE")
+#define PLUGIN_VER xorstr_("V7.3 RELEASE")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -55,7 +55,7 @@ void SyncUnoccupiedData(CVehicle *vehicle)
 	if (vehicle == nullptr) return;
 	CPed* ped = FindPlayerPed(-1);
 	typedef bool(__cdecl* ptrStaticVehicleCollisionHandler)(CVehicle** pCollidingVehicle, CEntity* pCollidedVehicle, int iModelIndex, float fDamageImpulseMag, float fCollidingDamageImpulseMag, unsigned __int16 usPieceType, CVector vecCollisionPos, CVector vecCollisionVelocity);
-	if (VehColHandler != NULL)
+	if (VehColHandler != NULL && ped != nullptr)
 	{
 		ptrStaticVehicleCollisionHandler callCollision = (ptrStaticVehicleCollisionHandler)VehColHandler;
 		callCollision(&vehicle, ped, ped->m_nModelIndex, 1.0, 1.0, 3, vehicle->GetPosition(), CVector(0.2f, 0.0f, 0.0f));
