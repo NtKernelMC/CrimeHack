@@ -281,7 +281,7 @@ void AuthorizePseudo()
     CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, xorstr_("Software\\CR1M3H"), true);
     if (reg != nullptr)
     {
-        reg->WriteString(xorstr_("LastPseudo"), utf8_to_cp1251(inp_txt10).c_str());
+        reg->WriteString(xorstr_("LastPseudo"), utf8_to_cp1251(inp_txt9).c_str());
         delete reg;
     }
 }
@@ -321,6 +321,11 @@ void CheckBindings()
     {
         bind_menu[6] = false;
         RepairAllCars();
+    }
+    if (bind_menu[7])
+    {
+        bind_menu[7] = false;
+        Concentrator();
     }
 }
 std::optional<HRESULT> on_present(const decltype(present_hook)& hook, IDirect3DDevice9* device_ptr,
@@ -889,6 +894,11 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 if (ImGui::Button(cp1251_to_utf8(xorstr_("Починить тачки")).c_str()))
                 {
                     RepairAllCars();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Концентратор")).c_str()))
+                {
+                    Concentrator();
                 }
                 ImGui::PopStyleColor(3);
             }

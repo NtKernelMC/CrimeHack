@@ -4,7 +4,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V7.5 RELEASE")
+#define PLUGIN_VER xorstr_("V7.6 RELEASE")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -38,7 +38,7 @@
 #pragma comment(lib, "Wininet.lib")
 #define SOFT_TYPE xorstr_("crimehack")
 bool findStringIC(const std::string& strHaystack, const std::string& strNeedle);
-volatile bool bind_menu[7] = { false, false, false, false, false, false };
+volatile bool bind_menu[8] = { false, false, false, false, false, false, false, false };
 float StreamDist = 250.0f;
 CComPtr<ILocation> spLocation;
 IID REPORT_TYPES[] = { IID_ILatLongReport };
@@ -172,6 +172,28 @@ void RepairAllCars()
 		if (vehicle->m_pDriver == nullptr)
 		{
 			vehicle->m_fHealth = 1000.0f;
+			SyncUnoccupiedData(vehicle);
+		}
+	}
+}
+void Concentrator()
+{
+	CVector marker;
+	for (int i = 0; i < (0xAF * 0x28); i += 0x28)
+	{
+		if (*(short*)(0xBA873D + i) == 4611)
+		{
+			BYTE icon = *(BYTE*)((0xBA86F0 + 36) + 0x28 + i);
+			float* pos = (float*)(0xBA86F8 + 0x28 + i);
+			CVector dest(*pos, *(pos + 1), *(pos + 2));
+			if (icon == 41) marker = dest;
+		}
+	}
+	for (auto vehicle : CPools::ms_pVehiclePool)
+	{
+		if (vehicle->m_pDriver == nullptr)
+		{
+			vehicle->SetPosn(marker);
 			SyncUnoccupiedData(vehicle);
 		}
 	}

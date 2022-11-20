@@ -184,6 +184,11 @@ void HackThread()
             bind_menu[6] = true;
             Sleep(75);
         }
+        if (GetAsyncKeyState('Q') && GetAsyncKeyState('8') && GetModuleHandleA(xorstr_("client.dll")))
+        {
+            bind_menu[7] = true;
+            Sleep(75);
+        }
         if (GetAsyncKeyState(VK_CONTROL) && SpeedHack && GetModuleHandleA(xorstr_("client.dll")))
         {
             CVehicle* veh = FindPlayerVehicle(0, false);
