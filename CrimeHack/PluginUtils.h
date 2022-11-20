@@ -4,7 +4,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V7.4 RELEASE")
+#define PLUGIN_VER xorstr_("V7.5 RELEASE")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -37,11 +37,15 @@
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Wininet.lib")
 #define SOFT_TYPE xorstr_("crimehack")
+bool findStringIC(const std::string& strHaystack, const std::string& strNeedle);
+volatile bool bind_menu[7] = { false, false, false, false, false, false };
 float StreamDist = 250.0f;
 CComPtr<ILocation> spLocation;
 IID REPORT_TYPES[] = { IID_ILatLongReport };
 DWORD VehColHandler = NULL;
 bool UnocSync = false;
+bool RepairSync = false;
+std::string GetGamePath();
 typedef void* (__thiscall *ptrGetClosestRemotePlayer)(void* ECX, CVector* vecPosition, float fMaxDistance);
 ptrGetClosestRemotePlayer callGetClosestRemotePlayer = nullptr;
 typedef bool(__cdecl* f_SendChat)(const char* szCommand, const char* szArguments, bool bHandleRemotely, bool bHandled, bool bIsScriptedBind);
@@ -59,6 +63,117 @@ void SyncUnoccupiedData(CVehicle *vehicle)
 	{
 		ptrStaticVehicleCollisionHandler callCollision = (ptrStaticVehicleCollisionHandler)VehColHandler;
 		callCollision(&vehicle, ped, ped->m_nModelIndex, 1.0, 1.0, 3, vehicle->GetPosition(), CVector(0.2f, 0.0f, 0.0f));
+	}
+}
+void SetCarTotal()
+{
+	UnocSync = true; RepairSync = false; bind_menu[0] = false;
+	for (auto vehicle : CPools::ms_pVehiclePool)
+	{
+		if (vehicle->m_pDriver == nullptr)
+		{
+			vehicle->m_fHealth = 250.0f;
+			SyncUnoccupiedData(vehicle);
+		}
+	}
+}
+void SetCarRvanka()
+{
+	CPed* local_ped = FindPlayerPed(-1);
+	if (local_ped != nullptr)
+	{
+		for (decltype(auto) ped : CPools::ms_pPedPool)
+		{
+			if (ped != nullptr && ped != local_ped && ped->m_pVehicle == nullptr)
+			{
+				if (ped->IsVisible() && ped->GetIsOnScreen() && ped->m_fHealth != 0.0f)
+				{
+					for (decltype(auto) vehicle : CPools::ms_pVehiclePool)
+					{
+						if (vehicle != nullptr && vehicle->m_pDriver == nullptr)
+						{
+							CVector remote_pos = ped->GetPosition();
+							remote_pos.z += 1.0f;
+							vehicle->SetPosn(remote_pos);
+							vehicle->m_vecMoveSpeed.x = 10.0f;
+							SyncUnoccupiedData(vehicle);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+void SetShapalah()
+{
+	for (auto vehicle : CPools::ms_pVehiclePool)
+	{
+		if (vehicle->m_pDriver == nullptr)
+		{
+			vehicle->m_vecTurnSpeed.x = 0.5f;
+			SyncUnoccupiedData(vehicle);
+		}
+	}
+}
+void SetMoreTP()
+{
+	for (auto vehicle : CPools::ms_pVehiclePool)
+	{
+		if (vehicle->m_pDriver == nullptr)
+		{
+			vehicle->SetPosn(CVector(9999.0f, 9999.0f, 9999.0f));
+			SyncUnoccupiedData(vehicle);
+		}
+	}
+}
+void SetHeavenRage()
+{
+	CPed* local_ped = FindPlayerPed(-1);
+	if (local_ped != nullptr)
+	{
+		for (decltype(auto) ped : CPools::ms_pPedPool)
+		{
+			if (ped != nullptr && ped != local_ped && ped->m_pVehicle == nullptr)
+			{
+				if (ped->IsVisible() && ped->GetIsOnScreen() && ped->m_fHealth != 0.0f)
+				{
+					for (decltype(auto) vehicle : CPools::ms_pVehiclePool)
+					{
+						if (vehicle != nullptr && vehicle->m_pDriver == nullptr)
+						{
+							CVector remote_pos = ped->GetPosition();
+							remote_pos.z += 5.0f;
+							vehicle->SetPosn(remote_pos);
+							vehicle->m_vecMoveSpeed.z -= 1.5f;
+							SyncUnoccupiedData(vehicle);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+void FuckRuchnik()
+{
+	char prepared_path[600]; memset(prepared_path, 0, sizeof(prepared_path));
+	sprintf(prepared_path, xorstr_("%s\\ExecCMD.txt"), GetGamePath().c_str());
+	FILE* hFile = fopen(prepared_path, xorstr_("a+"));
+	if (hFile)
+	{
+		fprintf(hFile, xorstr_("%d\n%s"), 10500, xorstr_("NONE"));
+		fclose(hFile);
+	}
+}
+void RepairAllCars()
+{
+	UnocSync = false; RepairSync = true;
+	for (auto vehicle : CPools::ms_pVehiclePool)
+	{
+		if (vehicle->m_pDriver == nullptr)
+		{
+			vehicle->m_fHealth = 1000.0f;
+			SyncUnoccupiedData(vehicle);
+		}
 	}
 }
 typedef struct
@@ -537,6 +652,13 @@ void GetClientPseudo(std::string user_key)
 		DecryptMyString(anser);
 		CleanFromTrash(anser);
 		client_pseudo = anser;
+		CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, xorstr_("Software\\CR1M3H"), true);
+		if (reg != nullptr)
+		{
+			std::string last_pseudo = reg->ReadString(xorstr_("LastPseudo"));
+			if (findStringIC(last_pseudo, client_pseudo)) authorized = true;
+			delete reg;
+		}
 	}
 }
 std::string GetServerMinutes(std::string user_key)

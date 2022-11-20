@@ -192,6 +192,7 @@ enum class LUA_CMD
     ORDER_END = 10200,
     CASH_BUG = 10300,
     COMPONENT = 10400,
+    SET_FROZEN = 10500,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -277,10 +278,55 @@ void AuthorizePseudo()
     strcpy(inp_txt10, cp1251_to_utf8(xorstr_("Проводим сканирование сетчатки...")).c_str());
     Sleep(3000);
     authorized = true;
+    CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, xorstr_("Software\\CR1M3H"), true);
+    if (reg != nullptr)
+    {
+        reg->WriteString(xorstr_("LastPseudo"), utf8_to_cp1251(inp_txt10).c_str());
+        delete reg;
+    }
+}
+void CheckBindings()
+{
+    if (bind_menu[0])
+    {
+        bind_menu[0] = false;
+        SetCarTotal();
+    }
+    if (bind_menu[1])
+    {
+        bind_menu[1] = false;
+        SetCarRvanka();
+    }
+    if (bind_menu[2])
+    {
+        bind_menu[2] = false;
+        SetShapalah();
+    }
+    if (bind_menu[3])
+    {
+        bind_menu[3] = false;
+        SetMoreTP();
+    }
+    if (bind_menu[4])
+    {
+        bind_menu[4] = false;
+        SetHeavenRage();
+    }
+    if (bind_menu[5])
+    {
+        bind_menu[5] = false;
+        FuckRuchnik();
+    }
+    if (bind_menu[6])
+    {
+        bind_menu[6] = false;
+        RepairAllCars();
+    }
 }
 std::optional<HRESULT> on_present(const decltype(present_hook)& hook, IDirect3DDevice9* device_ptr,
 const RECT*, const RECT*, HWND wnd, const RGNDATA*)
 {
+    CheckBindings();
     static bool ImGui_inited = false;
     if (!ImGui_inited)
     {
@@ -588,6 +634,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Починка")).c_str()))
             {
+                UnocSync = false;
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_FIX, xorstr_("NONE"));
                 exec_cmd.detach();
             }
@@ -812,97 +859,36 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(10, 44, 154, 255));
                 if (ImGui::Button(cp1251_to_utf8(xorstr_("Затоталить тачки")).c_str()))
                 {
-                    UnocSync = true;
-                    for (auto vehicle : CPools::ms_pVehiclePool)
-                    {
-                        if (vehicle->m_pDriver == nullptr)
-                        {
-                            vehicle->m_fHealth = 250.0f;
-                            SyncUnoccupiedData(vehicle);
-                        }
-                    }
+                    SetCarTotal();
                 }
                 ImGui::SameLine();
                 if (ImGui::Button(cp1251_to_utf8(xorstr_("Пиздарванка")).c_str()))
                 {
-                    CPed* local_ped = FindPlayerPed(-1);
-                    if (local_ped != nullptr)
-                    {
-                        for (decltype(auto) ped : CPools::ms_pPedPool)
-                        {
-                            if (ped != nullptr && ped != local_ped && ped->m_pVehicle == nullptr)
-                            {
-                                if (ped->IsVisible() && ped->GetIsOnScreen() && ped->m_fHealth != 0.0f)
-                                {
-                                    for (decltype(auto) vehicle : CPools::ms_pVehiclePool)
-                                    {
-                                        if (vehicle != nullptr && vehicle->m_pDriver == nullptr)
-                                        {
-                                            CVector remote_pos = ped->GetPosition(); 
-                                            remote_pos.z += 1.0f;
-                                            vehicle->SetPosn(remote_pos);
-                                            vehicle->m_vecMoveSpeed.x = 10.0f;
-                                            SyncUnoccupiedData(vehicle);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    SetCarRvanka();
                 }
                 ImGui::SameLine();
                 if (ImGui::Button(cp1251_to_utf8(xorstr_("Шапалах")).c_str()))
                 {
-                    UnocSync = true;
-                    for (auto vehicle : CPools::ms_pVehiclePool)
-                    {
-                        if (vehicle->m_pDriver == nullptr)
-                        {
-                            vehicle->m_vecTurnSpeed.x = 0.5f;
-                            SyncUnoccupiedData(vehicle);
-                        }
-                    }
+                    SetShapalah();
                 }
                 ImGui::SameLine();
                 if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП тачек в море")).c_str()))
                 {
-                    UnocSync = true;
-                    for (auto vehicle : CPools::ms_pVehiclePool)
-                    {
-                        if (vehicle->m_pDriver == nullptr)
-                        {
-                            vehicle->SetPosn(CVector(9999.0f, 9999.0f, 9999.0f));
-                            SyncUnoccupiedData(vehicle);
-                        }
-                    }
+                    SetMoreTP();
                 }
                 ImGui::SameLine();
                 if (ImGui::Button(cp1251_to_utf8(xorstr_("Гнев небес")).c_str()))
                 {
-                    CPed* local_ped = FindPlayerPed(-1);
-                    if (local_ped != nullptr)
-                    {
-                        for (decltype(auto) ped : CPools::ms_pPedPool)
-                        {
-                            if (ped != nullptr && ped != local_ped && ped->m_pVehicle == nullptr)
-                            {
-                                if (ped->IsVisible() && ped->GetIsOnScreen() && ped->m_fHealth != 0.0f)
-                                {
-                                    for (decltype(auto) vehicle : CPools::ms_pVehiclePool)
-                                    {
-                                        if (vehicle != nullptr && vehicle->m_pDriver == nullptr) 
-                                        {
-                                            CVector remote_pos = ped->GetPosition();
-                                            remote_pos.z += 5.0f;
-                                            vehicle->SetPosn(remote_pos);
-                                            vehicle->m_vecMoveSpeed.z -= 1.5f;
-                                            SyncUnoccupiedData(vehicle);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    SetHeavenRage();
+                }
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Анти-Ручник")).c_str()))
+                {
+                    FuckRuchnik();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Починить тачки")).c_str()))
+                {
+                    RepairAllCars();
                 }
                 ImGui::PopStyleColor(3);
             }

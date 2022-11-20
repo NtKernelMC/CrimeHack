@@ -478,6 +478,7 @@ ptrGetHealth callGetHealth = nullptr;
 float __fastcall GetHealth(void* ECX, void* EDX)
 {
 	if (TotalCar || UnocSync) return 250.0f;
+	if (RepairSync) return 1000.0f;
 	if (CarGM) return 1000.0f;
 	return callGetHealth(ECX);
 }
@@ -1419,6 +1420,12 @@ end)
 						triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 5)
 					end
 				end
+			end
+
+			if tonumber(exec_cmd) == 10500 then
+				for i, k in ipairs(getElementsByType("vehicle")) do
+                    setElementFrozen(k, false)
+				end	
 			end
 
 		end
