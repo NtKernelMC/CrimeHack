@@ -4,7 +4,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V7.1 RELEASE")
+#define PLUGIN_VER xorstr_("V7.2 RELEASE")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -40,10 +40,27 @@
 float StreamDist = 250.0f;
 CComPtr<ILocation> spLocation;
 IID REPORT_TYPES[] = { IID_ILatLongReport };
+DWORD VehColHandler = NULL;
+bool UnocSync = false;
 typedef void* (__thiscall *ptrGetClosestRemotePlayer)(void* ECX, CVector* vecPosition, float fMaxDistance);
 ptrGetClosestRemotePlayer callGetClosestRemotePlayer = nullptr;
 typedef bool(__cdecl* f_SendChat)(const char* szCommand, const char* szArguments, bool bHandleRemotely, bool bHandled, bool bIsScriptedBind);
 f_SendChat sendMTAChat = nullptr;
+CEntity* __stdcall GetLocalEntity(void)
+{
+	return ((CEntity * (__cdecl*)(int))0x56E120)(-1);
+}
+void SyncUnoccupiedData(CVehicle *vehicle)
+{
+	if (vehicle == nullptr) return;
+	CPed* ped = FindPlayerPed(-1);
+	typedef bool(__cdecl* ptrStaticVehicleCollisionHandler)(CVehicle** pCollidingVehicle, CEntity* pCollidedVehicle, int iModelIndex, float fDamageImpulseMag, float fCollidingDamageImpulseMag, unsigned __int16 usPieceType, CVector vecCollisionPos, CVector vecCollisionVelocity);
+	if (VehColHandler != NULL)
+	{
+		ptrStaticVehicleCollisionHandler callCollision = (ptrStaticVehicleCollisionHandler)VehColHandler;
+		callCollision(&vehicle, ped, ped->m_nModelIndex, 1.0, 1.0, 3, vehicle->GetPosition(), CVector(0.2f, 0.0f, 0.0f));
+	}
+}
 typedef struct
 {
 	DOUBLE x;

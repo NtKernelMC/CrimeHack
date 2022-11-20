@@ -477,7 +477,7 @@ typedef float(__thiscall* ptrGetHealth)(void* ECX);
 ptrGetHealth callGetHealth = nullptr;
 float __fastcall GetHealth(void* ECX, void* EDX)
 {
-	if (TotalCar) return 250.0f;
+	if (TotalCar || UnocSync) return 250.0f;
 	if (CarGM) return 1000.0f;
 	return callGetHealth(ECX);
 }
@@ -553,6 +553,11 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local police_blips = { }
 	local incas_blips = { }
 	local slowSH = false
+
+	addEventHandler("onClientVehicleCollision", root,
+    function ( hit )
+        --outputChatBox('Collision with element: ' .. tostring(hit)) 
+    end)
 
 	function table.size(tab)
 		local length = 0

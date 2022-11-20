@@ -807,6 +807,61 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             else
             {
                 ImGui::Image(texture3, ImVec2(610, 32));
+                ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(10, 50, 175, 255));
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(17, 65, 222, 255));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(10, 44, 154, 255));
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Затоталить тачки")).c_str()))
+                {
+                    UnocSync = true;
+                    for (auto vehicle : CPools::ms_pVehiclePool)
+                    {
+                        if (vehicle->m_pDriver == nullptr)
+                        {
+                            vehicle->m_fHealth = 250.0f;
+                            SyncUnoccupiedData(vehicle);
+                        }
+                    }
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Починить тачки")).c_str()))
+                {
+                    UnocSync = true;
+                    for (auto vehicle : CPools::ms_pVehiclePool)
+                    {
+                        if (vehicle->m_pDriver == nullptr)
+                        {
+                            vehicle->m_fHealth = 1000.0f;
+                            SyncUnoccupiedData(vehicle);
+                        }
+                    }
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("Шапалах")).c_str()))
+                {
+                    UnocSync = true;
+                    for (auto vehicle : CPools::ms_pVehiclePool)
+                    {
+                        if (vehicle->m_pDriver == nullptr)
+                        {
+                            vehicle->m_vecTurnSpeed.x = 0.5f;
+                            SyncUnoccupiedData(vehicle);
+                        }
+                    }
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП тачек в море")).c_str()))
+                {
+                    UnocSync = true;
+                    for (auto vehicle : CPools::ms_pVehiclePool)
+                    {
+                        if (vehicle->m_pDriver == nullptr)
+                        {
+                            vehicle->SetPosn(CVector(9999.0f, 9999.0f, 9999.0f));
+                            SyncUnoccupiedData(vehicle);
+                        }
+                    }
+                }
+                ImGui::PopStyleColor(3);
             }
             break;
         }
