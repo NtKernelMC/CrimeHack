@@ -90,9 +90,7 @@ CVehicle* FindStreamedVehicle()
 	float rx, ry, rz;
 	for (decltype(auto) vehicle : CPools::ms_pVehiclePool)
 	{
-		if (vehicle->m_pDriver == nullptr && OnlyDrivers) continue;
-		if (vehicle->m_pDriver != nullptr && !OnlyDrivers) continue;
-		if (vehicle != nullptr && !IsBike(vehicle->m_nModelIndex))
+		if (vehicle != nullptr && vehicle->m_pDriver == nullptr && !IsBike(vehicle->m_nModelIndex))
 		{
 			static bool just_once = false;
 			if (!just_once)
@@ -105,6 +103,35 @@ CVehicle* FindStreamedVehicle()
 		}
 	}
 	return nullptr;
+}
+void SetCarRvankaVeh()
+{
+	static BYTE last_step = 1;
+	CPed* local_ped = FindPlayerPed(-1);
+	if (local_ped != nullptr)
+	{
+		for (decltype(auto) veh : CPools::ms_pVehiclePool)
+		{
+			if (veh != nullptr && veh->m_pDriver != nullptr)
+			{
+				if (veh->IsVisible() && veh->GetIsOnScreen())
+				{
+					CVehicle* vehicle = FindStreamedVehicle();
+					if (vehicle != nullptr)
+					{
+						CVector remote_pos = veh->GetPosition();
+						remote_pos.x += 5.0f;
+						vehicle->SetPosn(remote_pos);
+						if (last_step == 1) vehicle->m_vecMoveSpeed.x += 10.0f;
+						if (last_step == 2) vehicle->m_vecMoveSpeed.x -= 10.0f;
+						last_step++;
+						if (last_step > 3) last_step = 1;
+						SyncUnoccupiedData(vehicle);
+					}
+				}
+			}
+		}
+	}
 }
 void SetCarRvanka()
 {

@@ -295,7 +295,8 @@ void CheckBindings()
     if (bind_menu[1])
     {
         bind_menu[1] = false;
-        SetCarRvanka();
+        if (OnlyDrivers) SetCarRvankaVeh();
+        else SetCarRvanka();
     }
     if (bind_menu[2])
     {
@@ -869,7 +870,8 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 ImGui::SameLine();
                 if (ImGui::Button(cp1251_to_utf8(xorstr_("Пиздарванка")).c_str()))
                 {
-                    SetCarRvanka();
+                    if (OnlyDrivers) SetCarRvankaVeh();
+                    else SetCarRvanka();
                 }
                 ImGui::SameLine();
                 if (ImGui::Button(cp1251_to_utf8(xorstr_("Шапалах")).c_str()))
