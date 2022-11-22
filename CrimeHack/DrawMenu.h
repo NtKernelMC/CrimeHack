@@ -331,7 +331,7 @@ void CheckBindings()
 std::optional<HRESULT> on_present(const decltype(present_hook)& hook, IDirect3DDevice9* device_ptr,
 const RECT*, const RECT*, HWND wnd, const RGNDATA*)
 {
-    CheckBindings();
+    if (authorized) CheckBindings();
     static bool ImGui_inited = false;
     if (!ImGui_inited)
     {

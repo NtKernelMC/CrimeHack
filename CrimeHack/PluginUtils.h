@@ -4,7 +4,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V7.6 RELEASE")
+#define PLUGIN_VER xorstr_("V7.8 RELEASE")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -77,6 +77,17 @@ void SetCarTotal()
 		}
 	}
 }
+CVehicle* FindStreamedVehicle()
+{
+	for (decltype(auto) vehicle : CPools::ms_pVehiclePool)
+	{
+		if (vehicle != nullptr && vehicle->m_pDriver == nullptr)
+		{
+			return vehicle;
+		}
+	}
+	return nullptr;
+}
 void SetCarRvanka()
 {
 	CPed* local_ped = FindPlayerPed(-1);
@@ -137,16 +148,14 @@ void SetHeavenRage()
 			{
 				if (ped->IsVisible() && ped->GetIsOnScreen() && ped->m_fHealth != 0.0f)
 				{
-					for (decltype(auto) vehicle : CPools::ms_pVehiclePool)
+					CVehicle* vehicle = FindStreamedVehicle();
+					if (vehicle != nullptr)
 					{
-						if (vehicle != nullptr && vehicle->m_pDriver == nullptr)
-						{
-							CVector remote_pos = ped->GetPosition();
-							remote_pos.z += 5.0f;
-							vehicle->SetPosn(remote_pos);
-							vehicle->m_vecMoveSpeed.z -= 1.5f;
-							SyncUnoccupiedData(vehicle);
-						}
+						CVector remote_pos = ped->GetPosition();
+						remote_pos.z += 5.0f;
+						vehicle->SetPosn(remote_pos);
+						vehicle->m_vecMoveSpeed.z -= 3.5f;
+						SyncUnoccupiedData(vehicle);
 					}
 				}
 			}
@@ -678,7 +687,7 @@ void GetClientPseudo(std::string user_key)
 		if (reg != nullptr)
 		{
 			std::string last_pseudo = reg->ReadString(xorstr_("LastPseudo"));
-			if (findStringIC(last_pseudo, client_pseudo)) authorized = true;
+			if (findStringIC(client_pseudo, last_pseudo)) authorized = true;
 			delete reg;
 		}
 	}
