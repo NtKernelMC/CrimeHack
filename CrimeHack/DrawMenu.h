@@ -900,6 +900,8 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 {
                     Concentrator();
                 }
+                ImGui::SameLine();
+                ImGui::Checkbox(cp1251_to_utf8(xorstr_("Только водители")).c_str(), &OnlyDrivers);
                 ImGui::PopStyleColor(3);
             }
             break;

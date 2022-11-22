@@ -4,7 +4,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V7.9 RELEASE")
+#define PLUGIN_VER xorstr_("V8.0 RELEASE")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -45,6 +45,7 @@ IID REPORT_TYPES[] = { IID_ILatLongReport };
 DWORD VehColHandler = NULL;
 bool UnocSync = false;
 bool RepairSync = false;
+bool OnlyDrivers = false;
 std::string GetGamePath();
 typedef void* (__thiscall *ptrGetClosestRemotePlayer)(void* ECX, CVector* vecPosition, float fMaxDistance);
 ptrGetClosestRemotePlayer callGetClosestRemotePlayer = nullptr;
@@ -86,10 +87,20 @@ bool IsBike(ushort model)
 }
 CVehicle* FindStreamedVehicle()
 {
+	float rx, ry, rz;
 	for (decltype(auto) vehicle : CPools::ms_pVehiclePool)
 	{
-		if (vehicle != nullptr && vehicle->m_pDriver == nullptr && !IsBike(vehicle->m_nModelIndex))
+		if (vehicle->m_pDriver == nullptr && OnlyDrivers) continue;
+		if (vehicle->m_pDriver != nullptr && !OnlyDrivers) continue;
+		if (vehicle != nullptr && !IsBike(vehicle->m_nModelIndex))
 		{
+			static bool just_once = false;
+			if (!just_once)
+			{
+				vehicle->GetOrientation(rx, ry, rz);
+				just_once = true;
+			}
+			vehicle->SetOrientation(rx, ry, rz);
 			return vehicle;
 		}
 	}
