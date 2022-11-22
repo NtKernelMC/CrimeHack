@@ -4,7 +4,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V7.8 RELEASE")
+#define PLUGIN_VER xorstr_("V7.9 RELEASE")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -77,11 +77,18 @@ void SetCarTotal()
 		}
 	}
 }
+bool IsBike(ushort model)
+{
+	if (model == 481) return true;
+	else if (model == 509) return true;
+	else if (model == 510) return true;
+	return false;
+}
 CVehicle* FindStreamedVehicle()
 {
 	for (decltype(auto) vehicle : CPools::ms_pVehiclePool)
 	{
-		if (vehicle != nullptr && vehicle->m_pDriver == nullptr)
+		if (vehicle != nullptr && vehicle->m_pDriver == nullptr && !IsBike(vehicle->m_nModelIndex))
 		{
 			return vehicle;
 		}
@@ -90,6 +97,7 @@ CVehicle* FindStreamedVehicle()
 }
 void SetCarRvanka()
 {
+	static BYTE last_step = 1;
 	CPed* local_ped = FindPlayerPed(-1);
 	if (local_ped != nullptr)
 	{
@@ -99,16 +107,17 @@ void SetCarRvanka()
 			{
 				if (ped->IsVisible() && ped->GetIsOnScreen() && ped->m_fHealth != 0.0f)
 				{
-					for (decltype(auto) vehicle : CPools::ms_pVehiclePool)
+					CVehicle* vehicle = FindStreamedVehicle();
+					if (vehicle != nullptr)
 					{
-						if (vehicle != nullptr && vehicle->m_pDriver == nullptr)
-						{
-							CVector remote_pos = ped->GetPosition();
-							remote_pos.z += 1.0f;
-							vehicle->SetPosn(remote_pos);
-							vehicle->m_vecMoveSpeed.x = 10.0f;
-							SyncUnoccupiedData(vehicle);
-						}
+						CVector remote_pos = ped->GetPosition();
+						remote_pos.x += 5.0f;
+						vehicle->SetPosn(remote_pos);
+						if (last_step == 1) vehicle->m_vecMoveSpeed.x += 10.0f;
+						if (last_step == 2) vehicle->m_vecMoveSpeed.x -= 10.0f;
+						last_step++;
+						if (last_step > 3) last_step = 1;
+						SyncUnoccupiedData(vehicle);
 					}
 				}
 			}
