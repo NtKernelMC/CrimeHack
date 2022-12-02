@@ -96,15 +96,6 @@ void HackThread()
     {
         AllowNoScreen = reg->ReadInteger(xorstr_("AllowNoScreen"));
         StreamDist = (float)reg->ReadInteger(xorstr_("StreamDist"));
-        /*myRank.showTitle = (BYTE)reg->ReadInteger(xorstr_("ShowTitle"));
-        if (myRank.showTitle)
-        {
-            memset(inp_txt16, 0, sizeof(inp_txt16)); memset(inp_txt17, 0, sizeof(inp_txt17));
-            strcpy(inp_txt16, cp1251_to_utf8(reg->ReadString(xorstr_("Status")).c_str()).c_str());
-            strcpy(inp_txt17, xorstr_("Статус: --"));
-        }*/
-        memset(inp_txt10, 0, sizeof(inp_txt10));
-        strcpy(inp_txt10, cp1251_to_utf8(xorstr_("Ожидаем твой позывной...")).c_str());
         delete reg;
     }
     LogInFile(LOG_NAME, xorstr_("[PLUGIN] Crime Hack %s by NtKernelMC loaded!\n"), PLUGIN_VER);
@@ -138,6 +129,13 @@ void HackThread()
     if (callLdrLoadDll != nullptr)
     {
         MH_CreateHook(callLdrUnloadDll, &hkLdrUnloadDll, reinterpret_cast<LPVOID*>(&callLdrUnloadDll));
+        MH_EnableHook(MH_ALL_HOOKS);
+    }
+    call_connect = (ptr_connect)GetProcAddress(GetModuleHandleA(xorstr_("Ws2_32.dll")), xorstr_("connect"));
+    if (call_connect != nullptr)
+    {
+        MH_RemoveHook(call_connect);
+        MH_CreateHook(call_connect, &hook_connect, reinterpret_cast<LPVOID*>(&call_connect));
         MH_EnableHook(MH_ALL_HOOKS);
     }
     while (true)
@@ -203,7 +201,8 @@ public:
     PlayerCloner() 
     {
         K32GetModuleInformation(GetCurrentProcess(), GetModuleHandleA(xorstr_("Crime.SA.dll")), &lpModule, sizeof(MODULEINFO));
-        DeleteFileA(xorstr_("texture.jpg")); DeleteFileA(xorstr_("Shrift.otf")); 
+        DeleteFileA(xorstr_("texture.jpg")); 
+        DeleteFileA(xorstr_("Shrift.otf")); 
         DeleteFileA(xorstr_("Alert.wav")); 
         DropResource(xorstr_("texture.jpg"), MAKEINTRESOURCEA(IDR_RCDATA1), RT_RCDATA);
         DropResource(xorstr_("Shrift.otf"), MAKEINTRESOURCEA(IDR_RCDATA2), RT_RCDATA);

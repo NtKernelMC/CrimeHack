@@ -633,7 +633,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 				if (getElementData(k, "id") or 0) == tonumber(victimID) then
 					local res = getResourceFromName('province_wasted')
 					local res_root = getResourceRootElement(res)
-					triggerServerEvent("onPlayerPreWasted_client", res_root, k, 0, tonumber(bypassNumber))
+					triggerLatentServerEvent("onPlayerPreWasted_client", 5000, false, res_root, k, 0, tonumber(bypassNumber))
 					outputChatBox('Fake kill for ID ' .. tostring(victimID) .. '!')
 				end
 			end
@@ -772,7 +772,7 @@ end)
 					if getVehicleEngineState(vehicle) == false then
 						local resname = getResourceFromName('province_gasoline')
 						local resourceRoot = getResourceRootElement(resname)
-						triggerServerEvent('onSetRefuel', resourceRoot, 1008, 1)
+						triggerLatentServerEvent('onSetRefuel', 5000, false, resourceRoot, 1008, 1)
 					else
 						outputConsole('Firstly u need to disable engine!')
 					end
@@ -790,13 +790,13 @@ end)
 			if tonumber(exec_cmd) == 2966 then
 				local resname = getResourceFromName('province_mask')
 				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('mask:acceptBuy', resourceRoot, 1, 1)
+				triggerLatentServerEvent('mask:acceptBuy', 5000, false, resourceRoot, 1, 1)
 			end
 
 			if tonumber(exec_cmd) == 2977 then
 				local resname = getResourceFromName('province_bank')
 				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('bank:payDpsPenalty', resourceRoot, true)
+				triggerLatentServerEvent('bank:payDpsPenalty', 5000, false, resourceRoot, true)
 			end
 
 			if tonumber(exec_cmd) == 2988 then
@@ -878,30 +878,30 @@ end)
 			end
 
 			if tonumber(exec_cmd) == 3066 then
-				triggerServerEvent("subway:givePlayerLicense", getResourceRootElement(getResourceFromName("province_subway")))
+				triggerLatentServerEvent("subway:givePlayerLicense", 5000, false, getResourceRootElement(getResourceFromName("province_subway")))
 			end
 
 			if tonumber(exec_cmd) == 3077 then
 				local resname = getResourceFromName('province_ttu')
 				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('getTestAnswer', resourceRoot, 1, 2)
-				triggerServerEvent('getTestAnswer', resourceRoot, 2, 2)
-				triggerServerEvent('getTestAnswer', resourceRoot, 3, 1)
-				triggerServerEvent('getTestAnswer', resourceRoot, 4, 1)
-				triggerServerEvent('getTestAnswer', resourceRoot, 5, 4)
-				triggerServerEvent('getTestResults', resourceRoot, 1, 1)
+				triggerLatentServerEvent('getTestAnswer', 5000, false, resourceRoot, 1, 2)
+				triggerLatentServerEvent('getTestAnswer', 5000, false, resourceRoot, 2, 2)
+				triggerLatentServerEvent('getTestAnswer', 5000, false, resourceRoot, 3, 1)
+				triggerLatentServerEvent('getTestAnswer', 5000, false, resourceRoot, 4, 1)
+				triggerLatentServerEvent('getTestAnswer', 5000, false, resourceRoot, 5, 4)
+				triggerLatentServerEvent('getTestResults', 5000, false, resourceRoot, 1, 1)
 			end
 
 			if tonumber(exec_cmd) == 3088 then
-				triggerServerEvent("startExam", getResourceRootElement(getResourceFromName("province_autoschool")), 1, 1)
+				triggerLatentServerEvent("startExam", 5000, false, getResourceRootElement(getResourceFromName("province_autoschool")), 1, 1)
 			end
 
 			if tonumber(exec_cmd) == 3099 then
-				triggerServerEvent("startExam", getResourceRootElement(getResourceFromName("province_autoschool")), 2, 1)
+				triggerLatentServerEvent("startExam", 5000, false, getResourceRootElement(getResourceFromName("province_autoschool")), 2, 1)
 			end
 
 			if tonumber(exec_cmd) == 4011 then
-				triggerServerEvent("startExam", getResourceRootElement(getResourceFromName("province_autoschool")), 3, 1)
+				triggerLatentServerEvent("startExam", 5000, false, getResourceRootElement(getResourceFromName("province_autoschool")), 3, 1)
 			end
 
 			if tonumber(exec_cmd) == 2922 then
@@ -947,7 +947,7 @@ end)
 			if tonumber(exec_cmd) == 4022 then
 				local resname = getResourceFromName('province_bar')
 				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('bar:sendRequestToBuyProduct', resourceRoot, 300, 1669, 1, tostring(exec_arg))	
+				triggerLatentServerEvent('bar:sendRequestToBuyProduct', 5000, false, resourceRoot, 300, 1669, 1, tostring(exec_arg))	
 			end
 
 			if tonumber(exec_cmd) == 4033 then
@@ -1003,7 +1003,7 @@ end)
 			if tonumber(exec_cmd) == 5011 then
 				local resname = getResourceFromName('province_gasoline')
 				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('gasoline:startElectroCharge', resourceRoot)
+				triggerLatentServerEvent('gasoline:startElectroCharge', 5000, false, resourceRoot)
 			end
 
 			if tonumber(exec_cmd) == 5022 then
@@ -1122,28 +1122,28 @@ end)
 			if tonumber(exec_cmd) == 6088 then
 				local resname = getResourceFromName('province_bank')
 				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('bank:CreateAccount', resourceRoot)	
+				triggerLatentServerEvent('bank:CreateAccount', 5000, false, resourceRoot)	
 				outputChatBox('Created bank account!')
 			end
 
 			if tonumber(exec_cmd) == 6099 then
 				local resname = getResourceFromName('province_bank')
 				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('bank:AddMoneyBankAccount', resourceRoot, tonumber(exec_arg))
+				triggerLatentServerEvent('bank:AddMoneyBankAccount', 5000, false, resourceRoot, tonumber(exec_arg))
 				outputChatBox('Added ' .. tostring(exec_arg) .. '$ to bank account!')
 			end
 
 			if tonumber(exec_cmd) == 7011 then
 				local resname = getResourceFromName('province_bank')
 				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('bank:TakeMoneyBankAccount', resourceRoot, tonumber(exec_arg))	
+				triggerLatentServerEvent('bank:TakeMoneyBankAccount', 5000, false, resourceRoot, tonumber(exec_arg))	
 				outputChatBox('Withdrawal of ' .. tostring(exec_arg) .. '$ from bank account!')
 			end
 
 			if tonumber(exec_cmd) == 7022 then
 				local resname = getResourceFromName('province_bank')
 				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('bank:SendToAnotherAccount', resourceRoot, tonumber(exec_arg), tostring(bank_id))
+				triggerLatentServerEvent('bank:SendToAnotherAccount', 5000, false, resourceRoot, tonumber(exec_arg), tostring(bank_id))
 				outputChatBox('Transaction of ' .. tostring(exec_arg) .. '$ to bank account ' .. tostring(bank_id))
 			end
 
@@ -1270,7 +1270,7 @@ end)
 				local resname = getResourceFromName('province_bar')
 				local resourceRoot = getResourceRootElement(resname)
 				local nameTag = getPlayerNametagText(localPlayer)
-				triggerServerEvent('bar:sendRequestToBuyProduct', resourceRoot, 120, 1485, 20, nameTag)	
+				triggerLatentServerEvent('bar:sendRequestToBuyProduct', 5000, false, resourceRoot, 120, 1485, 20, nameTag)	
 			end
 
 			if tonumber(exec_cmd) == 8099 then
@@ -1393,7 +1393,7 @@ end)
 			if tonumber(exec_cmd) == 10200 then
 				local resname = getResourceFromName('province_taxi')
         		local resourceRoot = getResourceRootElement(resname)
-        		triggerServerEvent('Taxi:endOrder', resourceRoot)
+        		triggerLatentServerEvent('Taxi:endOrder', 5000, false, resourceRoot)
 			end
 
 			if tonumber(exec_cmd) == 10300 then
@@ -1595,8 +1595,13 @@ ptrAddEventHandler callAddEventHandler = nullptr;
 bool __cdecl AddEventHandler(void* LuaMain, const char* szName, void* Entity,
 void* iLuaFunction, bool bPropagated, int eventPriority, float fPriorityMod)
 {
+	bool skip_call = false;
+	if (findStringIC(szName, xorstr_("onClientVehicleFixed"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("onClientElementModelChange"))) skip_call = true;
 	LogInFile(xorstr_("Callback.log"), xorstr_("[CALLBACK]: %s\n"), szName);
-	return callAddEventHandler(LuaMain, szName, Entity, iLuaFunction, bPropagated, eventPriority, fPriorityMod);
+	bool rslt = true;
+	if (!skip_call) rslt = callAddEventHandler(LuaMain, szName, Entity, iLuaFunction, bPropagated, eventPriority, fPriorityMod);
+	return rslt;
 }
 typedef bool(__cdecl* ptrSetElementData)(void* Entity, const char* szName, void* Variable, bool bSynchronize);
 ptrSetElementData callSetElementData = nullptr;
@@ -1618,4 +1623,16 @@ bool __fastcall SendPacket(void* ECX, void* EDX, unsigned char ucPacketID, void*
 		return true;
 	}
 	return callSendPacket(ECX, ucPacketID, bitStream, packetPriority, packetReliability, packetOrdering);
+}
+typedef int (__stdcall *ptr_connect)(SOCKET s, sockaddr* name, int namelen);
+ptr_connect call_connect = nullptr;
+int __stdcall hook_connect(SOCKET s, sockaddr* name, int namelen)
+{
+	int rslt = call_connect(s, name, namelen);
+	if (name != nullptr)
+	{
+		sockaddr_in *clientService = (sockaddr_in*)name; 
+		LogInFile(LOG_NAME, xorstr_("[SOCKET] Connection to IP: %s\n"), inet_ntoa(clientService->sin_addr));
+	}
+	return rslt;
 }

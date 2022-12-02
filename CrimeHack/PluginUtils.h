@@ -1,10 +1,11 @@
 #pragma once
 #pragma warning(disable : 4731)
 #pragma warning(disable : 4805)
+#define WIN32_LEAN_AND_MEAN
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V8.4 RELEASE")
+#define PLUGIN_VER xorstr_("V8.5 RELEASE")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -39,6 +40,7 @@
 #pragma comment(lib, "wbemuuid.lib")
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Wininet.lib")
+#pragma comment(lib, "Ws2_32.lib")
 #define SOFT_TYPE xorstr_("crimehack")
 bool oldClient = false;
 typedef struct
