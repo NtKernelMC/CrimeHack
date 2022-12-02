@@ -52,9 +52,6 @@ END
 
 IDR_WAVE1               WAVE                    "razrushenie.wav"
 
-IDR_WAVE2               WAVE                    "stony.wav"
-
-IDR_WAVE3               WAVE                    "theme.wav"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -66,15 +63,6 @@ IDR_RCDATA1             RCDATA                  "texture.jpg"
 
 IDR_RCDATA2             RCDATA                  "Shrift.otf"
 
-IDR_RCDATA3             RCDATA                  "C:\\Games\\MTA Province\\CustomModels\\Rooster.dff"
-
-IDR_RCDATA4             RCDATA                  "C:\\Games\\MTA Province\\CustomModels\\Rooster.txd"
-
-IDR_RCDATA5             RCDATA                  "4367-3x.png"
-
-IDR_RCDATA6             RCDATA                  "texture2.jpg"
-
-IDR_RCDATA7             RCDATA                  "texture3.jpg"
 
 #endif    // Русский (Россия) resources
 /////////////////////////////////////////////////////////////////////////////

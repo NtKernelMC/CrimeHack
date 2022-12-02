@@ -389,14 +389,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         if (ImGui::Button(cp1251_to_utf8(xorstr_("Читы 2")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = HACK_TAB2;
         ImGui::SameLine();
         if (ImGui::Button(cp1251_to_utf8(xorstr_("Черный список")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = ENEMY_TAB;
-        ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 60, 255, 255));
-        if (ImGui::Button(cp1251_to_utf8(xorstr_("Dark Horizon")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25)))
-        {
-            page = DARK_HORIZON_TAB;
-            PlaySoundA(xorstr_("theme.wav"), NULL, SND_FILENAME | SND_ASYNC);
-        }
-        ImGui::PopStyleColor(1);
         ImGui::EndChild();
         ImGui::BeginChild(xorstr_("main"), ImVec2(0, 0), true, ImGuiWindowFlags_NoScrollbar);
         switch (page)
@@ -410,11 +402,11 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::VEH_GM, xorstr_("NONE"));
                 exec_cmd.detach();
             }
-            ImGui::SameLine(); ImGui::Checkbox(cp1251_to_utf8(xorstr_("Аура Смерти")).c_str(), &DeadlyAura);
-            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Сайлент аим")).c_str(), &SilentAIM);
-            ImGui::SameLine(); ImGui::SliderFloat(xorstr_("FOV"), &FOV, 50.0, 500.0f);
-            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Ваншот")).c_str(), &OneShot);
-            ImGui::SameLine();
+            //ImGui::SameLine(); ImGui::Checkbox(cp1251_to_utf8(xorstr_("Аура Смерти")).c_str(), &DeadlyAura);
+            //ImGui::Checkbox(cp1251_to_utf8(xorstr_("Сайлент аим")).c_str(), &SilentAIM);
+            //ImGui::SameLine(); ImGui::SliderFloat(xorstr_("FOV"), &FOV, 50.0, 500.0f);
+            //ImGui::Checkbox(cp1251_to_utf8(xorstr_("Ваншот")).c_str(), &OneShot);
+            //ImGui::SameLine();
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.0f, 0.0f, 1.0f });
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.3f, 0.0f, 0.0f, 1.0f });
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
@@ -823,89 +815,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 else AntiAFK = false;
             }
             ImGui::PopStyleColor(3);
-            break;
-        case DARK_HORIZON_TAB:
-            if (!authorized)
-            {
-                ImGui::Image(texture2, ImVec2(300, 248));
-                ImGui::SameLine(); ImGui::BeginGroup();
-                ImGui::TextColored(ImVec4(1, 1, 0, 1), cp1251_to_utf8(xorstr_("Подразделение \"Темный Горизонт\"")).c_str());
-                ImGui::Text(cp1251_to_utf8(xorstr_("> Приветствуем брат!")).c_str());
-                ImGui::Text(cp1251_to_utf8(xorstr_("Род деятельности: [ДАННЫЕ УДАЛЕНЫ]")).c_str());
-                ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
-                ImGui::Text(cp1251_to_utf8(xorstr_(">> Введи свой позывной <<")).c_str());
-                ImGui::InputText("[9]", inp_txt9, sizeof(inp_txt9));
-                ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(10, 50, 175, 255));
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(17, 65, 222, 255));
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(10, 44, 154, 255));
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Подтвердить личность")).c_str()))
-                {
-                    if (strlen(inp_txt9) >= 2)
-                    {
-                        if (findStringIC(client_pseudo, inp_txt9))
-                        {
-                            std::thread atg(AuthorizePseudo); atg.detach();
-                        }
-                        else
-                        {
-                            memset(inp_txt10, 0, sizeof(inp_txt10));
-                            strcpy(inp_txt10, cp1251_to_utf8(xorstr_("Это не твой позывной.")).c_str());
-                        }
-                    }
-                }
-                ImGui::InputText("[10]", inp_txt10, sizeof(inp_txt10));
-                ImGui::PopStyleColor(3);
-                ImGui::EndGroup();
-            }
-            else
-            {
-                ImGui::Image(texture3, ImVec2(610, 32));
-                ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(10, 50, 175, 255));
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(17, 65, 222, 255));
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(10, 44, 154, 255));
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Затоталить тачки")).c_str()))
-                {
-                    SetCarTotal();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Пиздарванка")).c_str()))
-                {
-                    if (OnlyDrivers) SetCarRvankaVeh();
-                    else SetCarRvanka();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Шапалах")).c_str()))
-                {
-                    SetShapalah();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП тачек в море")).c_str()))
-                {
-                    SetMoreTP();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Гнев небес")).c_str()))
-                {
-                    SetHeavenRage();
-                }
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Анти-Ручник")).c_str()))
-                {
-                    FuckRuchnik();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Починить тачки")).c_str()))
-                {
-                    RepairAllCars();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(cp1251_to_utf8(xorstr_("Концентратор")).c_str()))
-                {
-                    Concentrator();
-                }
-                ImGui::SameLine();
-                ImGui::Checkbox(cp1251_to_utf8(xorstr_("Только водители")).c_str(), &OnlyDrivers);
-                ImGui::PopStyleColor(3);
-            }
             break;
         }
         ImGui::EndChild();

@@ -7,11 +7,11 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
     if (w_findStringIC(wstrModuleFileName, xorstr_(L"client.dll")) && !AllowTuning)
     {
         FuckArthemidaIntegrity(xorstr_("core.dll")); SigScan scan; MessageBeep(MB_ICONASTERISK);
-        sendMTAChat = (f_SendChat)scan.FindPattern(xorstr_("client.dll"),
-        xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x81\xEC\x00\x00\x00\x00\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x57\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x80\x7D\x14\x00\x8B\x75\x0C\x8B\x7D\x08\x89\xB5\x00\x00\x00\x00\x0F\x85\x00\x00\x00\x00\x80\x7D\x10\x00\x75\x1A\x68\x00\x00\x00\x00\x57\xE8\x00\x00\x00\x00\x83\xC4\x08"),
-        xorstr_("xxxxxx????xx????xxx????x????xxxxxxxxxxxxx????xxxxxxxxxxxx????xx????xxxxxxx????xx????xxx"));
-        if (sendMTAChat) LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to ExecCommand!\n"));
-        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for ExecCommand!\n"));
+        //sendMTAChat = (f_SendChat)scan.FindPattern(xorstr_("client.dll"),
+        //xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x81\xEC\x00\x00\x00\x00\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x57\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x80\x7D\x14\x00\x8B\x75\x0C\x8B\x7D\x08\x89\xB5\x00\x00\x00\x00\x0F\x85\x00\x00\x00\x00\x80\x7D\x10\x00\x75\x1A\x68\x00\x00\x00\x00\x57\xE8\x00\x00\x00\x00\x83\xC4\x08"),
+        //xorstr_("xxxxxx????xx????xxx????x????xxxxxxxxxxxxx????xxxxxxxxxxxx????xx????xxxxxxx????xx????xxx"));
+        //if (sendMTAChat) LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to ExecCommand!\n"));
+        //else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for ExecCommand!\n"));
         callGetClosestRemotePlayer = (ptrGetClosestRemotePlayer)scan.FindPattern(xorstr_("client.dll"),
         xorstr_("\x55\x8B\xEC\x83\xE4\xF8\x83\xEC\x1C\x8B"),
         xorstr_("xxxxxxxxxx")); // 1.5.8-1.5.9
@@ -42,7 +42,18 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             }
             else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for ForceCursorVisible.\n"));
         }
-        callSendBulletSyncFire = (ptrSendBulletSyncFire)scan.FindPattern(xorstr_("client.dll"),
+        callSendPacket = (ptrSendPacket)scan.FindPattern(xorstr_("netc.dll"),
+        xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x81\xEC\xF4\x06"), 
+        xorstr_("xxxxxx????xxxxxxxxxxx"));
+        if (callSendPacket != nullptr)
+        {
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SendPacket!\n"));
+            MH_RemoveHook(callSendPacket);
+            MH_CreateHook(callSendPacket, &SendPacket, reinterpret_cast<LPVOID*>(&callSendPacket));
+            MH_EnableHook(MH_ALL_HOOKS);
+        }
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SendPacket.\n"));
+        /*callSendBulletSyncFire = (ptrSendBulletSyncFire)scan.FindPattern(xorstr_("client.dll"),
         xorstr_("\x55\x8B\xEC\x51\x8B\x45\x08\x0F"), xorstr_("xxxxxxxx"));
         if (callSendBulletSyncFire != nullptr)
         {
@@ -51,7 +62,7 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             MH_CreateHook(callSendBulletSyncFire, &SendBulletSyncFire, reinterpret_cast<LPVOID*>(&callSendBulletSyncFire));
             MH_EnableHook(MH_ALL_HOOKS);
         }
-        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SendBulletSyncFire.\n"));
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SendBulletSyncFire.\n"));*/
         VehColHandler = scan.FindPattern(xorstr_("client.dll"),
         xorstr_("\x55\x8B\xEC\xF3\x0F\x7E\x45\x00\x83\xEC\x0C\x8B\x45\x34"), xorstr_("xxxxxxx?xxxxxx"));
         if (VehColHandler != NULL)
@@ -59,6 +70,25 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to VehColHandler!\n"));
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for VehColHandler.\n"));
+        /*GetParentID = scan.FindPattern(xorstr_("client.dll"), xorstr_("\x0F\xB7\x83\x98\x01\x00\x00\x89"), xorstr_("xxxxxxxx"));
+        if (GetParentID != NULL)
+        {
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to GetParentID! 0x%X\n"), GetParentID);
+            DWORD oldProt; VirtualProtect((void*)GetParentID, 7, PAGE_EXECUTE_READWRITE, &oldProt);
+            BYTE patch_code[5] = { 0xB8, 0xD2, 0x48, 0x00, 0x00 }; BYTE nop_code[2] = { 0x90, 0x90 };
+            memcpy((void*)GetParentID, patch_code, 5);
+            memcpy((void*)(GetParentID + 5), nop_code, 2);
+            VirtualProtect((void*)GetParentID, 7, oldProt, &oldProt);
+            BYTE nop_code2[6] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
+            GetParentID = scan.FindPattern(xorstr_("client.dll"), xorstr_("\x8D\x45\x10\x50\xFF\xD2"), xorstr_("xxxxxx"));
+            if (GetParentID != NULL)
+            {
+                VirtualProtect((void*)GetParentID, 6, PAGE_EXECUTE_READWRITE, &oldProt);
+                memcpy((void*)GetParentID, nop_code2, 6);
+                VirtualProtect((void*)GetParentID, 6, oldProt, &oldProt);
+            }
+        }
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for GetParentID.\n"));*/
         callCClientStreamer = (ptrCClientStreamer)scan.FindPattern("client.dll",
         xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x1C\x53\x56\x57\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF1\x89\x75\xF0\xF3"),
         xorstr_("xxxxxx????xxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxxx"));
@@ -104,15 +134,6 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             MH_RemoveHook(callLuaLoadBuffer);
             MH_CreateHook(callLuaLoadBuffer, &hkLuaLoadBuffer, reinterpret_cast<LPVOID*>(&callLuaLoadBuffer));
             MH_EnableHook(MH_ALL_HOOKS);
-            /*if (myRank.showTitle)
-            {
-                if (ranksThread != nullptr)
-                {
-                    TerminateThread(ranksThread, 0x0);
-                    ranksThread = nullptr; ranksThreadID = NULL;
-                }
-                ranksThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)SyncAllRanks, 0, 0, &ranksThreadID);
-            }*/
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for Lua Engine.\n"));
 		callGetHealth = (ptrGetHealth)scan.FindPattern(xorstr_("client.dll"), xorstr_("\x80\xB9\xC8"), xorstr_("xxx")); // 1.5.8
@@ -251,7 +272,7 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SetElementPosition!\n"));
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SetElementPosition.\n"));
-        /*callAddEventHandler = (ptrAddEventHandler)scan.FindPattern(xorstr_("client.dll"),
+        callAddEventHandler = (ptrAddEventHandler)scan.FindPattern(xorstr_("client.dll"),
         xorstr_("\x55\x8B\xEC\x56\x8B\x75\x0C\x85\xF6\x75\x06\x89\x35\x00\x00\x00\x00\x8B\x00\x00\x00\x00\x00\x56\xE8\x00\x00\x00\x00\x85\xC0\x74\x28"), 
         xorstr_("xxxxxxxxxxxxxxxxxx?????xx????xxxx")); // 1.5.9
         if (callAddEventHandler != nullptr)
@@ -262,17 +283,16 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to AddEventHandler!\n"));
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for AddEventHandler.\n"));
-        callForceAddUpgrade = (ptrForceAddUpgrade)scan.FindPattern(xorstr_("client.dll"),
-        xorstr_("\x55\x8B\xEC\x83\xEC\x08\x8D\x45\xFF"),
-        xorstr_("xxxxxxxxx")); // 1.5.8
-        if (callForceAddUpgrade != nullptr)
+        callSetElementData = (ptrSetElementData)scan.FindPattern("client.dll",
+        xorstr_("\x55\x8B\xEC\x83\xEC\x0C\x53\x56\x8B\x75\x0C\x85\xF6\x75\x06\x89\x35\x00\x00\x00\x00"), xorstr_("xxxxxxxxxxxxxxxxx????"));
+        if (callSetElementData != nullptr)
         {
-            MH_RemoveHook(callForceAddUpgrade);
-            MH_CreateHook(callForceAddUpgrade, &ForceAddUpgrade, reinterpret_cast<LPVOID*>(&callForceAddUpgrade));
+            MH_RemoveHook(callSetElementData);
+            MH_CreateHook(callSetElementData, &SetElementData, reinterpret_cast<LPVOID*>(&callSetElementData));
             MH_EnableHook(MH_ALL_HOOKS);
-            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to ForceAddUpgrade!\n"));
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SetElementData!\n"));
         }
-        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for ForceAddUpgrade.\n"));*/
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig to SetElementData.\n"));
         AllowTuning = true;
     }
     return sts;

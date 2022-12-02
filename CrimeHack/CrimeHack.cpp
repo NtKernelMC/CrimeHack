@@ -204,25 +204,15 @@ public:
     {
         K32GetModuleInformation(GetCurrentProcess(), GetModuleHandleA(xorstr_("Crime.SA.dll")), &lpModule, sizeof(MODULEINFO));
         DeleteFileA(xorstr_("texture.jpg")); DeleteFileA(xorstr_("Shrift.otf")); 
-        DeleteFileA(xorstr_("Alert.wav")); DeleteFileA(xorstr_("texture2.jpg")); 
-        DeleteFileA(xorstr_("texture3.jpg")); DeleteFileA(xorstr_("theme.wav"));
+        DeleteFileA(xorstr_("Alert.wav")); 
         DropResource(xorstr_("texture.jpg"), MAKEINTRESOURCEA(IDR_RCDATA1), RT_RCDATA);
-        DropResource(xorstr_("texture2.jpg"), MAKEINTRESOURCEA(IDR_RCDATA6), RT_RCDATA);
-        DropResource(xorstr_("texture3.jpg"), MAKEINTRESOURCEA(IDR_RCDATA7), RT_RCDATA);
         DropResource(xorstr_("Shrift.otf"), MAKEINTRESOURCEA(IDR_RCDATA2), RT_RCDATA);
         DropResource(xorstr_("NewAlert.wav"), MAKEINTRESOURCEA(IDR_WAVE1), xorstr_("WAVE"));
-        DropResource(xorstr_("stony.wav"), MAKEINTRESOURCEA(IDR_WAVE2), xorstr_("WAVE"));
-        DropResource(xorstr_("theme.wav"), MAKEINTRESOURCEA(IDR_WAVE3), xorstr_("WAVE"));
-        DropResource((GetGamePath() + xorstr_("\\Rooster.dff")).c_str(), MAKEINTRESOURCEA(IDR_RCDATA3), RT_RCDATA);
-        DropResource((GetGamePath() + xorstr_("\\Rooster.txd")).c_str(), MAKEINTRESOURCEA(IDR_RCDATA4), RT_RCDATA);
-        DropResource((GetGamePath() + xorstr_("\\porn.png")).c_str(), MAKEINTRESOURCEA(IDR_RCDATA5), RT_RCDATA);
         PebHider::RemovePeHeader(GetModuleHandleA(xorstr_("Crime.SA.dll")));
         PebHider::UnlinkModule(xorstr_("Crime.SA.dll"));
         std::thread th(HackThread);
         th.detach();
         std::thread th2(NoAFK);
         th2.detach();
-        ordSpm = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)OrderSpammer, 0, 0, 0);
-        ordGet = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)OrderAccept, 0, 0, 0);
     }
 } playerCloner;

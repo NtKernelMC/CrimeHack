@@ -3,6 +3,7 @@ ptrTriggerServerEvent callTriggerServerEvent = nullptr;
 void __cdecl TriggerServerEvent(const char* szName, void* CallWithEntity, void* Arguments)
 {
 	bool skip_call = false;
+	LogInFile(xorstr_("Trigger.log"), xorstr_("[EVENT]: %s\n"), szName);
 	if ((findStringIC(szName, xorstr_("trafficlights:addFine")) || findStringIC(szName, xorstr_("police:check"))) && AntiRed) skip_call = true;
 	if (findStringIC(szName, xorstr_("newGps:Teleportation"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("SetPlayerCarDamage"))) skip_call = true;
@@ -1594,13 +1595,27 @@ ptrAddEventHandler callAddEventHandler = nullptr;
 bool __cdecl AddEventHandler(void* LuaMain, const char* szName, void* Entity,
 void* iLuaFunction, bool bPropagated, int eventPriority, float fPriorityMod)
 {
+	LogInFile(xorstr_("Callback.log"), xorstr_("[CALLBACK]: %s\n"), szName);
 	return callAddEventHandler(LuaMain, szName, Entity, iLuaFunction, bPropagated, eventPriority, fPriorityMod);
 }
-typedef void (__thiscall* ptrForceAddUpgrade)(void *ECX, unsigned short usUpgrade);
-ptrForceAddUpgrade callForceAddUpgrade = nullptr;
-void __fastcall ForceAddUpgrade(void *ECX, void *EDX, unsigned short usUpgrade)
+typedef bool(__cdecl* ptrSetElementData)(void* Entity, const char* szName, void* Variable, bool bSynchronize);
+ptrSetElementData callSetElementData = nullptr;
+bool __cdecl SetElementData(void* Entity, const char* szName, void* Variable, bool bSynchronize)
 {
-	//LogInFile(LOG_NAME, "Проигнорирован компонент!\n");
-	//return;
-	return callForceAddUpgrade(ECX, usUpgrade);
+	bool rslt = callSetElementData(Entity, szName, Variable, bSynchronize);
+	LogInFile(xorstr_("SetElementData.log"), xorstr_("[Element]: %s\n"), szName);
+	return rslt;
+}
+typedef bool (__thiscall *ptrSendPacket)(void* ECX, unsigned char ucPacketID, void* bitStream, int packetPriority, int packetReliability, int packetOrdering);
+ptrSendPacket callSendPacket = nullptr;
+bool __fastcall SendPacket(void* ECX, void* EDX, unsigned char ucPacketID, void* bitStream, int packetPriority, int packetReliability, int packetOrdering)
+{
+	auto color_name = magic_enum::enum_name((ePacketID)ucPacketID);
+	LogInFile(xorstr_("Packet.log"), xorstr_("PacketID: %d | PacketName: %s\n"), ucPacketID, color_name.data());
+	if (ucPacketID == PACKET_ID_PLAYER_TRANSGRESSION)
+	{
+		LogInFile(LOG_NAME, xorstr_("[EVADE] Сработала защита от авто-бана!\n"));
+		return true;
+	}
+	return callSendPacket(ECX, ucPacketID, bitStream, packetPriority, packetReliability, packetOrdering);
 }
