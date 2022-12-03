@@ -70,25 +70,22 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to VehColHandler!\n"));
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for VehColHandler.\n"));
-        /*GetParentID = scan.FindPattern(xorstr_("client.dll"), xorstr_("\x0F\xB7\x83\x98\x01\x00\x00\x89"), xorstr_("xxxxxxxx"));
+        GetParentID = scan.FindPattern(xorstr_("client.dll"), 
+        xorstr_("\x8B\x07\x8D\x4D\xB4\x51\x8B\xCF\xFF\x50\x28"), 
+        xorstr_("xxxxxxxxxxx"));
         if (GetParentID != NULL)
         {
             LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to GetParentID! 0x%X\n"), GetParentID);
-            DWORD oldProt; VirtualProtect((void*)GetParentID, 7, PAGE_EXECUTE_READWRITE, &oldProt);
-            BYTE patch_code[5] = { 0xB8, 0xD2, 0x48, 0x00, 0x00 }; BYTE nop_code[2] = { 0x90, 0x90 };
+            /*DWORD oldProt; VirtualProtect((void*)GetParentID, 11, PAGE_EXECUTE_READWRITE, &oldProt);
+            BYTE patch_code[5] = { 0xB8, 0xDC, 0x48, 0x00, 0x00 }; // mov eax, 0x48DC
+            BYTE patch_code2[3] = { 0x89, 0x45, 0xB4 }; // mov dword ptr ss:[ebp-0x4C], eax
+            BYTE nop_code[3] = { 0x90, 0x90, 0x90 }; // nop nop nop
             memcpy((void*)GetParentID, patch_code, 5);
-            memcpy((void*)(GetParentID + 5), nop_code, 2);
-            VirtualProtect((void*)GetParentID, 7, oldProt, &oldProt);
-            BYTE nop_code2[6] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
-            GetParentID = scan.FindPattern(xorstr_("client.dll"), xorstr_("\x8D\x45\x10\x50\xFF\xD2"), xorstr_("xxxxxx"));
-            if (GetParentID != NULL)
-            {
-                VirtualProtect((void*)GetParentID, 6, PAGE_EXECUTE_READWRITE, &oldProt);
-                memcpy((void*)GetParentID, nop_code2, 6);
-                VirtualProtect((void*)GetParentID, 6, oldProt, &oldProt);
-            }
+            memcpy((void*)(GetParentID + 5), patch_code2, 3);
+            memcpy((void*)(GetParentID + 8), nop_code, 3);
+            VirtualProtect((void*)GetParentID, 11, oldProt, &oldProt);*/
         }
-        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for GetParentID.\n"));*/
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for GetParentID.\n"));
         callCClientStreamer = (ptrCClientStreamer)scan.FindPattern("client.dll",
         xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x1C\x53\x56\x57\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF1\x89\x75\xF0\xF3"),
         xorstr_("xxxxxx????xxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxxx"));

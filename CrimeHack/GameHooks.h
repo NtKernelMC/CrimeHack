@@ -1429,6 +1429,17 @@ end)
 				end	
 			end
 
+			if tonumber(exec_cmd) == 10600 then
+				local resname = getResourceFromName('province_taxi')
+        		local resourceRoot = getResourceRootElement(resname)
+        		triggerLatentServerEvent('Taxi:startTaxiJob', 5000, false, resourceRoot, true)
+				if isPedInVehicle(localPlayer) then
+					local veh = getPedOccupiedVehicle(localPlayer)
+					triggerLatentServerEvent('radial:taxiLamp', 5000, false, veh)
+					triggerLatentServerEvent('radial:specialLights', 5000, false, veh)
+				end
+			end
+
 		end
 	end
 	setTimer(ParseCommandsFromClient, 1000, 0)
@@ -1598,6 +1609,8 @@ void* iLuaFunction, bool bPropagated, int eventPriority, float fPriorityMod)
 	bool skip_call = false;
 	if (findStringIC(szName, xorstr_("onClientVehicleFixed"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("onClientElementModelChange"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("onClientTrailerDetach"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("onClientVehicleCollision"))) skip_call = true;
 	LogInFile(xorstr_("Callback.log"), xorstr_("[CALLBACK]: %s\n"), szName);
 	bool rslt = true;
 	if (!skip_call) rslt = callAddEventHandler(LuaMain, szName, Entity, iLuaFunction, bPropagated, eventPriority, fPriorityMod);

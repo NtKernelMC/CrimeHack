@@ -193,6 +193,7 @@ enum class LUA_CMD
     CASH_BUG = 10300,
     COMPONENT = 10400,
     SET_FROZEN = 10500,
+    SET_TAXI = 10600,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -414,10 +415,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     MessageBeep(MB_ICONERROR);
                 }
             }
-            ImGui::PopStyleColor(3);
-            ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(10, 50, 175, 255));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(17, 65, 222, 255));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(10, 44, 154, 255));
+            ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП по метке")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::MARK_TP, xorstr_("NONE"));
@@ -856,6 +854,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Скам-Такси")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::ORDER_END, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Стать Таксистом")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SET_TAXI, xorstr_("NONE"));
                 exec_cmd.detach();
             }
             ImGui::PopStyleColor(3);
