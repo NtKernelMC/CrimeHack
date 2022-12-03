@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V8.6 RELEASE")
+#define PLUGIN_VER xorstr_("V8.7 RELEASE")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -1568,8 +1568,8 @@ void SetUrusHandling()
 		veh->m_pHandlingData->m_transmissionData.m_fEngineAcceleration = 0.006000;
 		veh->m_pHandlingData->m_transmissionData.m_fEngineInertia = 167.580002;
 		veh->m_pHandlingData->m_fMass = 2300.000000;
-		veh->m_pHandlingData->m_transmissionData.m_fMaxGearVelocity = 2.571002;
-		veh->m_pHandlingData->m_transmissionData.m_fMinGearVelocity = -0.847001;
+		//veh->m_pHandlingData->m_transmissionData.m_fMaxGearVelocity = 2.571002;
+		//veh->m_pHandlingData->m_transmissionData.m_fMinGearVelocity = -0.847001;
 		veh->m_pHandlingData->m_fSteeringLock = 40.000000;
 		/*veh->m_pHandlingData->m_fSuspensionAntiDiveMultiplier = 0.350000;
 		veh->m_pHandlingData->m_fSuspensionBiasBetweenFrontAndRear = 0.460000;

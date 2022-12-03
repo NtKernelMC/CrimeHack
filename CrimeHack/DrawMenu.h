@@ -333,7 +333,7 @@ void CheckBindings()
 std::optional<HRESULT> on_present(const decltype(present_hook)& hook, IDirect3DDevice9* device_ptr,
 const RECT*, const RECT*, HWND wnd, const RGNDATA*)
 {
-    if (authorized) CheckBindings();
+    //CheckBindings();
     static bool ImGui_inited = false;
     if (!ImGui_inited)
     {
@@ -464,18 +464,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             {
                 CWeather::ForceWeatherNow(WEATHER_EXTRASUNNY_LA);
                 CClock::SetGameClock(12, 0, 1);
-            }
-            ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП в Бункер (Пистолет)")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BUNKER_TP, xorstr_("NONE"));
-                exec_cmd.detach();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП в Лес (Винтовка)")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::LES_TP, xorstr_("NONE"));
-                exec_cmd.detach();
             }
             ImGui::InputText(cp1251_to_utf8(xorstr_("Имя файла")).c_str(), inp_txt12, sizeof(inp_txt12));
             ImGui::SameLine();
@@ -677,6 +665,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Кто в розыске?")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::GET_WANTED, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Покушать")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_EAT, xorstr_("NONE"));
                 exec_cmd.detach();
             }
             ImGui::PopStyleColor(3);

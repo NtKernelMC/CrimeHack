@@ -784,7 +784,7 @@ end)
 			if tonumber(exec_cmd) == 2955 then
 				local resname = getResourceFromName('province_food')
 				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('buyFood', resourceRoot, 2, 6, 32)
+				triggerLatentServerEvent('food:buyFood', 5000, false, resourceRoot, 2, 6, 31)
 			end
 
 			if tonumber(exec_cmd) == 2966 then
@@ -893,15 +893,21 @@ end)
 			end
 
 			if tonumber(exec_cmd) == 3088 then
-				triggerLatentServerEvent("startExam", 5000, false, getResourceRootElement(getResourceFromName("province_autoschool")), 1, 1)
+				local resname = getResourceFromName('province_autoschool')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerLatentServerEvent("autoschool:endExamTest", 5000, false, resourceRoot, 1, 1, 2482)
 			end
 
 			if tonumber(exec_cmd) == 3099 then
-				triggerLatentServerEvent("startExam", 5000, false, getResourceRootElement(getResourceFromName("province_autoschool")), 2, 1)
+				local resname = getResourceFromName('province_autoschool')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerLatentServerEvent("autoschool:endExamTest", 5000, false, resourceRoot, 1, 3, 2482)
 			end
 
 			if tonumber(exec_cmd) == 4011 then
-				triggerLatentServerEvent("startExam", 5000, false, getResourceRootElement(getResourceFromName("province_autoschool")), 3, 1)
+				local resname = getResourceFromName('province_autoschool')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerLatentServerEvent("autoschool:endExamTest", 5000, false, resourceRoot, 1, 2, 2482)
 			end
 
 			if tonumber(exec_cmd) == 2922 then
@@ -1609,7 +1615,6 @@ void* iLuaFunction, bool bPropagated, int eventPriority, float fPriorityMod)
 	bool skip_call = false;
 	if (findStringIC(szName, xorstr_("onClientVehicleFixed"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("onClientElementModelChange"))) skip_call = true;
-	if (findStringIC(szName, xorstr_("onClientTrailerDetach"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("onClientVehicleCollision"))) skip_call = true;
 	LogInFile(xorstr_("Callback.log"), xorstr_("[CALLBACK]: %s\n"), szName);
 	bool rslt = true;
