@@ -291,9 +291,9 @@ void CheckBindings()
     if (bind_menu[0])
     {
         bind_menu[0] = false;
-        SetCarTotal();
+        AntiRadar ^= true;
     }
-    if (bind_menu[1])
+    /*if (bind_menu[1])
     {
         bind_menu[1] = false;
         if (OnlyDrivers) SetCarRvankaVeh();
@@ -328,12 +328,12 @@ void CheckBindings()
     {
         bind_menu[7] = false;
         Concentrator();
-    }
+    }*/
 }
 std::optional<HRESULT> on_present(const decltype(present_hook)& hook, IDirect3DDevice9* device_ptr,
 const RECT*, const RECT*, HWND wnd, const RGNDATA*)
 {
-    //CheckBindings();
+    CheckBindings();
     static bool ImGui_inited = false;
     if (!ImGui_inited)
     {

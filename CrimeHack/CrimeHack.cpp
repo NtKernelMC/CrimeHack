@@ -150,7 +150,7 @@ void HackThread()
         if (GetAsyncKeyState('Q') && GetAsyncKeyState('1') && GetModuleHandleA(xorstr_("client.dll")))
         {
             bind_menu[0] = true;
-            Sleep(75);
+            Sleep(1000);
         }
         if (GetAsyncKeyState('Q') && GetAsyncKeyState('2') && GetModuleHandleA(xorstr_("client.dll")))
         {
