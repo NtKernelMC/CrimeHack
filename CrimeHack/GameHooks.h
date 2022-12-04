@@ -1465,7 +1465,7 @@ ptrVirtualQuery callVirtualQuery = nullptr;
 SIZE_T __stdcall hookVirtualQuery(LPVOID lpAddress, PMEMORY_BASIC_INFORMATION lpBuffer, SIZE_T dwLength)
 {
 	DWORD caller = (DWORD)_ReturnAddress();
-	bool in_section = false, in_section2 = false;; DWORD start_address = (DWORD)lpAddress;
+	bool in_section = false, in_section2 = false; DWORD start_address = (DWORD)lpAddress;
 	DWORD end_address = (DWORD)lpAddress + dwLength;
 	if (callLuaLoadBuffer != nullptr)
 	{
