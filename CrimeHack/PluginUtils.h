@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V9.1 RELEASE")
+#define PLUGIN_VER xorstr_("V9.2 RELEASE")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
