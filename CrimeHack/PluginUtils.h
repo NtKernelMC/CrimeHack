@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V8.9 RELEASE")
+#define PLUGIN_VER xorstr_("V9.1 RELEASE")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -560,9 +560,29 @@ ULONG __stdcall hookGetAdaptersInfo(PIP_ADAPTER_INFO AdapterInfo, PULONG SizePoi
 	}
 	return ret;
 }
+typedef BOOL (__stdcall *ptrGetVersionExW)(LPOSVERSIONINFOW lpVersionInformation);
+ptrGetVersionExW callGetVersionExW = nullptr;
+BOOL __stdcall hookGetVersionExW(LPOSVERSIONINFOW lpVersionInformation)
+{
+	BOOL rslt = callGetVersionExW(lpVersionInformation);
+	LogInFile(LOG_NAME, xorstr_("[SPOOF] Original major: %d | Original minor: %d | Original build: %d\n"), 
+	lpVersionInformation->dwMajorVersion, lpVersionInformation->dwMinorVersion, lpVersionInformation->dwBuildNumber);
+	lpVersionInformation->dwMajorVersion = 12; lpVersionInformation->dwMinorVersion = 5; 
+	lpVersionInformation->dwBuildNumber = 228;
+	LogInFile(LOG_NAME, xorstr_("[SPOOFED] Major: %d | Minor: %d | Build: %d\n"),
+	lpVersionInformation->dwMajorVersion, lpVersionInformation->dwMinorVersion, lpVersionInformation->dwBuildNumber);
+	return rslt;
+}
 void InstallSpoofingHooks()
 {
-	callGetAdaptersInfo = (ptrGetAdaptersInfo)GetProcAddress(GetModuleHandleA(xorstr_("iphlpapi.dll")), xorstr_("GetAdaptersInfo"));
+	callGetVersionExW = (ptrGetVersionExW)GetProcAddress(GetModuleHandleA(xorstr_("kernel32.dll")), xorstr_("GetVersionExW"));
+	if (callGetVersionExW != nullptr)
+	{
+		MH_RemoveHook(callGetVersionExW);
+		MH_CreateHook(callGetVersionExW, &hookGetVersionExW, reinterpret_cast<LPVOID*>(&callGetVersionExW));
+		MH_EnableHook(MH_ALL_HOOKS);
+	}
+	/*callGetAdaptersInfo = (ptrGetAdaptersInfo)GetProcAddress(GetModuleHandleA(xorstr_("iphlpapi.dll")), xorstr_("GetAdaptersInfo"));
 	if (callGetAdaptersInfo != nullptr)
 	{
 		MH_RemoveHook(callGetAdaptersInfo);
@@ -575,7 +595,8 @@ void InstallSpoofingHooks()
 		MH_RemoveHook(callWmiGet);
 		MH_CreateHook(callWmiGet, &HookWmiGet, reinterpret_cast<LPVOID*>(&callWmiGet));
 		MH_EnableHook(MH_ALL_HOOKS);
-	}
+	}*/
+
 }
 std::string ReadHackLog()
 {

@@ -42,50 +42,50 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             }
             else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for ForceCursorVisible.\n"));
         }
-        callSendPacket = (ptrSendPacket)scan.FindPattern(xorstr_("netc.dll"),
-        xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x81\xEC\xF4\x06"), 
-        xorstr_("xxxxxx????xxxxxxxxxxx"));
-        if (callSendPacket != nullptr)
-        {
-            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SendPacket!\n"));
-            MH_RemoveHook(callSendPacket);
-            MH_CreateHook(callSendPacket, &SendPacket, reinterpret_cast<LPVOID*>(&callSendPacket));
-            MH_EnableHook(MH_ALL_HOOKS);
-        }
-        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SendPacket.\n"));
-        /*callSendBulletSyncFire = (ptrSendBulletSyncFire)scan.FindPattern(xorstr_("client.dll"),
-        xorstr_("\x55\x8B\xEC\x51\x8B\x45\x08\x0F"), xorstr_("xxxxxxxx"));
-        if (callSendBulletSyncFire != nullptr)
-        {
-            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SendBulletSyncFire!\n"));
-            MH_RemoveHook(callSendBulletSyncFire);
-            MH_CreateHook(callSendBulletSyncFire, &SendBulletSyncFire, reinterpret_cast<LPVOID*>(&callSendBulletSyncFire));
-            MH_EnableHook(MH_ALL_HOOKS);
-        }
-        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SendBulletSyncFire.\n"));*/
-        VehColHandler = scan.FindPattern(xorstr_("client.dll"),
-        xorstr_("\x55\x8B\xEC\xF3\x0F\x7E\x45\x00\x83\xEC\x0C\x8B\x45\x34"), xorstr_("xxxxxxx?xxxxxx"));
-        if (VehColHandler != NULL)
-        {
-            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to VehColHandler!\n"));
-        }
-        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for VehColHandler.\n"));
-        GetParentID = scan.FindPattern(xorstr_("client.dll"), 
-        xorstr_("\x8B\x07\x8D\x4D\xB4\x51\x8B\xCF\xFF\x50\x28"), 
-        xorstr_("xxxxxxxxxxx"));
-        if (GetParentID != NULL)
-        {
-            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to GetParentID! 0x%X\n"), GetParentID);
-            /*DWORD oldProt; VirtualProtect((void*)GetParentID, 11, PAGE_EXECUTE_READWRITE, &oldProt);
-            BYTE patch_code[5] = { 0xB8, 0xDC, 0x48, 0x00, 0x00 }; // mov eax, 0x48DC
-            BYTE patch_code2[3] = { 0x89, 0x45, 0xB4 }; // mov dword ptr ss:[ebp-0x4C], eax
-            BYTE nop_code[3] = { 0x90, 0x90, 0x90 }; // nop nop nop
-            memcpy((void*)GetParentID, patch_code, 5);
-            memcpy((void*)(GetParentID + 5), patch_code2, 3);
-            memcpy((void*)(GetParentID + 8), nop_code, 3);
-            VirtualProtect((void*)GetParentID, 11, oldProt, &oldProt);*/
-        }
-        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for GetParentID.\n"));
+        //callSendPacket = (ptrSendPacket)scan.FindPattern(xorstr_("netc.dll"),
+        //xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x81\xEC\xF4\x06"), 
+        //xorstr_("xxxxxx????xxxxxxxxxxx"));
+        //if (callSendPacket != nullptr)
+        //{
+            //LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SendPacket!\n"));
+            //MH_RemoveHook(callSendPacket);
+            //MH_CreateHook(callSendPacket, &SendPacket, reinterpret_cast<LPVOID*>(&callSendPacket));
+            //MH_EnableHook(MH_ALL_HOOKS);
+        //}
+        //else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SendPacket.\n"));
+        //callSendBulletSyncFire = (ptrSendBulletSyncFire)scan.FindPattern(xorstr_("client.dll"),
+        //xorstr_("\x55\x8B\xEC\x51\x8B\x45\x08\x0F"), xorstr_("xxxxxxxx"));
+        //if (callSendBulletSyncFire != nullptr)
+        //{
+            //LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SendBulletSyncFire!\n"));
+            //MH_RemoveHook(callSendBulletSyncFire);
+            //MH_CreateHook(callSendBulletSyncFire, &SendBulletSyncFire, reinterpret_cast<LPVOID*>(&callSendBulletSyncFire));
+            //MH_EnableHook(MH_ALL_HOOKS);
+        //}
+        //else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SendBulletSyncFire.\n"));
+        //VehColHandler = scan.FindPattern(xorstr_("client.dll"),
+        //xorstr_("\x55\x8B\xEC\xF3\x0F\x7E\x45\x00\x83\xEC\x0C\x8B\x45\x34"), xorstr_("xxxxxxx?xxxxxx"));
+        //if (VehColHandler != NULL)
+        //{
+            //LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to VehColHandler!\n"));
+        //}
+        //else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for VehColHandler.\n"));
+        //GetParentID = scan.FindPattern(xorstr_("client.dll"), 
+        //xorstr_("\x8B\x07\x8D\x4D\xB4\x51\x8B\xCF\xFF\x50\x28"), 
+        //xorstr_("xxxxxxxxxxx"));
+        //if (GetParentID != NULL)
+        //{
+            //LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to GetParentID! 0x%X\n"), GetParentID);
+            //DWORD oldProt; VirtualProtect((void*)GetParentID, 11, PAGE_EXECUTE_READWRITE, &oldProt);
+            //BYTE patch_code[5] = { 0xB8, 0xDC, 0x48, 0x00, 0x00 }; // mov eax, 0x48DC
+            //BYTE patch_code2[3] = { 0x89, 0x45, 0xB4 }; // mov dword ptr ss:[ebp-0x4C], eax
+            //BYTE nop_code[3] = { 0x90, 0x90, 0x90 }; // nop nop nop
+            //memcpy((void*)GetParentID, patch_code, 5);
+            //memcpy((void*)(GetParentID + 5), patch_code2, 3);
+            //memcpy((void*)(GetParentID + 8), nop_code, 3);
+            //VirtualProtect((void*)GetParentID, 11, oldProt, &oldProt);
+        //}
+        //else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for GetParentID.\n"));
         callCClientStreamer = (ptrCClientStreamer)scan.FindPattern("client.dll",
         xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x1C\x53\x56\x57\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF1\x89\x75\xF0\xF3"),
         xorstr_("xxxxxx????xxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxxx"));
@@ -158,13 +158,10 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
         else LogInFile(LOG_NAME, "[ERROR] Can`t find a sig to TriggerServerEvent.\n");
         if (callRecalculateFrameRateLimit == nullptr)
         {
-            callRecalculateFrameRateLimit = (ptrRecalculateFrameRateLimit)scan.FindPattern(xorstr_("core.dll"),
-            xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x50\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF1"),
-            xorstr_("xxxxxx????xxxxxxxxxxx????xxxxxxxxxxxxxxxxxx")); // 1.5.8
-            if (callRecalculateFrameRateLimit == nullptr) callRecalculateFrameRateLimit = (ptrRecalculateFrameRateLimit)
+            callRecalculateFrameRateLimit = (ptrRecalculateFrameRateLimit)
             scan.FindPattern(xorstr_("core.dll"),
-            xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x50\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x57\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF1"),
-            xorstr_("xxxxxx????xxxxxxxxxxx????xxxxxxxxxxxxxxxxxxx")); // 1.5.9
+                xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x54\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x57\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF9\x8B\x4D"),
+                xorstr_("xxxxxx????xxxxxxxxxxx????xxxxxxxxxxxxxxxxxxxxx")); // 1.5.9
             if (callRecalculateFrameRateLimit != nullptr)
             {
                 MH_RemoveHook(callRecalculateFrameRateLimit);
@@ -244,9 +241,6 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SetTrafficLightState.\n"));
         callSetTrafficLightsLocked = (ptrSetTrafficLightsLocked)scan.FindPattern(xorstr_("client.dll"),
-        xorstr_("\x55\x8B\xEC\x8B\x00\x00\x00\x00\x00\xFF\x75\x08\x8B\x01\xFF\x90\x04\x02"),
-        xorstr_("xxxx?????xxxxxxxxx")); // 1.5.8
-        if (callSetTrafficLightsLocked == nullptr) callSetTrafficLightsLocked = (ptrSetTrafficLightsLocked)scan.FindPattern(xorstr_("client.dll"),
         xorstr_("\x55\x8B\xEC\x8B\x00\x00\x00\x00\x00\xFF\x75\x08\x8B\x01\xFF\x90\x10"),
         xorstr_("xxxx?????xxxxxxxx")); // 1.5.9
         if (callSetTrafficLightsLocked != nullptr)
