@@ -150,6 +150,7 @@
     <ClInclude Include="Registry.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="sigscan.h" />
+    <ClInclude Include="Spoofer.h" />
     <ClInclude Include="VMProtectSDK.h" />
     <ClInclude Include="xorstr.h" />
   </ItemGroup>

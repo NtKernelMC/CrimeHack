@@ -10,7 +10,48 @@ void __cdecl TriggerServerEvent(const char* szName, void* CallWithEntity, void* 
 	if (findStringIC(szName, xorstr_("carshop:updateHpInfo"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("ac:snd_adm_sp"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("menu:getRulesText"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("system:updateTlme"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("ac:xoxoxo"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("festival:initSoundz"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("ac:snd_adm_fstammo"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("ac:exp"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("ac:snd_prj_info"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("skybox:checkRainUpdate"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("ac:b_rckt"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("radial:getSlotContent"))) skip_call = true;
 	if (!skip_call) callTriggerServerEvent(szName, CallWithEntity, Arguments);
+}
+typedef void (__cdecl *ptrEmbedChunkName)(std::string strChunkName, const char** pcpOutBuffer, unsigned int* puiOutSize);
+ptrEmbedChunkName callEmbedChunkName = nullptr;
+void __cdecl EmbedChunkName(std::string strChunkName, const char** pcpOutBuffer, unsigned int* puiOutSize)
+{
+	callEmbedChunkName(strChunkName, pcpOutBuffer, puiOutSize);
+	std::string clean_name = CleanScriptName(strChunkName);
+	/*if (findStringIC(clean_name, xorstr_("")))
+	{
+
+	}*/
+	/*
+	static bool just_once = false;
+	char cwd[500]; memset(cwd, 0, sizeof(cwd));
+	_getcwd(cwd, sizeof(cwd)); strcat(cwd, xorstr_("\\DumpedScripts"));
+	if (!just_once)
+	{
+		if (!IsDirectoryExists(cwd)) CreateDirectoryA(cwd, 0);
+		else
+		{
+			std::filesystem::remove_all(cwd);
+			CreateDirectoryA(cwd, 0);
+		}
+		just_once = true;
+	}
+	std::string script_path = cwd + std::string(xorstr_("\\")) + clean_name;
+	FILE* hFile = fopen(script_path.c_str(), xorstr_("wb"));
+	if (hFile != nullptr)
+	{
+		fwrite(*pcpOutBuffer, 1, *puiOutSize, hFile);
+		fclose(hFile);
+	}*/
 }
 HANDLE ordSpm = nullptr;
 HANDLE ordGet = nullptr;
@@ -556,6 +597,11 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local police_blips = { }
 	local incas_blips = { }
 	local slowSH = false
+
+	local reg_val = grv("SYSTEM\\CurrentControlSet\\Control\\IDConfigDB\\Hardware Profiles\\0001")
+	outputConsole('RegVal: ' tostring(reg_val))
+	reg_val = gh("mods\\deathmatch\\client.dll")
+	outputConsole('client.dll hash: ' tostring(reg_val))
 
 	addEventHandler("onClientVehicleCollision", root,
     function ( hit )
@@ -1451,8 +1497,9 @@ end)
 			if tonumber(exec_cmd) == 10700 then
 				local resname = getResourceFromName('province_ac')
         		local resourceRoot = getResourceRootElement(resname)
-				local stroka = "ïÄŒ\18ï3HT\24˜Î÷š‡šrÊ\0242Œ›\16-ßø4=ïÙI-\6}$¬\21\0÷\14½1ÛÛLÃ\16Q‚\26§¥8\rAøGWgt\\ù\17Ÿå`\16`7S~\15\14ôÍ¥ÕXşP{Kò\23\b²qÚ\n\5””Ç?iŸœOk\rÜ¯ö $øÁ¨ô´‚1\bÀ&ÖúK!ìsHìÎ6â†›ş~”\20–ğ²…\16\23 …àØçõ¨\a˜o,=j±c+Ü§r\19¬µL\a\21,”š²mûäùY½ó¥¤¸×\30Ï4Úƒ>b'>¿Åé}»Gi±(˜:³÷º\17\0'­ÙT{7\5:…\6jà§YÎv÷9İÜ>yzL,;ú\vj\0193^[_\25•Îé;4\\¬pé!æ“8œ\nĞñÑ»\bdÎ#\5‰O7\19\5˜óq‡CìFìì\5@„|!Ùf[\a11á\v\\MÀê‹Xöy\2J\vnáXş¨¥\\œ×Œ´¹\27\28…¢\26â\nİúRr×Æg\27b\21\31SyÃTD«\20¡şû\rİèe¥+vµ\22ÚÎ”r\24v3ÇZ\0007·üÑ/iLœšÅ5 \0¥ºTXôvëRúGmg&\r” –\f\16Êa\4T`í\22}|h÷V@÷\1\t#Q\\‡>\17õ Å‘Éà)¼1\14Š@°—<#±‰z\26PT\vgø\f[µ9\4\25­,œ2^­1³Çà`éÖ\19û/¼­à¿°(Lâ\19]©¼şÊsƒÔØ»äBtºkú2gÀÅ]¡çv¿zÅ\26HùÍÿ—Ë\16ÒĞ,±Ñj½“Ü‚\ni”©‘õÅ(h\2‘Á³\26…^™(~¬ÿä\aš¦w˜µ™\17Ç\20p¤ğ×ŸÃÙ£Öt\0\bš™¿|2\bäµ*ˆ\0×\23î\3¯8riå3Ï¨Å›sÕf¢¾O:Eµ\fÃ‡Y\14ç(oHš›“Ùvk\tyt}He6|“e\a¹Ù+¹ÿµ<İØßVï.»\0œê”Œ¾ş›Œ\15¿|åcze§\20QFkè\23]ßjñœŒëô7•V·\17ã’‚ÍI­$«‹ÅJÿ# –4å­‰pÅ(lD#\14ŠëçXîªz‚²VY\v-T\r_ÏíƒN\21\"ös7ıg\16$:%˜%|)öÚ\27=kÁ[ŸÒ»Í-VÈ\tkÅ\1òã’\15\r×8/b<\30ó05¸£ŠÙ\3¶uæµ\25\fJksµôï÷q\t…µt@eVşô=?0¥Òâ\r¤º.:\2\"d\22—£ˆ37ˆûû\31Rí\0Ô««„G²\28ƒ r\29Ÿ)yzbV§\26o7;ìl›V\31W0Óg’(:Tôµ\25VâÖF¬Ö'œTK¢.¢nmy°8a4%Xp„9İñ¼sí˜\15RÍ\v=\2\27\19š}¶»‹‹Oèj3Í_ÓÒ\14R—D~›\18z´şë|ˆ<ÅğE†´ZQ¸\vãùz»#MòK\5Ë»Ü¸E¤«:RJBÚÇÒÒ’XÒ3h\"TĞrÎ PüklŒ\1P™oÒ„†Ì¬~2\v\20æ:…tñ5.:½ç\1;\18Éy¯öT‰Ÿ`‡œùñ\27µ—y\0032™PH\15\31¡\4×ˆ¦\27\22œ4ÜS×>\n–Câç?`ÉxñÆìŸícãÉñ\aQ8\1B4ê\4ê}ëÉÍc-x\15xğ\26ÉBÓå7•E\22XËFúM{lÏ¦\\„4*>:=ô‘\15Ø\n\"‡f]ôÉ•Mæ'ÛkåÙh±?\18û[\24\1÷\fÏÈ†­<æìÚU\16n‹maóV&/$«M*\5\17¾ÿîDÔ\16Ì=\aî{¸\24üæäŸ¥‡!™ØA]š\24¹6t‚i¿Á=NfĞ[\3·&RÔXÓ¾É\25äÑ0gıZ7DXJyõF(÷°€3Ü\r¾ÿ•½\0229»çKÇ]-+øÉ¸¥´\26Js…ßÆé\0043å¬¡cÖ@S\22­3îg½Ò¼±ƒ)á\0\0H0¦²Å\0319íÌy\2ÿÇğ‰¨\18š\27¡Œ2\20ÂJA¹5\21¥İÍæÂËiÊ\a†\14¤'ìŸ~†…c(!™†°¢é\22i¹\"n¥Œ¡X¾ö2Ö\18\6vÚ\29%\14ÒpdmrGøïÏ¿ò\28+{®›e§¹\6üÔ+›­I\0197Ëó”Ø5\17ĞV>ã¶È^v“Ê\tşî  şAïî·qas\5æ=§ú\28=û2ë\20ğx\vÛ\6\30‘\1ëÃ\30\4;5H«ºîz µp\22…óm+;\27øâç¤bh&ı§‰‰-·àG!ôã K\v\19\0Å}^Í€K>ºÃX\vZœ˜¼\19ú4¾áa~R\20WOV_òs\3(}šJzÄıè4ïà²\3ùBe¬J\28êŠm?\27\18ı%ñi_|ƒÍ0t\n¨bRµÈ©\vZ¾n\16ö\f¥a"
-        		triggerLatentServerEvent('menu:getRulesText', 5000, false, resourceRoot, stroka)
+				local stroka = "SSS"
+				triggerLatentServerEvent('menu:getRulesText', 5000, false, resourceRoot, stroka)
+				outputChatBox('Sended fake info!')
 			end
 
 		end

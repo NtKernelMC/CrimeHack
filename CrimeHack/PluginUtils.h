@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V9.3 RELEASE")
+#define PLUGIN_VER xorstr_("V9.5 RELEASE")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -539,67 +539,6 @@ HRESULT __stdcall HookWmiGet(void* ECX, LPCWSTR wszName, long lFlags, VARIANT* p
 	}
 	return rslt;
 }
-typedef ULONG(__stdcall* ptrGetAdaptersInfo)(PIP_ADAPTER_INFO AdapterInfo, PULONG SizePointer);
-ptrGetAdaptersInfo callGetAdaptersInfo = nullptr;
-ULONG __stdcall hookGetAdaptersInfo(PIP_ADAPTER_INFO AdapterInfo, PULONG SizePointer)
-{
-	ULONG ret = callGetAdaptersInfo(AdapterInfo, SizePointer);
-	if (AdapterInfo != nullptr)
-	{
-		if (ret == NO_ERROR)
-		{
-			do 
-			{
-				AdapterInfo->Address[0] = rand() % 255;
-				AdapterInfo->Address[1] = rand() % 255;
-				AdapterInfo->Address[2] = rand() % 255;
-				AdapterInfo->Address[3] = rand() % 255;
-				AdapterInfo->Address[4] = rand() % 255;
-				AdapterInfo->Address[5] = rand() % 255;
-				AdapterInfo = AdapterInfo->Next;
-			} while (AdapterInfo);
-		}
-	}
-	return ret;
-}
-typedef BOOL (__stdcall *ptrGetVersionExW)(LPOSVERSIONINFOW lpVersionInformation);
-ptrGetVersionExW callGetVersionExW = nullptr;
-BOOL __stdcall hookGetVersionExW(LPOSVERSIONINFOW lpVersionInformation)
-{
-	BOOL rslt = callGetVersionExW(lpVersionInformation);
-	LogInFile(LOG_NAME, xorstr_("[SPOOF] Original major: %d | Original minor: %d | Original build: %d\n"), 
-	lpVersionInformation->dwMajorVersion, lpVersionInformation->dwMinorVersion, lpVersionInformation->dwBuildNumber);
-	lpVersionInformation->dwMajorVersion = 12; lpVersionInformation->dwMinorVersion = 5; 
-	lpVersionInformation->dwBuildNumber = 228;
-	LogInFile(LOG_NAME, xorstr_("[SPOOFED] Major: %d | Minor: %d | Build: %d\n"),
-	lpVersionInformation->dwMajorVersion, lpVersionInformation->dwMinorVersion, lpVersionInformation->dwBuildNumber);
-	return rslt;
-}
-void InstallSpoofingHooks()
-{
-	callGetVersionExW = (ptrGetVersionExW)GetProcAddress(GetModuleHandleA(xorstr_("kernel32.dll")), xorstr_("GetVersionExW"));
-	if (callGetVersionExW != nullptr)
-	{
-		MH_RemoveHook(callGetVersionExW);
-		MH_CreateHook(callGetVersionExW, &hookGetVersionExW, reinterpret_cast<LPVOID*>(&callGetVersionExW));
-		MH_EnableHook(MH_ALL_HOOKS);
-	}
-	/*callGetAdaptersInfo = (ptrGetAdaptersInfo)GetProcAddress(GetModuleHandleA(xorstr_("iphlpapi.dll")), xorstr_("GetAdaptersInfo"));
-	if (callGetAdaptersInfo != nullptr)
-	{
-		MH_RemoveHook(callGetAdaptersInfo);
-		MH_CreateHook(callGetAdaptersInfo, &hookGetAdaptersInfo, reinterpret_cast<LPVOID*>(&callGetAdaptersInfo));
-		MH_EnableHook(MH_ALL_HOOKS);
-	}
-	callWmiGet = (ptrWmiGet)GetProcAddress(GetModuleHandleA(xorstr_("fastprox.dll")), xorstr_("?Get@CWbemObject@@UAGJPBGJPAUtagVARIANT@@PAJ2@Z"));
-	if (callWmiGet != nullptr)
-	{
-		MH_RemoveHook(callWmiGet);
-		MH_CreateHook(callWmiGet, &HookWmiGet, reinterpret_cast<LPVOID*>(&callWmiGet));
-		MH_EnableHook(MH_ALL_HOOKS);
-	}*/
-
-}
 std::string ReadHackLog()
 {
 	std::string log = "";
@@ -812,6 +751,18 @@ std::string CleanFromTrash(std::string& str)
 	str = answer;
 	return additional;
 }
+std::string CleanScriptName(std::string str)
+{
+	std::string ans = str + xorstr_("\\");;
+	std::string delimiter = xorstr_("\\");
+	size_t pos = 0; std::string token;
+	while ((pos = ans.find(delimiter)) != std::string::npos)
+	{
+		token = ans.substr(0, pos);
+		ans.erase(0, pos + delimiter.length());
+	}
+	return token;
+}
 void ObtainQuestInfo(std::string str)
 {
 	std::string ans = str;
@@ -892,6 +843,7 @@ std::string GetServerMinutes(std::string user_key)
 	else LogInFile(LOG_NAME, xorstr_("[ÍÅ ÀÊÒÈÂÈÐÎÂÀÍÎ] #1 Íåò ñâÿçè ñ õîñòîì! Áðåíäìàóåð Windows îòêëþ÷åí?\n"));
 	return std::string(xorstr_("none"));
 }
+#include "Spoofer.h"
 void MakePreInit()
 {
 	VMProtectBegin("MakePreInit()");
@@ -1012,6 +964,7 @@ void MakePreInit()
 				reg->WriteString(xorstr_("InjectorMessage"), inj_msg);
 				CreateMutexA(NULL, FALSE, xorstr_("RBZVX5S1MXAZ4A"));
 				if (findStringIC(RegisteredKey, xorstr_("CH-7DF4-CFBFA-2C0C-40CFLF"))) isDeveloper = true;
+				InstallSpoofingHooks();
 			}
 		}
 		else
@@ -1591,8 +1544,8 @@ void SetUrusHandling()
 		veh->m_pHandlingData->m_transmissionData.m_fEngineAcceleration = 0.006000;
 		veh->m_pHandlingData->m_transmissionData.m_fEngineInertia = 167.580002;
 		veh->m_pHandlingData->m_fMass = 2300.000000;
-		//veh->m_pHandlingData->m_transmissionData.m_fMaxGearVelocity = 2.571002;
-		//veh->m_pHandlingData->m_transmissionData.m_fMinGearVelocity = -0.847001;
+		veh->m_pHandlingData->m_transmissionData.m_fMaxGearVelocity = 2.571002;
+		veh->m_pHandlingData->m_transmissionData.m_fMinGearVelocity = -0.847001;
 		veh->m_pHandlingData->m_fSteeringLock = 40.000000;
 		/*veh->m_pHandlingData->m_fSuspensionAntiDiveMultiplier = 0.350000;
 		veh->m_pHandlingData->m_fSuspensionBiasBetweenFrontAndRear = 0.460000;

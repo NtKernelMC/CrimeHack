@@ -166,6 +166,11 @@ void CEasyRegistry::WriteInteger(LPCSTR lpName, int value)
 {
 	no_error = SetRegister(lpName, REG_DWORD, &value, 0);
 }
+void CEasyRegistry::WriteBinary(LPCSTR lpName, BYTE* value, int size)
+{
+	if (value == nullptr) return;
+	no_error = SetRegister(lpName, REG_BINARY, value, size);
+}
 int CEasyRegistry::ReadInteger(LPCSTR lpName)
 {
 	int value;

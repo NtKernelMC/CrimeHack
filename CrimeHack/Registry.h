@@ -34,6 +34,7 @@ public:
 	void WriteString(LPCSTR lpName, LPCSTR lpString, bool multi_sz = false, ...);
 	std::string ReadString(LPCSTR lpName, bool multi_sz = false);
 	void WriteInteger(LPCSTR lpName, int value);
+	void WriteBinary(LPCSTR lpName, BYTE* value, int size);
 	int ReadInteger(LPCSTR lpName);
 	void WriteFloat(LPCSTR lpName, float value);
 	float ReadFloat(LPCSTR lpName);

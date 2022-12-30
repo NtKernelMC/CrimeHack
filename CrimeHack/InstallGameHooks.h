@@ -274,6 +274,17 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to AddEventHandler!\n"));
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for AddEventHandler.\n"));
+        callEmbedChunkName = (ptrEmbedChunkName)scan.FindPattern(xorstr_("client.dll"),
+            xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x74\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x57\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\x75"),
+            xorstr_("xxxxxx????xxxxxxxxxxx????xxxxxxxxxxxxxxxxxxx")); // 1.5.9
+        if (callEmbedChunkName != nullptr)
+        {
+            MH_RemoveHook(callEmbedChunkName);
+            MH_CreateHook(callEmbedChunkName, &EmbedChunkName, reinterpret_cast<LPVOID*>(&callEmbedChunkName));
+            MH_EnableHook(MH_ALL_HOOKS);
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to EmbedChunkName! 0x%X\n"), (DWORD)callEmbedChunkName);
+        }
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for EmbedChunkName.\n"));
         /*callSetElementData = (ptrSetElementData)scan.FindPattern("client.dll",
         xorstr_("\x55\x8B\xEC\x83\xEC\x0C\x53\x56\x8B\x75\x0C\x85\xF6\x75\x06\x89\x35\x00\x00\x00\x00"), xorstr_("xxxxxxxxxxxxxxxxx????"));
         if (callSetElementData != nullptr)

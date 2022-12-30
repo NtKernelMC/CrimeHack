@@ -82,6 +82,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="Location.h" />
     <ClInclude Include="..\..\BotTTU\TTU\TramwayBot\TramwayBot\base64.h" />
+    <ClInclude Include="Spoofer.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ImGui">
