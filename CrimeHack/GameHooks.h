@@ -100,13 +100,13 @@ ptrStartGame callStartGame = nullptr; typedef void CClientGame; CClientGame* cla
 bool __fastcall StartGame(void* ECX, void* EDX, const char* szNick, const char* szPassword, int Type, const char* szSecret)
 {
 	AllowTuning = false;
-	classPointer = ECX; /*static bool onlyOnce = false;
+	classPointer = ECX; static bool onlyOnce = false;
 	if (!onlyOnce) onlyOnce = true;
 	else
 	{
 		LogInFile(LOG_NAME, xorstr_("Переподключение на сервер запрещено в целях безопасности."));
 		TerminateProcess(GetCurrentProcess(), 0x0);
-	}*/
+	}
 	return callStartGame(ECX, szNick, szPassword, Type, szSecret);
 }
 void* GetClosestRemotePlayer(CVector* vecPosition, float fMaxDistance)

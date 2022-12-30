@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V9.5 RELEASE")
+#define PLUGIN_VER xorstr_("V9.6 RELEASE")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -42,6 +42,7 @@
 #pragma comment(lib, "Wininet.lib")
 #pragma comment(lib, "Ws2_32.lib")
 #define SOFT_TYPE xorstr_("crimehack")
+BYTE jmp_prologue1[5]; BYTE jmp_prologue2[5];
 bool oldClient = false;
 bool isDeveloper = false;
 typedef struct

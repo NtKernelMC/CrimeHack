@@ -211,7 +211,7 @@ LSTATUS __stdcall hookRegOpenKeyExW(HKEY hKey, LPWSTR lpSubKey, DWORD ulOptions,
 	&& !w_findStringIC(lpSubKey, xorstr_(L"ShadowData")) && !w_findStringIC(lpSubKey, xorstr_(L"PCL0N3R"))
 	&& !w_findStringIC(lpSubKey, xorstr_(L"CfxData")) && !w_findStringIC(lpSubKey, xorstr_(L"FctpEXE"))
 	&& !w_findStringIC(lpSubKey, xorstr_(L"LgbtEXE")) && !w_findStringIC(lpSubKey, xorstr_(L"Neutrino"))
-	&& !w_findStringIC(lpSubKey, xorstr_(L"TTUEXE")))
+	&& !w_findStringIC(lpSubKey, xorstr_(L"TTUEXE")) && !w_findStringIC(lpSubKey, xorstr_(L"LUA3NG1N3")))
 	{
 		if (!wcscmp(lpSubKey, xorstr_(L"SYSTEM\\CurrentControlSet\\Control\\IDConfigDB\\Hardware Profiles\\0001")))
 		{
@@ -270,13 +270,15 @@ void InstallSpoofingHooks()
 {
 	MH_Initialize();
 	CreateRetranslatorTable();
+	memcpy(jmp_prologue1, (void*)&RegOpenKeyExW, 5);
 	callRegOpenKeyExW = (ptrRegOpenKeyExW)GetProcAddress(GetModuleHandleA(xorstr_("advapi32.dll")), xorstr_("RegOpenKeyExW"));
-	if (RegOpenKeyExW != nullptr)
+	if (callRegOpenKeyExW != nullptr)
 	{
 		MH_RemoveHook(callRegOpenKeyExW);
 		MH_CreateHook(callRegOpenKeyExW, &hookRegOpenKeyExW, reinterpret_cast<LPVOID*>(&callRegOpenKeyExW));
 		MH_EnableHook(MH_ALL_HOOKS);
 	}
+	memcpy(jmp_prologue2, (void*)&GetAdaptersInfo, 5);
 	callGetAdaptersInfo = (ptrGetAdaptersInfo)GetProcAddress(GetModuleHandleA(xorstr_("iphlpapi.dll")), xorstr_("GetAdaptersInfo"));
 	if (callGetAdaptersInfo != nullptr)
 	{

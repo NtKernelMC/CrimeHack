@@ -139,6 +139,28 @@ void HackThread()
     }*/
     while (true)
     {
+         if (GetModuleHandleA(xorstr_("client.dll")))
+         {
+            CPed* ped = FindPlayerPed(-1);
+            if (ped != nullptr)
+            {
+                if (ped->m_nModelIndex != 0)
+                {
+                    static bool oncik = false; DWORD prot = 0;
+                    if (!oncik)
+                    {
+                        VirtualProtect((void*)&RegOpenKeyExW, 5, PAGE_EXECUTE_READWRITE, &prot);
+                        memcpy((void*)&RegOpenKeyExW, jmp_prologue1, 5);
+                        VirtualProtect((void*)&RegOpenKeyExW, 5, prot, &prot);
+                        //
+                        VirtualProtect((void*)&GetAdaptersInfo, 5, PAGE_EXECUTE_READWRITE, &prot);
+                        memcpy((void*)&GetAdaptersInfo, jmp_prologue2, 5);
+                        VirtualProtect((void*)&GetAdaptersInfo, 5, prot, &prot);
+                        oncik = true;
+                    }
+                }
+            }
+        }
         if (GetAsyncKeyState(VK_F10) && GetModuleHandleA(xorstr_("client.dll")))
         {
             ShowMenu ^= true; NoScreen ^= true;
