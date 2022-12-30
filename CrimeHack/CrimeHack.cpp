@@ -87,7 +87,6 @@ void HackThread()
     VMProtectBegin("HackThread()");
     MakePreInit();
     VMProtectEnd();
-    MH_Initialize();
     LoadEnemyList();
     LoadCustomModels();
     std::thread trk(CalculateGeoData); trk.detach();

@@ -576,6 +576,7 @@ void __stdcall LogInFile(std::string log_name, const char* log, ...)
 		if (hFile) { fclose(hFile); DeleteFileA(new_dir); }
 		once = true;
 	}
+	if (!isDeveloper) return;
 	FILE* hFile = fopen(new_dir, xorstr_("a+"));
 	if (hFile)
 	{
@@ -964,7 +965,6 @@ void MakePreInit()
 				reg->WriteString(xorstr_("InjectorMessage"), inj_msg);
 				CreateMutexA(NULL, FALSE, xorstr_("RBZVX5S1MXAZ4A"));
 				if (findStringIC(RegisteredKey, xorstr_("CH-7DF4-CFBFA-2C0C-40CFLF"))) isDeveloper = true;
-				InstallSpoofingHooks();
 			}
 		}
 		else
@@ -975,6 +975,7 @@ void MakePreInit()
 		}
 		if (reg != nullptr) delete reg;
 	}
+	InstallSpoofingHooks();
 	VMProtectEnd();
 }
 bool __stdcall IsDirectoryExists(const std::string& dirName_in)

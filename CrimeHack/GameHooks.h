@@ -9,7 +9,7 @@ void __cdecl TriggerServerEvent(const char* szName, void* CallWithEntity, void* 
 	if (findStringIC(szName, xorstr_("SetPlayerCarDamage"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("carshop:updateHpInfo"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("ac:snd_adm_sp"))) skip_call = true;
-	if (findStringIC(szName, xorstr_("menu:getRulesText"))) skip_call = true;
+	//if (findStringIC(szName, xorstr_("menu:getRulesText"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("system:updateTlme"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("ac:xoxoxo"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("festival:initSoundz"))) skip_call = true;
@@ -27,11 +27,6 @@ void __cdecl EmbedChunkName(std::string strChunkName, const char** pcpOutBuffer,
 {
 	callEmbedChunkName(strChunkName, pcpOutBuffer, puiOutSize);
 	std::string clean_name = CleanScriptName(strChunkName);
-	/*if (findStringIC(clean_name, xorstr_("")))
-	{
-
-	}*/
-	/*
 	static bool just_once = false;
 	char cwd[500]; memset(cwd, 0, sizeof(cwd));
 	_getcwd(cwd, sizeof(cwd)); strcat(cwd, xorstr_("\\DumpedScripts"));
@@ -51,7 +46,7 @@ void __cdecl EmbedChunkName(std::string strChunkName, const char** pcpOutBuffer,
 	{
 		fwrite(*pcpOutBuffer, 1, *puiOutSize, hFile);
 		fclose(hFile);
-	}*/
+	}
 }
 HANDLE ordSpm = nullptr;
 HANDLE ordGet = nullptr;
@@ -597,11 +592,6 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local police_blips = { }
 	local incas_blips = { }
 	local slowSH = false
-
-	local reg_val = grv("SYSTEM\\CurrentControlSet\\Control\\IDConfigDB\\Hardware Profiles\\0001")
-	outputConsole('RegVal: ' tostring(reg_val))
-	reg_val = gh("mods\\deathmatch\\client.dll")
-	outputConsole('client.dll hash: ' tostring(reg_val))
 
 	addEventHandler("onClientVehicleCollision", root,
     function ( hit )

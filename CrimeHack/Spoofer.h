@@ -59,6 +59,7 @@ void CreateRetranslatorTable()
 	CEasyRegistry* reg = new CEasyRegistry(HKEY_LOCAL_MACHINE, xorstr_("SOFTWARE\\WOW6432Node\\MicrosoftNode"), true);
 	if (reg != nullptr)
 	{
+		std::random_device rd; std::mt19937 mt(rd());
 		//SYSTEM\\CurrentControlSet\\Control\\IDConfigDB\\Hardware Profiles\\0001 -- Key HwProfileGuid
 		char spf_str[500]; memset(spf_str, 0, sizeof(spf_str)); //{bc1bfdc0-5450-11eb-98c1-806e6f6e6963}
 		sprintf(spf_str, xorstr_("{%s-%s-%s-%s-%s}"), mdString(RsString(8), 8).c_str(), mdString(RsString(4), 4).c_str(),
@@ -66,9 +67,10 @@ void CreateRetranslatorTable()
 		reg->WriteString(xorstr_("HwProfileGuid"), spf_str);
 		//"SOFTWARE\\Microsoft\\MSLicensing\\HardwareID", "ClientHWID" 
 		BYTE msLicense[20]; // 02 00 00 00 01 6c fa 5f etc..
-		for (auto binByte : msLicense)
+		for (decltype(auto) binByte : msLicense)
 		{
-			binByte = rand() % 255;
+			std::uniform_int_distribution<int> rv_dist(0, 255);
+			binByte = rv_dist(mt);
 		}
 		reg->WriteBinary(xorstr_("ClientHWID"), msLicense, sizeof(msLicense));
 		//SOFTWARE\\Microsoft\\SQMClient "MachineId" {AC865647-7C56-41F4-A961-F33F915AF9D6}
@@ -92,9 +94,10 @@ void CreateRetranslatorTable()
 		reg->WriteString(xorstr_("ProductId"), spf_str);
 		//SYSTEM\\MountedDevices -- \\DosDevices\\C:
 		BYTE mountedDrives[12]; //12 fa 6c 45 00 00 30 03 00 00 00 00
-		for (auto binByte : mountedDrives)
+		for (decltype(auto) binByte : mountedDrives)
 		{
-			binByte = rand() % 255;
+			std::uniform_int_distribution<int> rv_dist(0, 255);
+			binByte = rv_dist(mt);
 		}
 		reg->WriteBinary(xorstr_("\\DosDevices\\C:"), mountedDrives, sizeof(mountedDrives));
 		//SOFTWARE\\Microsoft\\Cryptography -- MachineGuid
@@ -116,7 +119,6 @@ void CreateRetranslatorTable()
 		ProcessorsList.push_back(xorstr_("12th Gen Intel(R) Core(TM) i9-13400H @ 3.70GHz"));
 		ProcessorsList.push_back(xorstr_("13th Gen Intel(R) Core(TM) i7-10200H @ 3.30GHz"));
 		ProcessorsList.push_back(xorstr_("15th Gen Intel(R) Xeon(TM) i9-10200H @ 3.90GHz"));
-		std::random_device rd; std::mt19937 mt(rd());
 		std::uniform_int_distribution<int> dist(0, ProcessorsList.size() - 1);
 		reg->WriteString(xorstr_("ProcessorNameString"), ProcessorsList[dist(mt)].c_str());
 		std::vector<std::string> SteppingsList;
@@ -135,9 +137,10 @@ void CreateRetranslatorTable()
 		std::uniform_int_distribution<int> sdist(0, SteppingsList.size() - 1);
 		reg->WriteString(xorstr_("Identifier"), SteppingsList[sdist(mt)].c_str());
 		BYTE procRevision[8]; //0d 82 00 08 00 00 00 00
-		for (auto binByte : procRevision)
+		for (decltype(auto) binByte : procRevision)
 		{
-			binByte = rand() % 255;
+			std::uniform_int_distribution<int> rv_dist(0, 255);
+			binByte = rv_dist(mt);
 		}
 		reg->WriteBinary(xorstr_("Update Revision"), procRevision, sizeof(procRevision));
 		//HARDWARE\\DESCRIPTION\\System\\BIOS
@@ -189,125 +192,89 @@ typedef LSTATUS(__stdcall* ptrRegOpenKeyExW)(HKEY hKey, LPWSTR lpSubKey, DWORD u
 ptrRegOpenKeyExW callRegOpenKeyExW = nullptr;
 LSTATUS __stdcall hookRegOpenKeyExW(HKEY hKey, LPWSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult)
 {
-	LSTATUS rgr = ERROR_FILE_NOT_FOUND;
-	if (!w_findStringIC(lpSubKey, xorstr_(L"Software\\CR1M3H")) && !w_findStringIC(lpSubKey, xorstr_(L"SOFTWARE\\SU53RS500F3R"))
-	&& !w_findStringIC(lpSubKey, xorstr_(L"SOFTWARE\\TTUB02")) && !w_findStringIC(lpSubKey, xorstr_(L"SOFTWARE\\0C20B3RB02"))
-	&& !w_findStringIC(lpSubKey, xorstr_(L"SOFTWARE\\L3SB02")) && !w_findStringIC(lpSubKey, xorstr_(L"Software\\RakData"))
-	&& !w_findStringIC(lpSubKey, xorstr_(L"Software\\ShadowData")) && !w_findStringIC(lpSubKey, xorstr_(L"Software\\PCL0N3R")))
+	DWORD caller = (DWORD)_ReturnAddress(); MODULEINFO mdl; bool BlockSpoofing = true;
+	K32GetModuleInformation(GetCurrentProcess(), GetModuleHandleA(xorstr_("client.dll")), &mdl, sizeof(MODULEINFO));
+	DWORD start_address = (DWORD)mdl.lpBaseOfDll;
+	DWORD end_address = (DWORD)mdl.lpBaseOfDll + mdl.SizeOfImage;
+	for (DWORD x = start_address; x < end_address; x++)
 	{
-		if (w_findStringIC(lpSubKey, xorstr_(L"SYSTEM\\CurrentControlSet\\Control\\IDConfigDB\\Hardware Profiles\\0001")))
+		if (x == caller) BlockSpoofing = false;
+	}
+	LSTATUS rgr = ERROR_FILE_NOT_FOUND; *phkResult = nullptr;
+	if (BlockSpoofing)
+	{
+		return callRegOpenKeyExW(hKey, lpSubKey, ulOptions, samDesired, phkResult);
+	}
+	if (!w_findStringIC(lpSubKey, xorstr_(L"CR1M3H")) && !w_findStringIC(lpSubKey, xorstr_(L"SU53RS500F3R"))
+	&& !w_findStringIC(lpSubKey, xorstr_(L"TTUB02")) && !w_findStringIC(lpSubKey, xorstr_(L"0C20B3RB02"))
+	&& !w_findStringIC(lpSubKey, xorstr_(L"L3SB02")) && !w_findStringIC(lpSubKey, xorstr_(L"RakData"))
+	&& !w_findStringIC(lpSubKey, xorstr_(L"ShadowData")) && !w_findStringIC(lpSubKey, xorstr_(L"PCL0N3R"))
+	&& !w_findStringIC(lpSubKey, xorstr_(L"CfxData")) && !w_findStringIC(lpSubKey, xorstr_(L"FctpEXE"))
+	&& !w_findStringIC(lpSubKey, xorstr_(L"LgbtEXE")) && !w_findStringIC(lpSubKey, xorstr_(L"Neutrino"))
+	&& !w_findStringIC(lpSubKey, xorstr_(L"TTUEXE")))
+	{
+		if (!wcscmp(lpSubKey, xorstr_(L"SYSTEM\\CurrentControlSet\\Control\\IDConfigDB\\Hardware Profiles\\0001")))
 		{
+			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
 			memset(lpSubKey, 0, sizeof(lpSubKey));
 			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
 		}
-		if (w_findStringIC(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\MSLicensing\\HardwareID")))
+		if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\MSLicensing\\HardwareID")))
 		{
+			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
 			memset(lpSubKey, 0, sizeof(lpSubKey));
 			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
 		}
-		if (w_findStringIC(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\SQMClient")))
+		if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\SQMClient")))
 		{
+			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
 			memset(lpSubKey, 0, sizeof(lpSubKey));
 			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
 		}
-		if (w_findStringIC(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion")))
+		if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion")))
 		{
+			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
 			memset(lpSubKey, 0, sizeof(lpSubKey));
 			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
 		}
-		if (w_findStringIC(lpSubKey, xorstr_(L"SYSTEM\\MountedDevices")))
+		if (!wcscmp(lpSubKey, xorstr_(L"SYSTEM\\MountedDevices")))
 		{
+			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
 			memset(lpSubKey, 0, sizeof(lpSubKey));
 			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
 		}
-		if (w_findStringIC(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\Cryptography")))
+		if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\Cryptography")))
 		{
+			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
 			memset(lpSubKey, 0, sizeof(lpSubKey));
 			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
 		}
-		if (w_findStringIC(lpSubKey, xorstr_(L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0")))
+		if (!wcscmp(lpSubKey, xorstr_(L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0")))
 		{
+			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
 			memset(lpSubKey, 0, sizeof(lpSubKey));
 			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
 		}
-		if (w_findStringIC(lpSubKey, xorstr_(L"HARDWARE\\DESCRIPTION\\System\\BIOS")))
+		if (!wcscmp(lpSubKey, xorstr_(L"HARDWARE\\DESCRIPTION\\System\\BIOS")))
 		{
+			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
 			memset(lpSubKey, 0, sizeof(lpSubKey));
 			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
 		}
 		rgr = callRegOpenKeyExW(hKey, lpSubKey, ulOptions, samDesired, phkResult);
 	}
-	return rgr;
-}
-typedef LSTATUS(__stdcall* ptrRegOpenKeyExA)(HKEY hKey, LPSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult);
-ptrRegOpenKeyExA callRegOpenKeyExA = nullptr;
-LSTATUS __stdcall hookRegOpenKeyExA(HKEY hKey, LPSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult)
-{
-	LSTATUS rgr = ERROR_FILE_NOT_FOUND;
-	if (!findStringIC(lpSubKey, xorstr_("Software\\CR1M3H")) && !findStringIC(lpSubKey, xorstr_("SOFTWARE\\SU53RS500F3R"))
-	&& !findStringIC(lpSubKey, xorstr_("SOFTWARE\\TTUB02")) && !findStringIC(lpSubKey, xorstr_("SOFTWARE\\0C20B3RB02"))
-	&& !findStringIC(lpSubKey, xorstr_("SOFTWARE\\L3SB02")) && !findStringIC(lpSubKey, xorstr_("Software\\RakData"))
-	&& !findStringIC(lpSubKey, xorstr_("Software\\ShadowData")) && !findStringIC(lpSubKey, xorstr_("Software\\PCL0N3R")))
-	{
-		if (findStringIC(lpSubKey, xorstr_("SYSTEM\\CurrentControlSet\\Control\\IDConfigDB\\Hardware Profiles\\0001")))
-		{
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			strcpy(lpSubKey, xorstr_("SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-		}
-		if (findStringIC(lpSubKey, xorstr_("SOFTWARE\\Microsoft\\MSLicensing\\HardwareID")))
-		{
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			strcpy(lpSubKey, xorstr_("SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-		}
-		if (findStringIC(lpSubKey, xorstr_("SOFTWARE\\Microsoft\\SQMClient")))
-		{
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			strcpy(lpSubKey, xorstr_("SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-		}
-		if (findStringIC(lpSubKey, xorstr_("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion")))
-		{
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			strcpy(lpSubKey, xorstr_("SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-		}
-		if (findStringIC(lpSubKey, xorstr_("SYSTEM\\MountedDevices")))
-		{
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			strcpy(lpSubKey, xorstr_("SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-		}
-		if (findStringIC(lpSubKey, xorstr_("SOFTWARE\\Microsoft\\Cryptography")))
-		{
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			strcpy(lpSubKey, xorstr_("SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-		}
-		if (findStringIC(lpSubKey, xorstr_("HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0")))
-		{
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			strcpy(lpSubKey, xorstr_("SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-		}
-		if (findStringIC(lpSubKey, xorstr_("HARDWARE\\DESCRIPTION\\System\\BIOS")))
-		{
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			strcpy(lpSubKey, xorstr_("SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-		}
-		rgr = callRegOpenKeyExA(hKey, lpSubKey, ulOptions, samDesired, phkResult);
-	}
+	else LogInFile(LOG_NAME, xorstr_("Ignored registry key: %ls\n"), lpSubKey);
 	return rgr;
 }
 void InstallSpoofingHooks()
 {
+	MH_Initialize();
 	CreateRetranslatorTable();
-	callRegOpenKeyExW = (ptrRegOpenKeyExW)GetProcAddress(GetModuleHandleA(xorstr_("kernelbase.dll")), xorstr_("RegOpenKeyExW"));
+	callRegOpenKeyExW = (ptrRegOpenKeyExW)GetProcAddress(GetModuleHandleA(xorstr_("advapi32.dll")), xorstr_("RegOpenKeyExW"));
 	if (RegOpenKeyExW != nullptr)
 	{
 		MH_RemoveHook(callRegOpenKeyExW);
 		MH_CreateHook(callRegOpenKeyExW, &hookRegOpenKeyExW, reinterpret_cast<LPVOID*>(&callRegOpenKeyExW));
-		MH_EnableHook(MH_ALL_HOOKS);
-	}
-	callRegOpenKeyExA = (ptrRegOpenKeyExA)GetProcAddress(GetModuleHandleA(xorstr_("kernelbase.dll")), xorstr_("RegOpenKeyExA"));
-	if (RegOpenKeyExA != nullptr)
-	{
-		MH_RemoveHook(callRegOpenKeyExA);
-		MH_CreateHook(callRegOpenKeyExA, &hookRegOpenKeyExA, reinterpret_cast<LPVOID*>(&callRegOpenKeyExA));
 		MH_EnableHook(MH_ALL_HOOKS);
 	}
 	callGetAdaptersInfo = (ptrGetAdaptersInfo)GetProcAddress(GetModuleHandleA(xorstr_("iphlpapi.dll")), xorstr_("GetAdaptersInfo"));
@@ -317,7 +284,6 @@ void InstallSpoofingHooks()
 		MH_CreateHook(callGetAdaptersInfo, &hookGetAdaptersInfo, reinterpret_cast<LPVOID*>(&callGetAdaptersInfo));
 		MH_EnableHook(MH_ALL_HOOKS);
 	}
-
 	/*callWmiGet = (ptrWmiGet)GetProcAddress(GetModuleHandleA(xorstr_("fastprox.dll")), xorstr_("?Get@CWbemObject@@UAGJPBGJPAUtagVARIANT@@PAJ2@Z"));
 	if (callWmiGet != nullptr)
 	{
@@ -325,10 +291,4 @@ void InstallSpoofingHooks()
 		MH_CreateHook(callWmiGet, &HookWmiGet, reinterpret_cast<LPVOID*>(&callWmiGet));
 		MH_EnableHook(MH_ALL_HOOKS);
 	}*/
-	CEasyRegistry* reg = new CEasyRegistry(HKEY_LOCAL_MACHINE, xorstr_("HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0"), false);
-	if (reg != nullptr)
-	{
-		LogInFile(LOG_NAME, xorstr_("SpoofTest: %s\n"), reg->ReadString(xorstr_("ProcessorNameString")).c_str());
-		delete reg;
-	}
 }
