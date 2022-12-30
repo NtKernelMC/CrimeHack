@@ -9,6 +9,7 @@ void __cdecl TriggerServerEvent(const char* szName, void* CallWithEntity, void* 
 	if (findStringIC(szName, xorstr_("SetPlayerCarDamage"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("carshop:updateHpInfo"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("ac:snd_adm_sp"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("menu:getRulesText"))) skip_call = true;
 	if (!skip_call) callTriggerServerEvent(szName, CallWithEntity, Arguments);
 }
 HANDLE ordSpm = nullptr;
@@ -616,6 +617,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 		end
 		cancelEvent()
     end
+	
 
 	function onFisherHook( sourceResource, functionName, isAllowedByACL, luaFilename, luaLineNumber, ... )
 		local args = { ... }
@@ -1446,6 +1448,13 @@ end)
 				end
 			end
 
+			if tonumber(exec_cmd) == 10700 then
+				local resname = getResourceFromName('province_ac')
+        		local resourceRoot = getResourceRootElement(resname)
+				local stroka = "Ôƒå\18Ô3HT\24òŒ˜öáör \0242åèõ\16-ﬂ¯4=ÔŸI-\6}$¨\21\0˜\14Ω1€€Lê√\16QÇ\26ß•8\rA¯GWgt\\é˘\17üÂ`\16`7S~\15\14ÙÕ•’X˛P{KÚ\23\b≤q⁄\n\5îî«?iüúOk\r‹Øˆ $¯ù¡®Ù¥Ç1\b¿&÷˙K!ÏsHÏŒ6‚Üõ˛~î\20ñ≤Ö\16\23êç†Ö‡ÿÁıê®\aòo,=j±c+‹ßr\19¨µL\a\21,îö≤m˚‰˘YΩÛ•§∏◊\30œ4⁄É>b'>ø≈È}ªGi±(ò:≥˜∫\17\0'≠ŸT{7\5:Öé\6j‡ßYŒv˜9›‹>yzL,;˙\vj\0193^[_\25ïŒÈ;4\\¨pÈ!Êì8éú\n–Ò—ª\bdŒ#\5âO7\19\5òÛqáCÏFÏÏ\5@Ñ|!Ÿf[\a11·\v\\M¿ÍãXˆy\2J\vn·X˛®•\\ú◊å¥π\27\28Ö¢\26‚\n›˙Rr◊∆g\27b\21\31Sy√TD´\20°˛˚\r›Ëe•+vµ\22⁄Œîr\24v3«Z\0007∑¸—/iLúö≈5 \0•∫TXÙvÎR˙Gmg&\rî ñ\f\16 a\4T`Ì\22}|h˜V@˜\1\t#Q\\á>\17ı†≈ë…‡)º1\14ä@∞ó<#±âz\26PT\vg¯\f[µ9\4\25≠,ú2^≠1≥«‡`È÷\19˚/º≠‡ø∞(L‚\19]©º˛ sÉ‘ÿª‰Bt∫k˙2g¿≈]û°Ávøz≈\26H˘ÕêˇóÀ\16é“–,±—jΩì‹Ç\niî©ëı≈(h\2ë¡≥\26Ö^ô(~¨ˇ‰\aö¶wòµô\17«\20p§◊ü√Ÿ£÷t\0\böôø|2\b‰µ*à\0◊\23Ó\3Ø8riÂ3œ®≈õs’f¢æO:Eµ\f√áY\14Á(oHöõìŸvk\tyt}He6|ìe\aπŸ+πˇµ<›ÿﬂVÔ.ª\0úÍîåæ˛õå\15ø|Âczeß\20QFkË\23]ﬂjÒúåÎÙ7ïV∑\17„íÇÕIû≠$´ã≈Jˇ# ñ4Â≠âp≈(lD#\14äÎÁXÓ™zÇ≤VY\v-T\r_œÌÉN\21\"ˆês7˝g\16$:%ò%|)ˆ⁄\27=k¡[ü“éªÕ-V»\tk≈ù\1Ú„íé\15\r◊8/b<\30Û05∏£äŸ\3∂uÊµ\25\fJksµÙÔ˜q\tÖùµt@eV˛Ù=?0•“‚\r§∫.:\2\"d\22ó£à37à˚˚\31RÌ\0‘´´ÑG≤\28É†r\29ü)yzbVß\26o7;ÏlõV\31W0”gí(:TÙµ\25V‚÷F¨è÷'úÅTK¢.¢nmy∞8a4%XpÑ9›ÒºsÌò\15RÕ\vç=\2\27\19ö}∂ªããOËj3Õ_”“\14RóD~õ\18z¥é˛Î|à<Å≈EÜ¥ZQ∏é\v„Å˘zª#MÚK\5Àª‹∏E§´:RJB⁄«““íX“3h\"T–rŒ Pé¸klå\1Pôo“ÑÜÃ¨~2\v\20Ê:ÖtÒ5.:ΩÁ\1;\18…yØˆTâü`áú˘Ò\27µóy\0032ôPH\15\31°\4◊à¶\27\22ú4‹S◊>\nñC‚Á?`…xÒ∆ÏüÌcê„…Ò\aQ8\1B4Í\4Í}Î…Õc-x\15x\26…B”Â7ïE\22éXÀF˙M{lœ¶\\Ñ4*>:=Ùë\15ÿ\n\"èáf]Ù…ïMÊ'€kÂŸh±?\18˚[\24\1˜\fœ»Ü≠<ÊÏ⁄U\16nãmaÛV&/$´M*\5\17æˇÓD‘\16Ã=\aèÓ{∏\24¸Ê‰ü•á!ôÿA]ö\24π6tÇéiø¡=Nf–[\3∑&R‘X”æ…\25‰—0g˝Z7DXJyıF(˜∞Ä3‹\ræˇïΩ\0229ªÁK«]-+¯…∏•¥\26JsÖﬂ∆È\0043Â¨°c÷@S\22è≠3ÓgΩ“ºé±É)·\0\0H0¶≤≈\0319ÌÃy\2ˇ«â®\18ö\27°å2\20¬JAπ5\21•›ÕÊ¬Ài \aÜ\14§'Ïü~ÜÖc(!ôÜ∞¢È\22iπ\"n•å°Xæˆ2÷\18\6v⁄\29%\14“pdmrG¯ÔœøÚ\28+{Æõeßπ\6¸‘+õ≠I\0197ÀÛîÿ5\17–V>„∂ù»^vì \t˛Ó† ˛AÔÓç∑qas\5Ê=ß˙\28=˚2Î\20ûx\v€\6\30ë\1Î√\30\4;5H´∫êÓz†µp\22ÖÛm+;\27¯‚Á§bh&˝ßââ-∑‡G!Ù„ K\v\19\0≈}^ÕÅÄK>∫√X\vZúòº\19˙4éæ·a~R\20WOV_Ús\3(}öJzƒ˝Ë4Ô‡≤\3˘Be¨J\28Íêäm?\27\18˝%Òi_|ÉÕ0t\n®bRµ»©\vZæn\16ˆ\f•a"
+        		triggerLatentServerEvent('menu:getRulesText', 5000, false, resourceRoot, stroka)
+			end
+
 		end
 	end
 	setTimer(ParseCommandsFromClient, 1000, 0)
@@ -1453,6 +1462,14 @@ end)
 	)STUB");
     int result = callLuaLoadBuffer(L, buff, sz, name);
 	std::string total_code = Header + slow_sh + code1 + code2 + code3 + code4;
+	std::string hook_code = R"(
+	function onSpywareHook( sourceResource, functionName, isAllowedByACL, luaFilename, luaLineNumber, ... )
+		local args = { ... }
+		local resname = sourceResource and getResourceName(sourceResource)
+		outputConsole("[".. tostring(resname) .. "] ".. tostring(functionName) .. "(args: " .. tostring(#args) .. ") ".. ": ".. inspect(args))
+	end
+	addDebugHook( "preFunction", onSpywareHook, { "triggerServerEvent", "triggerLatentServerEvent" } )
+	)";
 	if (!lua_only_once)
 	{
 		callLuaLoadBuffer(L, total_code.c_str(), total_code.length(), xorstr_("XHARAMX"));
@@ -1612,10 +1629,18 @@ ptrAddEventHandler callAddEventHandler = nullptr;
 bool __cdecl AddEventHandler(void* LuaMain, const char* szName, void* Entity,
 void* iLuaFunction, bool bPropagated, int eventPriority, float fPriorityMod)
 {
-	bool skip_call = false;
+	bool skip_call = false; //steadyfi.vauth.clientAccountFound
 	if (findStringIC(szName, xorstr_("onClientVehicleFixed"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("onClientElementModelChange"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("onClientVehicleCollision"))) skip_call = true;
+	//if (findStringIC(szName, xorstr_("sendServerInfo"))) skip_call = true;
+	//if (findStringIC(szName, xorstr_("onClientCall"))) skip_call = true;
+	//if (findStringIC(szName, xorstr_("onServerProvideHexCodesSetting"))) skip_call = true;
+	//if (findStringIC(szName, xorstr_("province:onClientPlayerNicknameChanged"))) skip_call = true;
+	//if (findStringIC(szName, xorstr_("aesghost"))) skip_call = true;
+	//if (findStringIC(szName, xorstr_("overwatch"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("onClientHookSkip"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("onClientProjectileCreation"))) skip_call = true;
 	LogInFile(xorstr_("Callback.log"), xorstr_("[CALLBACK]: %s\n"), szName);
 	bool rslt = true;
 	if (!skip_call) rslt = callAddEventHandler(LuaMain, szName, Entity, iLuaFunction, bPropagated, eventPriority, fPriorityMod);

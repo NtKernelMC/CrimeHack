@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V9.2 RELEASE")
+#define PLUGIN_VER xorstr_("V9.3 RELEASE")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -43,6 +43,7 @@
 #pragma comment(lib, "Ws2_32.lib")
 #define SOFT_TYPE xorstr_("crimehack")
 bool oldClient = false;
+bool isDeveloper = false;
 typedef struct
 {
 	std::string q1_endcount;
@@ -227,17 +228,6 @@ void SetHeavenRage()
 		}
 	}
 }
-void FuckRuchnik()
-{
-	char prepared_path[600]; memset(prepared_path, 0, sizeof(prepared_path));
-	sprintf(prepared_path, xorstr_("%s\\ExecCMD.txt"), GetGamePath().c_str());
-	FILE* hFile = fopen(prepared_path, xorstr_("a+"));
-	if (hFile)
-	{
-		fprintf(hFile, xorstr_("%d\n%s"), 10500, xorstr_("NONE"));
-		fclose(hFile);
-	}
-}
 void RepairAllCars()
 {
 	UnocSync = false; RepairSync = true;
@@ -355,6 +345,18 @@ std::string total_hwid = "";
 volatile bool ShowMenu = false;
 std::vector<std::string> PlayersList;
 std::map<std::string, bool> EnemyList;
+void FuckRuchnik()
+{
+	DbgHook = false;
+	char prepared_path[600]; memset(prepared_path, 0, sizeof(prepared_path));
+	sprintf(prepared_path, xorstr_("%s\\ExecCMD.txt"), GetGamePath().c_str());
+	FILE* hFile = fopen(prepared_path, xorstr_("a+"));
+	if (hFile)
+	{
+		fprintf(hFile, xorstr_("%d\n%s"), 10500, xorstr_("NONE"));
+		fclose(hFile);
+	}
+}
 typedef struct
 {
 	std::string hwid;
@@ -1009,7 +1011,7 @@ void MakePreInit()
 				sprintf(inj_msg, xorstr_("[ËÈÖÅÍÇÈß] Ïîäïèñêà äî %s"), additional.c_str());
 				reg->WriteString(xorstr_("InjectorMessage"), inj_msg);
 				CreateMutexA(NULL, FALSE, xorstr_("RBZVX5S1MXAZ4A"));
-				InstallSpoofingHooks();
+				if (findStringIC(RegisteredKey, xorstr_("CH-7DF4-CFBFA-2C0C-40CFLF"))) isDeveloper = true;
 			}
 		}
 		else

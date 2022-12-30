@@ -131,13 +131,13 @@ void HackThread()
         MH_CreateHook(callLdrUnloadDll, &hkLdrUnloadDll, reinterpret_cast<LPVOID*>(&callLdrUnloadDll));
         MH_EnableHook(MH_ALL_HOOKS);
     }
-    call_connect = (ptr_connect)GetProcAddress(GetModuleHandleA(xorstr_("Ws2_32.dll")), xorstr_("connect"));
+    /*call_connect = (ptr_connect)GetProcAddress(GetModuleHandleA(xorstr_("Ws2_32.dll")), xorstr_("connect"));
     if (call_connect != nullptr)
     {
         MH_RemoveHook(call_connect);
         MH_CreateHook(call_connect, &hook_connect, reinterpret_cast<LPVOID*>(&call_connect));
         MH_EnableHook(MH_ALL_HOOKS);
-    }
+    }*/
     while (true)
     {
         if (GetAsyncKeyState(VK_F10) && GetModuleHandleA(xorstr_("client.dll")))
