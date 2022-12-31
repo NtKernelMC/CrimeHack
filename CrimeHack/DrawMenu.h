@@ -770,7 +770,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     }
                     else oldHP = *(float*)(PEDSELF + 0x540);
                 }
-                if (!nanInviz) *(float*)(PEDSELF + 0x540) = NAN;
+                if (nanInviz) *(float*)(PEDSELF + 0x540) = NAN;
                 else *(float*)(PEDSELF + 0x540) = oldHP;
             }
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Установить номера")).c_str()))
