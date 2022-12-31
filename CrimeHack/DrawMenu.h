@@ -756,6 +756,23 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(SumkaTP);
                 exec_cmd.detach();
             }
+            ImGui::SameLine();
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Отключить никнейм")).c_str(), &nanInviz))
+            {
+                static float oldHP = 0.0f;
+                DWORD PEDSELF = *(DWORD*)0xB6F5F0;
+                if (oldHP == 0.0f)
+                {
+                    if (isnan(*(float*)(PEDSELF + 0x540)))
+                    {
+                        std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_HEAL, xorstr_("NONE"));
+                        exec_cmd.detach(); oldHP = 100;
+                    }
+                    else oldHP = *(float*)(PEDSELF + 0x540);
+                }
+                if (!nanInviz) *(float*)(PEDSELF + 0x540) = NAN;
+                else *(float*)(PEDSELF + 0x540) = oldHP;
+            }
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Установить номера")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_SET_PLATE, inp_txt);

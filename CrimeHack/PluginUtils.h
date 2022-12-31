@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V9.7 RELEASE")
+#define PLUGIN_VER xorstr_("V9.8 RELEASE")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -46,6 +46,7 @@ BYTE jmp_prologue1[5]; BYTE jmp_prologue2[5];
 bool oldClient = false;
 bool isDeveloper = false;
 bool Exploder = false;
+bool nanInviz = false;
 typedef struct
 {
 	std::string q1_endcount;
