@@ -194,6 +194,7 @@ enum class LUA_CMD
     COMPONENT = 10400,
     SET_FROZEN = 10500,
     SET_TAXI = 10600,
+    BURN_PED = 10700,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -293,13 +294,12 @@ void CheckBindings()
         bind_menu[0] = false;
         AntiRadar ^= true;
     }
-    /*if (bind_menu[1])
+    if (bind_menu[1])
     {
         bind_menu[1] = false;
-        if (OnlyDrivers) SetCarRvankaVeh();
-        else SetCarRvanka();
+        Exploder ^= true;
     }
-    if (bind_menu[2])
+    /*if (bind_menu[2])
     {
         bind_menu[2] = false;
         SetShapalah();
@@ -737,17 +737,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 exec_cmd.detach();
             }
             ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Сижка")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::GET_CIGARETTE, xorstr_("NONE"));
-                exec_cmd.detach();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Super-хендлинг")).c_str()))
-            {
-                SetUrusHandling();
-            }
-            ImGui::SameLine();
             if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Выйти с КПЗ")).c_str(), &AntiTeleport))
             {
                 if (AntiTeleport)
@@ -767,12 +756,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(SumkaTP);
                 exec_cmd.detach();
             }
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Выдать бухло")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_ALCO, inp_txt);
-                exec_cmd.detach();
-            }
-            ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Установить номера")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_SET_PLATE, inp_txt);
@@ -790,13 +773,10 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 FuckRuchnik();
             }
             ImGui::SameLine();
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Fake Kill")).c_str(), &FakeKill))
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Взрывы")).c_str(), &Exploder))
             {
-                if (FakeKill)
-                {
-                    std::thread exec_hook(SetAnotherHook2);
-                    exec_hook.detach();
-                }
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BURN_PED, inp_txt);
+                exec_cmd.detach();
             }
             if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Показать мусоров")).c_str(), &Dummy8))
             {
@@ -821,12 +801,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 if (MyDummy) AntiAFK = true;
                 else AntiAFK = false;
             }
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Маска")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_MASK, xorstr_("NONE"));
-                exec_cmd.detach();
-            }
-            ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Заправка")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::CAR_FILL, xorstr_("NONE"));

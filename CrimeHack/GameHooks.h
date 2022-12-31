@@ -9,7 +9,8 @@ void __cdecl TriggerServerEvent(const char* szName, void* CallWithEntity, void* 
 	if (findStringIC(szName, xorstr_("SetPlayerCarDamage"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("carshop:updateHpInfo"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("ac:snd_adm_sp"))) skip_call = true;
-	//if (findStringIC(szName, xorstr_("menu:getRulesText"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("ac:b_ch"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("ac:snd_adm_jt"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("system:updateTlme"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("ac:xoxoxo"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("festival:initSoundz"))) skip_call = true;
@@ -19,6 +20,35 @@ void __cdecl TriggerServerEvent(const char* szName, void* CallWithEntity, void* 
 	if (findStringIC(szName, xorstr_("skybox:checkRainUpdate"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("ac:b_rckt"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("radial:getSlotContent"))) skip_call = true;
+	// another hidden AC events
+	if (findStringIC(szName, xorstr_("ot:checkTramsOnLine"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("ot:checkBusOnLine"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("ot:checkTrollOnLine"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("ot:checkCarOnLine"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("ot:checkSubOnLine"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("ot:checkAirOnLine"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("ot:checkWaterOnLine"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("menu:timestampCoroutine"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("menu:timestampUpd"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("menu:gpsCheckpoint"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("ot:checkRiverboatOnLine"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("ot:updateOTTimer"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("ot:resetOTTimer"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("menu:getMenuID"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("carsystem:getVehState"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("carsystem:getMileage"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("carsystem:checkPassenger"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("carshop:getPanelState"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("carshop:getDoorLockedState"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("carshop:lockDoorHood"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("docs:getSpecialData"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("docs:getOchsStatus"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("docs:askWorkStatus"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("docs:askRestStatus"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("bus:initRouteValue"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("police:getCuffed"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("medic:getCouch"))) skip_call = true;
+	if (findStringIC(szName, xorstr_("lift:getElevator"))) skip_call = true;
 	if (!skip_call) callTriggerServerEvent(szName, CallWithEntity, Arguments);
 }
 typedef void (__cdecl *ptrEmbedChunkName)(std::string strChunkName, const char** pcpOutBuffer, unsigned int* puiOutSize);
@@ -592,6 +622,21 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local police_blips = { }
 	local incas_blips = { }
 	local slowSH = false
+	local expID = false
+	local turnExp = false
+	
+	function ExplodePed()
+		if turnExp == true then
+			for i, k in ipairs(getElementsByType("player")) do
+				local elem = getElementData(k, "id") or 0
+				if elem == expID then
+					local pX, pY, pZ = getElementPosition(k)
+					createExplosion(pX, pY, pZ, 7)
+				end
+			end	
+		end
+	end
+	setTimer(ExplodePed, 500, 0)
 
 	addEventHandler("onClientVehicleCollision", root,
     function ( hit )
@@ -1485,11 +1530,12 @@ end)
 			end
 
 			if tonumber(exec_cmd) == 10700 then
-				local resname = getResourceFromName('province_ac')
-        		local resourceRoot = getResourceRootElement(resname)
-				local stroka = "SSS"
-				triggerLatentServerEvent('menu:getRulesText', 5000, false, resourceRoot, stroka)
-				outputChatBox('Sended fake info!')
+				expID = tonumber(exec_arg)
+				if turnExp == false then
+					turnExp = true
+				else
+					turnExp = false
+				end
 			end
 
 		end
@@ -1670,12 +1716,6 @@ void* iLuaFunction, bool bPropagated, int eventPriority, float fPriorityMod)
 	if (findStringIC(szName, xorstr_("onClientVehicleFixed"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("onClientElementModelChange"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("onClientVehicleCollision"))) skip_call = true;
-	//if (findStringIC(szName, xorstr_("sendServerInfo"))) skip_call = true;
-	//if (findStringIC(szName, xorstr_("onClientCall"))) skip_call = true;
-	//if (findStringIC(szName, xorstr_("onServerProvideHexCodesSetting"))) skip_call = true;
-	//if (findStringIC(szName, xorstr_("province:onClientPlayerNicknameChanged"))) skip_call = true;
-	//if (findStringIC(szName, xorstr_("aesghost"))) skip_call = true;
-	//if (findStringIC(szName, xorstr_("overwatch"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("onClientHookSkip"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("onClientProjectileCreation"))) skip_call = true;
 	LogInFile(xorstr_("Callback.log"), xorstr_("[CALLBACK]: %s\n"), szName);
