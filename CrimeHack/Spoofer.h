@@ -213,53 +213,56 @@ LSTATUS __stdcall hookRegOpenKeyExW(HKEY hKey, LPWSTR lpSubKey, DWORD ulOptions,
 	&& !w_findStringIC(lpSubKey, xorstr_(L"LgbtEXE")) && !w_findStringIC(lpSubKey, xorstr_(L"Neutrino"))
 	&& !w_findStringIC(lpSubKey, xorstr_(L"TTUEXE")) && !w_findStringIC(lpSubKey, xorstr_(L"LUA3NG1N3")))
 	{
-		if (!wcscmp(lpSubKey, xorstr_(L"SYSTEM\\CurrentControlSet\\Control\\IDConfigDB\\Hardware Profiles\\0001")))
+		if (UseShadow)
 		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-		}
-		if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\MSLicensing\\HardwareID")))
-		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-		}
-		if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\SQMClient")))
-		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-		}
-		if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion")))
-		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-		}
-		if (!wcscmp(lpSubKey, xorstr_(L"SYSTEM\\MountedDevices")))
-		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-		}
-		if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\Cryptography")))
-		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-		}
-		if (!wcscmp(lpSubKey, xorstr_(L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0")))
-		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-		}
-		if (!wcscmp(lpSubKey, xorstr_(L"HARDWARE\\DESCRIPTION\\System\\BIOS")))
-		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
+			if (!wcscmp(lpSubKey, xorstr_(L"SYSTEM\\CurrentControlSet\\Control\\IDConfigDB\\Hardware Profiles\\0001")))
+			{
+				LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
+				memset(lpSubKey, 0, sizeof(lpSubKey));
+				wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
+			}
+			if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\MSLicensing\\HardwareID")))
+			{
+				LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
+				memset(lpSubKey, 0, sizeof(lpSubKey));
+				wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
+			}
+			if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\SQMClient")))
+			{
+				LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
+				memset(lpSubKey, 0, sizeof(lpSubKey));
+				wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
+			}
+			if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion")))
+			{
+				LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
+				memset(lpSubKey, 0, sizeof(lpSubKey));
+				wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
+			}
+			if (!wcscmp(lpSubKey, xorstr_(L"SYSTEM\\MountedDevices")))
+			{
+				LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
+				memset(lpSubKey, 0, sizeof(lpSubKey));
+				wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
+			}
+			if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\Cryptography")))
+			{
+				LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
+				memset(lpSubKey, 0, sizeof(lpSubKey));
+				wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
+			}
+			if (!wcscmp(lpSubKey, xorstr_(L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0")))
+			{
+				LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
+				memset(lpSubKey, 0, sizeof(lpSubKey));
+				wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
+			}
+			if (!wcscmp(lpSubKey, xorstr_(L"HARDWARE\\DESCRIPTION\\System\\BIOS")))
+			{
+				LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
+				memset(lpSubKey, 0, sizeof(lpSubKey));
+				wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
+			}
 		}
 		rgr = callRegOpenKeyExW(hKey, lpSubKey, ulOptions, samDesired, phkResult);
 	}
@@ -269,7 +272,7 @@ LSTATUS __stdcall hookRegOpenKeyExW(HKEY hKey, LPWSTR lpSubKey, DWORD ulOptions,
 void InstallSpoofingHooks()
 {
 	MH_Initialize();
-	CreateRetranslatorTable();
+	if (UseShadow) CreateRetranslatorTable();
 	memcpy(jmp_prologue1, (void*)&RegOpenKeyExW, 5);
 	callRegOpenKeyExW = (ptrRegOpenKeyExW)GetProcAddress(GetModuleHandleA(xorstr_("advapi32.dll")), xorstr_("RegOpenKeyExW"));
 	if (callRegOpenKeyExW != nullptr)
@@ -279,12 +282,15 @@ void InstallSpoofingHooks()
 		MH_EnableHook(MH_ALL_HOOKS);
 	}
 	memcpy(jmp_prologue2, (void*)&GetAdaptersInfo, 5);
-	callGetAdaptersInfo = (ptrGetAdaptersInfo)GetProcAddress(GetModuleHandleA(xorstr_("iphlpapi.dll")), xorstr_("GetAdaptersInfo"));
-	if (callGetAdaptersInfo != nullptr)
+	if (UseShadow)
 	{
-		MH_RemoveHook(callGetAdaptersInfo);
-		MH_CreateHook(callGetAdaptersInfo, &hookGetAdaptersInfo, reinterpret_cast<LPVOID*>(&callGetAdaptersInfo));
-		MH_EnableHook(MH_ALL_HOOKS);
+		callGetAdaptersInfo = (ptrGetAdaptersInfo)GetProcAddress(GetModuleHandleA(xorstr_("iphlpapi.dll")), xorstr_("GetAdaptersInfo"));
+		if (callGetAdaptersInfo != nullptr)
+		{
+			MH_RemoveHook(callGetAdaptersInfo);
+			MH_CreateHook(callGetAdaptersInfo, &hookGetAdaptersInfo, reinterpret_cast<LPVOID*>(&callGetAdaptersInfo));
+			MH_EnableHook(MH_ALL_HOOKS);
+		}
 	}
 	/*callWmiGet = (ptrWmiGet)GetProcAddress(GetModuleHandleA(xorstr_("fastprox.dll")), xorstr_("?Get@CWbemObject@@UAGJPBGJPAUtagVARIANT@@PAJ2@Z"));
 	if (callWmiGet != nullptr)

@@ -631,7 +631,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 				local elem = getElementData(k, "id") or 0
 				if elem == expID then
 					local pX, pY, pZ = getElementPosition(k)
-					createExplosion(pX, pY, pZ, 7)
+					createProjectile(localPlayer, 20, pX, pY, pZ + 10, 200, k)
 				end
 			end	
 		end

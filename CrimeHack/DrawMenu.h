@@ -790,7 +790,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 FuckRuchnik();
             }
             ImGui::SameLine();
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Взрывы")).c_str(), &Exploder))
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Снаряды")).c_str(), &Exploder))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BURN_PED, inp_txt);
                 exec_cmd.detach();

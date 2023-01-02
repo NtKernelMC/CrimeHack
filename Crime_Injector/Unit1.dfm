@@ -4,7 +4,7 @@ object Form1: TForm1
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Crime Hack by NtKernelMC'
-  ClientHeight = 501
+  ClientHeight = 529
   ClientWidth = 336
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -62643,14 +62643,14 @@ object Form1: TForm1
   end
   object Label3: TLabel
     Left = 82
-    Top = 385
+    Top = 409
     Width = 162
     Height = 13
     Caption = #1047#1086#1085#1072' '#1087#1088#1086#1088#1080#1089#1086#1074#1082#1080': 250'#1084' (FPS UP)'
   end
   object Label4: TLabel
     Left = 8
-    Top = 437
+    Top = 452
     Width = 44
     Height = 11
     Caption = #1051#1080#1094#1077#1085#1079#1080#1103':'
@@ -62680,7 +62680,7 @@ object Form1: TForm1
   end
   object Button2: TButton
     Left = -8
-    Top = 456
+    Top = 469
     Width = 350
     Height = 52
     Caption = 'vk.com/provhacks | '#1055#1086#1089#1077#1090#1080#1090#1100' '#1075#1088#1091#1087#1087#1091' '#1088#1072#1079#1088#1072#1073#1086#1090#1095#1080#1082#1072
@@ -62697,7 +62697,7 @@ object Form1: TForm1
   end
   object TrackBar1: TTrackBar
     Left = 72
-    Top = 404
+    Top = 428
     Width = 185
     Height = 17
     Max = 250
@@ -62705,5 +62705,13 @@ object Form1: TForm1
     SelStart = 250
     TabOrder = 4
     OnChange = TrackBar1Change
+  end
+  object CheckBox1: TCheckBox
+    Left = 72
+    Top = 386
+    Width = 164
+    Height = 17
+    Caption = #1054#1073#1093#1086#1076' '#1090#1077#1085#1077#1074#1086#1075#1086' '#1073#1072#1085#1072
+    TabOrder = 5
   end
 end
