@@ -624,19 +624,30 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local slowSH = false
 	local expID = false
 	local turnExp = false
+	local networker = false
 	
 	function ExplodePed()
 		if turnExp == true then
 			for i, k in ipairs(getElementsByType("player")) do
-				local elem = getElementData(k, "id") or 0
-				if elem == expID then
-					local pX, pY, pZ = getElementPosition(k)
-					createProjectile(localPlayer, 20, pX, pY, pZ + 10, 200, k)
+				local pX, pY, pZ = getElementPosition(k)
+				local vX, vY, vZ = getElementPosition(localPlayer)
+				if getDistanceBetweenPoints3D(pX, pY, pZ, vX, vY, vZ) < 250 and k ~= localPlayer then
+					createProjectile(localPlayer, 20, pX, pY, pZ + 2, 200, k)
 				end
 			end	
 		end
 	end
-	setTimer(ExplodePed, 500, 0)
+	setTimer(ExplodePed, 10, 0)
+
+	function Networker()
+		if networker == true then
+			local resname = getResourceFromName('province_bank')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent('bank:AddMoneyBankAccount', 5000, false, resourceRoot, 1)
+			triggerLatentServerEvent('bank:TakeMoneyBankAccount', 5000, false, resourceRoot, 1)
+		end
+	end
+	setTimer(Networker, 10, 0)
 
 	addEventHandler("onClientVehicleCollision", root,
     function ( hit )
@@ -1536,6 +1547,20 @@ end)
 				else
 					turnExp = false
 				end
+			end
+
+			if tonumber(exec_cmd) == 10800 then
+				if networker == false then
+					networker = true
+				else
+					networker = false
+				end
+			end
+
+			if tonumber(exec_cmd) == 10900 then
+				local resname = getResourceFromName('province_skinshop')
+        		local resourceRoot = getResourceRootElement(resname)
+        		triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 183)
 			end
 
 		end
