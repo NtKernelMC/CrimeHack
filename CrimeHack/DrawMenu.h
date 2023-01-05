@@ -851,7 +851,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SET_TAXI, xorstr_("NONE"));
                 exec_cmd.detach();
             }
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Снегурочка (0$)")).c_str(), &Networker))
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Снегурочка (0$)")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SNEGURKA, xorstr_("NONE"));
                 exec_cmd.detach();
@@ -866,12 +866,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Рыжик CRMP (15k)")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SKIN_1, xorstr_("NONE"));
-                exec_cmd.detach();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Госник SAMP (200k)")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SKIN_2, xorstr_("NONE"));
                 exec_cmd.detach();
             }
             ImGui::PopStyleColor(3);

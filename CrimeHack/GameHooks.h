@@ -1567,12 +1567,6 @@ end)
         		triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 70)
 			end
 
-			if tonumber(exec_cmd) == 11100 then
-				local resname = getResourceFromName('province_skinshop')
-        		local resourceRoot = getResourceRootElement(resname)
-        		triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 197)
-			end
-
 		end
 	end
 	setTimer(ParseCommandsFromClient, 1000, 0)
