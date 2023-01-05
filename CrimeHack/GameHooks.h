@@ -1550,17 +1550,27 @@ end)
 			end
 
 			if tonumber(exec_cmd) == 10800 then
-				if networker == false then
-					networker = true
-				else
-					networker = false
-				end
+				local resname = getResourceFromName('province_skinshop')
+        		local resourceRoot = getResourceRootElement(resname)
+        		triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 28)
 			end
 
 			if tonumber(exec_cmd) == 10900 then
 				local resname = getResourceFromName('province_skinshop')
         		local resourceRoot = getResourceRootElement(resname)
         		triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 183)
+			end
+
+			if tonumber(exec_cmd) == 11000 then
+				local resname = getResourceFromName('province_skinshop')
+        		local resourceRoot = getResourceRootElement(resname)
+        		triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 70)
+			end
+
+			if tonumber(exec_cmd) == 11100 then
+				local resname = getResourceFromName('province_skinshop')
+        		local resourceRoot = getResourceRootElement(resname)
+        		triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 197)
 			end
 
 		end

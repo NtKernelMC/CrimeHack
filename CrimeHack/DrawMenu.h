@@ -195,8 +195,10 @@ enum class LUA_CMD
     SET_FROZEN = 10500,
     SET_TAXI = 10600,
     BURN_PED = 10700,
-    NETWORKER = 10800,
-    DEAD_MOROZ = 10900
+    SKIN_1 = 10800,
+    DEAD_MOROZ = 10900,
+    SKIN_2 = 11000,
+    SNEGURKA = 11100,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -849,15 +851,27 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SET_TAXI, xorstr_("NONE"));
                 exec_cmd.detach();
             }
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Networker")).c_str(), &Networker))
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Снегурочка (0$)")).c_str(), &Networker))
             {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::NETWORKER, inp_txt);
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SNEGURKA, xorstr_("NONE"));
                 exec_cmd.detach();
             }
             ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Dead Moroz")).c_str()))
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Dead Moroz (0$)")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DEAD_MOROZ, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Рыжик CRMP (15k)")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SKIN_1, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Госник SAMP (200k)")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SKIN_2, xorstr_("NONE"));
                 exec_cmd.detach();
             }
             ImGui::PopStyleColor(3);

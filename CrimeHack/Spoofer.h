@@ -269,11 +269,52 @@ LSTATUS __stdcall hookRegOpenKeyExW(HKEY hKey, LPWSTR lpSubKey, DWORD ulOptions,
 	else LogInFile(LOG_NAME, xorstr_("Ignored registry key: %ls\n"), lpSubKey);
 	return rgr;
 }
+std::vector<std::string> ProcList{ xorstr_("CrimeHack.exe"), xorstr_("devenv.exe"), xorstr_("bds.exe"), xorstr_("vmprotect.exe"),
+xorstr_("Code.exe"), xorstr_("vcpkgsrv.exe"), xorstr_("x32dbg.exe"), xorstr_("ida.exe"), xorstr_("filezilla.exe"),
+xorstr_("vshost.exe"), xorstr_("ServiceHub"), xorstr_("Microsoft.ServiceHub"), xorstr_("vmcompute.exe"), xorstr_("MSBuild.exe"),
+xorstr_("SuperSpoofer.exe"), xorstr_("Rachok.exe") };
+typedef BOOL (__stdcall* ptrProcess32First)(HANDLE hSnapshot, LPPROCESSENTRY32 lppe);
+ptrProcess32First callProcess32First = nullptr;
+typedef BOOL(__stdcall* ptrProcess32Next)(HANDLE hSnapshot, LPPROCESSENTRY32 lppe);
+ptrProcess32Next callProcess32Next = nullptr;
+BOOL __stdcall hookProcess32First(HANDLE hSnapshot, LPPROCESSENTRY32 lppe)
+{
+	BOOL rslt = callProcess32First(hSnapshot, lppe);
+	if (lppe != nullptr)
+	{
+		for (const auto& it : ProcList)
+		{
+			if (findStringIC(lppe->szExeFile, it))
+			{
+				memset(lppe->szExeFile, 0, sizeof(lppe->szExeFile));
+				strcpy(lppe->szExeFile, xorstr_("svchost.exe"));
+				break;
+			}
+		}
+	}
+	return rslt;
+}
+BOOL __stdcall hookProcess32Next(HANDLE hSnapshot, LPPROCESSENTRY32 lppe)
+{
+	BOOL rslt = callProcess32Next(hSnapshot, lppe);
+	if (lppe != nullptr)
+	{
+		for (const auto& it : ProcList)
+		{
+			if (findStringIC(lppe->szExeFile, it))
+			{
+				memset(lppe->szExeFile, 0, sizeof(lppe->szExeFile));
+				strcpy(lppe->szExeFile, xorstr_("svchost.exe"));
+				break;
+			}
+		}
+	}
+	return rslt;
+}
 void InstallSpoofingHooks()
 {
 	MH_Initialize();
 	if (UseShadow) CreateRetranslatorTable();
-	memcpy(jmp_prologue1, (void*)&RegOpenKeyExW, 5);
 	callRegOpenKeyExW = (ptrRegOpenKeyExW)GetProcAddress(GetModuleHandleA(xorstr_("advapi32.dll")), xorstr_("RegOpenKeyExW"));
 	if (callRegOpenKeyExW != nullptr)
 	{
@@ -281,7 +322,6 @@ void InstallSpoofingHooks()
 		MH_CreateHook(callRegOpenKeyExW, &hookRegOpenKeyExW, reinterpret_cast<LPVOID*>(&callRegOpenKeyExW));
 		MH_EnableHook(MH_ALL_HOOKS);
 	}
-	memcpy(jmp_prologue2, (void*)&GetAdaptersInfo, 5);
 	if (UseShadow)
 	{
 		callGetAdaptersInfo = (ptrGetAdaptersInfo)GetProcAddress(GetModuleHandleA(xorstr_("iphlpapi.dll")), xorstr_("GetAdaptersInfo"));
@@ -291,6 +331,29 @@ void InstallSpoofingHooks()
 			MH_CreateHook(callGetAdaptersInfo, &hookGetAdaptersInfo, reinterpret_cast<LPVOID*>(&callGetAdaptersInfo));
 			MH_EnableHook(MH_ALL_HOOKS);
 		}
+	}
+	callProcess32First = (ptrProcess32First)GetProcAddress(GetModuleHandleA(xorstr_("kernel32.dll")), xorstr_("Process32First"));
+	if (callProcess32First != nullptr)
+	{
+		MH_RemoveHook(callProcess32First);
+		MH_CreateHook(callProcess32First, &hookProcess32First, reinterpret_cast<LPVOID*>(&callProcess32First));
+		MH_EnableHook(MH_ALL_HOOKS);
+	}
+	callProcess32Next = (ptrProcess32Next)GetProcAddress(GetModuleHandleA(xorstr_("kernel32.dll")), xorstr_("Process32Next"));
+	if (callProcess32Next != nullptr)
+	{
+		MH_RemoveHook(callProcess32Next);
+		MH_CreateHook(callProcess32Next, &hookProcess32Next, reinterpret_cast<LPVOID*>(&callProcess32Next));
+		MH_EnableHook(MH_ALL_HOOKS);
+	}
+	auto snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	auto pe = PROCESSENTRY32{ sizeof(PROCESSENTRY32) };
+	if (Process32First(snapshot, &pe))
+	{
+		do
+		{
+			LogInFile(LOG_NAME, xorstr_("[Process Parser] %s\n"), pe.szExeFile);
+		} while (Process32Next(snapshot, &pe));
 	}
 	/*callWmiGet = (ptrWmiGet)GetProcAddress(GetModuleHandleA(xorstr_("fastprox.dll")), xorstr_("?Get@CWbemObject@@UAGJPBGJPAUtagVARIANT@@PAJ2@Z"));
 	if (callWmiGet != nullptr)
