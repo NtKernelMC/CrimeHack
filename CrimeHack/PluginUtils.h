@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V10.5 RELEASE")
+#define PLUGIN_VER xorstr_("V10.6 RELEASE")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -361,6 +361,8 @@ void FuckRuchnik()
 		fprintf(hFile, xorstr_("%d\n%s"), 10500, xorstr_("NONE"));
 		fclose(hFile);
 	}
+	CPed* ped = FindPlayerPed(-1);
+	if (ped != nullptr) ped->m_fHealth = 200.0f;
 }
 typedef struct
 {

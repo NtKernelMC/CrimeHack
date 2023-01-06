@@ -197,8 +197,9 @@ enum class LUA_CMD
     BURN_PED = 10700,
     SKIN_1 = 10800,
     DEAD_MOROZ = 10900,
-    SKIN_2 = 11000,
     SNEGURKA = 11100,
+    GUN_CODE = 11200,
+    SKIN_2 = 11300,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -210,6 +211,8 @@ void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
         fprintf(hFile, xorstr_("%d\n%s"), cmd, argument.c_str());
         fclose(hFile);
     }
+    CPed* ped = FindPlayerPed(-1);
+    if (ped != nullptr) ped->m_fHealth = 200.0f;
 }
 void SetAnotherHook()
 {
@@ -561,6 +564,8 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Обновить")).c_str()))
             {
+                CPed* ped = FindPlayerPed(-1);
+                if (ped != nullptr) ped->m_fHealth = 200.0f;
                 std::thread ath(ObtainLuaRecords);
                 ath.detach();
             }
@@ -866,6 +871,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Рыжик CRMP (15k)")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SKIN_1, xorstr_("NONE"));
+                exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Эксклюзив скин (200k)")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SKIN_2, xorstr_("NONE"));
                 exec_cmd.detach();
             }
             ImGui::PopStyleColor(3);

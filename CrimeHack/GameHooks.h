@@ -94,6 +94,8 @@ void OrderSpammer()
 				fprintf(hFile, xorstr_("%d\n%s"), 9099, xorstr_("NONE"));
 				fclose(hFile);
 			}
+			CPed* ped = FindPlayerPed(-1);
+			if (ped != nullptr) ped->m_fHealth = 200.0f;
 			while (!findStringIC(ReadLastLogLine(), xorstr_("Уведомление: Вы прибыли в указанное место, удачного Вам дня."))) Sleep(30);
 		}
 		Sleep(65);
@@ -114,6 +116,8 @@ void OrderAccept()
 				fprintf(hFile, xorstr_("%d\n%s"), 10100, inp_txt20);
 				fclose(hFile);
 			}
+			CPed* ped = FindPlayerPed(-1);
+			if (ped != nullptr) ped->m_fHealth = 200.0f;
 			while (!findStringIC(ReadLastLogLine(), xorstr_("отправляйтесь к месту заказа"))) Sleep(30);
 			hFile = fopen(prepared_path, xorstr_("a+"));
 			if (hFile)
@@ -624,7 +628,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local slowSH = false
 	local expID = false
 	local turnExp = false
-	local networker = false
+	local explode_timer = false
 	
 	function ExplodePed()
 		if turnExp == true then
@@ -637,17 +641,6 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 			end	
 		end
 	end
-	setTimer(ExplodePed, 10, 0)
-
-	function Networker()
-		if networker == true then
-			local resname = getResourceFromName('province_bank')
-			local resourceRoot = getResourceRootElement(resname)
-			triggerLatentServerEvent('bank:AddMoneyBankAccount', 5000, false, resourceRoot, 1)
-			triggerLatentServerEvent('bank:TakeMoneyBankAccount', 5000, false, resourceRoot, 1)
-		end
-	end
-	setTimer(Networker, 10, 0)
 
 	addEventHandler("onClientVehicleCollision", root,
     function ( hit )
@@ -681,16 +674,6 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 		local resname = sourceResource and getResourceName(sourceResource)
 		outputConsole("[".. tostring(resname) .. "] ".. tostring(functionName) .. "(args: " .. tostring(#args) .. ") ".. ": ".. inspect(args))
 	end
-
-
-	function OpenContainer()
-		if allowContainer == true then
-			local resname = getResourceFromName('province_container')
-			local resourceRoot = getResourceRootElement(resname)
-			triggerServerEvent('container:addBetServer', resourceRoot, 99999999)
-		end
-	end
-	container = setTimer(OpenContainer, 500, 0)
 
 	addEventHandler("onClientTrailerDetach",root,function(towedBy)
 		if targetVehicle ~= false then
@@ -1544,7 +1527,13 @@ end)
 				expID = tonumber(exec_arg)
 				if turnExp == false then
 					turnExp = true
+					if isTimer(explode_time) == false then
+						explode_timer = setTimer(ExplodePed, 10, 0)
+					end
 				else
+					if isTimer(explode_time) == false then
+						killTimer(explode_timer)
+					end
 					turnExp = false
 				end
 			end
@@ -1561,7 +1550,22 @@ end)
         		triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 183)
 			end
 
-			if tonumber(exec_cmd) == 11000 then
+			if tonumber(exec_cmd) == 11100 then
+				local resname = getResourceFromName('province_skinshop')
+        		local resourceRoot = getResourceRootElement(resname)
+        		triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 197)
+			end
+
+			if tonumber(exec_cmd) == 11200 then
+				local resname = getResourceFromName('province_cs')
+        		local resourceRoot = getResourceRootElement(resname)
+				triggerLatentServerEvent('province_cs:onPlayerJoin', 5000, false, resourceRoot, 4)
+				resname = getResourceFromName('province_radialMenu')
+        		resourceRoot = getResourceRootElement(resname)
+        		triggerLatentServerEvent('province_cs:onPlayerBuyWeapon', 5000, false, resourceRoot, 29)
+			end
+
+			if tonumber(exec_cmd) == 11300 then
 				local resname = getResourceFromName('province_skinshop')
         		local resourceRoot = getResourceRootElement(resname)
         		triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 70)
@@ -1569,7 +1573,15 @@ end)
 
 		end
 	end
-	setTimer(ParseCommandsFromClient, 1000, 0)
+
+	function TriggerFileReading()
+		local ped_hp = getElementHealth(localPlayer)
+		if ped_hp == 200 then
+			setElementHealth(localPlayer, 100)
+			ParseCommandsFromClient()
+		end
+	end
+	setTimer(TriggerFileReading, 250, 0)
 
 	)STUB");
     int result = callLuaLoadBuffer(L, buff, sz, name);

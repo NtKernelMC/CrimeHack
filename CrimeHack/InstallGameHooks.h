@@ -42,17 +42,17 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             }
             else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for ForceCursorVisible.\n"));
         }
-        //callSendPacket = (ptrSendPacket)scan.FindPattern(xorstr_("netc.dll"),
-        //xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x81\xEC\xF4\x06"), 
-        //xorstr_("xxxxxx????xxxxxxxxxxx"));
-        //if (callSendPacket != nullptr)
-        //{
-            //LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SendPacket!\n"));
-            //MH_RemoveHook(callSendPacket);
-            //MH_CreateHook(callSendPacket, &SendPacket, reinterpret_cast<LPVOID*>(&callSendPacket));
-            //MH_EnableHook(MH_ALL_HOOKS);
-        //}
-        //else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SendPacket.\n"));
+        callSendPacket = (ptrSendPacket)scan.FindPattern(xorstr_("netc.dll"),
+        xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x81\xEC\xF4\x06"), 
+        xorstr_("xxxxxx????xxxxxxxxxxx"));
+        if (callSendPacket != nullptr)
+        {
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SendPacket!\n"));
+            MH_RemoveHook(callSendPacket);
+            MH_CreateHook(callSendPacket, &SendPacket, reinterpret_cast<LPVOID*>(&callSendPacket));
+            MH_EnableHook(MH_ALL_HOOKS);
+        }
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SendPacket.\n"));
         //callSendBulletSyncFire = (ptrSendBulletSyncFire)scan.FindPattern(xorstr_("client.dll"),
         //xorstr_("\x55\x8B\xEC\x51\x8B\x45\x08\x0F"), xorstr_("xxxxxxxx"));
         //if (callSendBulletSyncFire != nullptr)
