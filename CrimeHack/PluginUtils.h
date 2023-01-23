@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V10.6 RELEASE")
+#define PLUGIN_VER xorstr_("V10.7 RELEASE")
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -46,9 +46,12 @@ BYTE jmp_prologue1[5]; BYTE jmp_prologue2[5];
 bool oldClient = false;
 bool isDeveloper = false;
 bool Networker = false;
-bool UseShadow = false;
+bool InjectAvailable = false;
 bool Exploder = false;
 bool nanInviz = false;
+bool GuiListAvailable = false;
+std::string LuaArg;
+std::string LuaCode;
 typedef struct
 {
 	std::string q1_endcount;
@@ -95,6 +98,7 @@ void SetCarTotal()
 	UnocSync = true; RepairSync = false; bind_menu[0] = false;
 	for (auto vehicle : CPools::ms_pVehiclePool)
 	{
+
 		if (vehicle->m_pDriver == nullptr)
 		{
 			vehicle->m_fHealth = 250.0f;

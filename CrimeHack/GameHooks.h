@@ -49,6 +49,7 @@ void __cdecl TriggerServerEvent(const char* szName, void* CallWithEntity, void* 
 	if (findStringIC(szName, xorstr_("police:getCuffed"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("medic:getCouch"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("lift:getElevator"))) skip_call = true;
+	//if (findStringIC(szName, xorstr_("autoschool:clearSecretKey"))) skip_call = true;
 	if (!skip_call) callTriggerServerEvent(szName, CallWithEntity, Arguments);
 }
 typedef void (__cdecl *ptrEmbedChunkName)(std::string strChunkName, const char** pcpOutBuffer, unsigned int* puiOutSize);
@@ -57,26 +58,29 @@ void __cdecl EmbedChunkName(std::string strChunkName, const char** pcpOutBuffer,
 {
 	callEmbedChunkName(strChunkName, pcpOutBuffer, puiOutSize);
 	std::string clean_name = CleanScriptName(strChunkName);
-	static bool just_once = false;
-	char cwd[500]; memset(cwd, 0, sizeof(cwd));
-	_getcwd(cwd, sizeof(cwd)); strcat(cwd, xorstr_("\\DumpedScripts"));
-	if (!just_once)
-	{
-		if (!IsDirectoryExists(cwd)) CreateDirectoryA(cwd, 0);
-		else
+	//if (findStringIC(strChunkName, xorstr_("province_autoschool")))
+	//{
+		static bool just_once = false;
+		char cwd[500]; memset(cwd, 0, sizeof(cwd));
+		_getcwd(cwd, sizeof(cwd)); strcat(cwd, xorstr_("\\DumpedScripts"));
+		if (!just_once)
 		{
-			std::filesystem::remove_all(cwd);
-			CreateDirectoryA(cwd, 0);
+			if (!IsDirectoryExists(cwd)) CreateDirectoryA(cwd, 0);
+			else
+			{
+				std::filesystem::remove_all(cwd);
+					CreateDirectoryA(cwd, 0);
+			}
+			just_once = true;
 		}
-		just_once = true;
-	}
-	std::string script_path = cwd + std::string(xorstr_("\\")) + clean_name;
-	FILE* hFile = fopen(script_path.c_str(), xorstr_("wb"));
-	if (hFile != nullptr)
-	{
-		fwrite(*pcpOutBuffer, 1, *puiOutSize, hFile);
-		fclose(hFile);
-	}
+		std::string script_path = cwd + std::string(xorstr_("\\")) + clean_name;
+		FILE* hFile = fopen(script_path.c_str(), xorstr_("wb"));
+		if (hFile != nullptr)
+		{
+			fwrite(*pcpOutBuffer, 1, *puiOutSize, hFile);
+			fclose(hFile);
+		}
+	//}
 }
 HANDLE ordSpm = nullptr;
 HANDLE ordGet = nullptr;
@@ -604,6 +608,64 @@ int __cdecl AddDebugHook(void* luaVM)
 	if (DbgHook) return 0x1;
 	return callAddDebugHook(luaVM);
 }
+using lua_CFunction = int(__cdecl*)(void*);
+#define LUA_GLOBALSINDEX (-10002)
+typedef void(__cdecl* lua_pushcclosure)(void* L, lua_CFunction fn, int n);
+lua_pushcclosure call_pushcclosure = nullptr;
+typedef void(__cdecl* lua_setfield)(void* L, int idx, const char* k);
+lua_setfield call_setfield = nullptr;
+typedef void(__cdecl* lua_pushboolean)(void* L, int bValue);
+lua_pushboolean call_pushboolean = nullptr;
+typedef int(__cdecl* lua_toboolean)(void* L, int idx);
+lua_toboolean call_toboolean = nullptr;
+typedef int(__cdecl* lua_strlen)(void* L);
+lua_strlen call_strlen = nullptr;
+typedef const char* (__cdecl* lua_tostring)(void* L, int idx, unsigned int* len);
+lua_tostring call_tostring = nullptr;
+typedef void(__cdecl* lua_pushnumber)(void* L, long double n);
+lua_pushnumber call_pushnumber = nullptr;
+typedef void(__cdecl* lua_pushstring)(void* L, const char* s);
+lua_pushstring call_pushstring = nullptr;
+void lua_register(void* L, const char* func_name, lua_CFunction f)
+{
+	call_pushcclosure(L, (f), 1);
+	call_setfield(L, LUA_GLOBALSINDEX, (func_name));
+}
+int __cdecl discardDbgHook(void* luaVM)
+{
+	bool bVal = (bool)call_toboolean(luaVM, 1);
+	DbgHook = bVal; call_pushboolean(luaVM, true);
+	return 1;
+}
+int __cdecl isImguiCodeAvailable(void* luaVM)
+{
+	call_pushboolean(luaVM, InjectAvailable);
+	return 1;
+}
+int __cdecl imguiGetCode(void* luaVM)
+{
+	InjectAvailable = false;
+	call_pushstring(luaVM, LuaCode.c_str());
+	return 1;
+}
+int __cdecl imguiGetArgument(void* luaVM)
+{
+	call_pushstring(luaVM, LuaArg.c_str());
+	return 1;
+}
+int __cdecl imguiSetList(void* luaVM)
+{
+	unsigned int strLen = 5000;
+	std::string plList = call_tostring(luaVM, 1, &strLen);
+	DeleteFileA(xorstr_("PL_LIST.txt"));
+	FILE* hFile = fopen(xorstr_("PL_LIST.txt"), xorstr_("wb"));
+	if (hFile)
+	{
+		fwrite(plList.c_str(), 1, plList.length(), hFile);
+		fclose(hFile);
+	}
+	return 1;
+}
 int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 {
 	std::string Header = xorstr_(R"STUB(
@@ -626,21 +688,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local police_blips = { }
 	local incas_blips = { }
 	local slowSH = false
-	local expID = false
-	local turnExp = false
-	local explode_timer = false
-	
-	function ExplodePed()
-		if turnExp == true then
-			for i, k in ipairs(getElementsByType("player")) do
-				local pX, pY, pZ = getElementPosition(k)
-				local vX, vY, vZ = getElementPosition(localPlayer)
-				if getDistanceBetweenPoints3D(pX, pY, pZ, vX, vY, vZ) < 250 and k ~= localPlayer then
-					createProjectile(localPlayer, 20, pX, pY, pZ + 2, 200, k)
-				end
-			end	
-		end
-	end
+
 
 	addEventHandler("onClientVehicleCollision", root,
     function ( hit )
@@ -783,802 +831,787 @@ end)
 
 	std::string code1 = xorstr_(R"STUB(
 
-    function ParseCommandsFromClient()
-		local hFile = fileOpen('GetPlayersList.txt', true)
-		if hFile then
-			fileClose(hFile)
-            fileDelete(':province_loadscreen/GetPlayersList.txt')
-            PlayersList = {}
-            for i, k in ipairs(getElementsByType("player")) do
-                if k ~= localPlayer then
-                    local nametag = getPlayerNametagText(k)
-                    if nametag ~= '-' then
-                        table.insert(PlayersList, nametag .. '\n')
-                    end
-                end
-            end
-            local newFile = fileCreate("Signal.txt")                
-		    if (newFile) then      
-                fileWrite(newFile, table.concat(PlayersList))                                
-			    fileClose(newFile)      
-		    end
+    function ParseCommandsFromClient(exec_cmd, exec_arg)
+		if tonumber(exec_cmd) == 2911 then
+			for i, k in ipairs(getElementsByType("player")) do
+				if k ~= localPlayer then
+					local nametag = getPlayerNametagText(k)
+					if nametag ~= '-' and nametag == tostring(exec_arg) then
+						target_element = k
+					end
+				end
+			end
+			if target_element then
+				if getElementAttachedTo(blips) then	
+					destroyElement(blips) 
+				else 
+					blips = createBlipAttachedTo(target_element, 0, 4.5, 0, 255, 0, 80, 0 ) 
+				end
+			end
 		end
 
-		local textFile = {}
-
-		local file = fileOpen(':province_loadscreen/ExecCMD.txt', true)
-		if file then
-			local count = fileGetSize(file)
-			local data = fileRead(file, count)
-			for w in data:gmatch( '([^%s]+)' ) do
-				table.insert( textFile, w )
+		if tonumber(exec_cmd) == 2933 then
+			local vehicle = getPedOccupiedVehicle(localPlayer)
+			if vehicle then
+				fixVehicle(vehicle)
 			end
-			fileClose(file)
-			fileDelete(':province_loadscreen/ExecCMD.txt')
-			local exec_cmd = textFile[1]
-			local exec_arg = textFile[2]
+		end
 
-			if tonumber(exec_cmd) == 2911 then
-				for i, k in ipairs(getElementsByType("player")) do
-					if k ~= localPlayer then
-						local nametag = getPlayerNametagText(k)
-						if nametag ~= '-' and nametag == tostring(exec_arg) then
-							target_element = k
-						end
-					end
-				end
-				if target_element then
-					if getElementAttachedTo(blips) then	
-						destroyElement(blips) 
-					else 
-						blips = createBlipAttachedTo(target_element, 0, 4.5, 0, 255, 0, 80, 0 ) 
-					end
-				end
-			end
-
-			if tonumber(exec_cmd) == 2933 then
-				local vehicle = getPedOccupiedVehicle(localPlayer)
-				if vehicle then
-					fixVehicle(vehicle)
-				end
-			end
-
-			if tonumber(exec_cmd) == 2944 then
-				local vehicle = getPedOccupiedVehicle(localPlayer)
-				if vehicle then
-					if getVehicleEngineState(vehicle) == false then
-						local resname = getResourceFromName('province_gasoline')
-						local resourceRoot = getResourceRootElement(resname)
-						triggerLatentServerEvent('onSetRefuel', 5000, false, resourceRoot, 1008, 1)
-					else
-						outputConsole('Firstly u need to disable engine!')
-					end
+		if tonumber(exec_cmd) == 2944 then
+			local vehicle = getPedOccupiedVehicle(localPlayer)
+			if vehicle then
+				if getVehicleEngineState(vehicle) == false then
+					local resname = getResourceFromName('province_gasoline')
+					local resourceRoot = getResourceRootElement(resname)
+					triggerLatentServerEvent('onSetRefuel', 5000, false, resourceRoot, 1008, 1)
 				else
-					outputConsole('You a not in car!')
+					outputConsole('Firstly u need to disable engine!')
 				end
+			else
+				outputConsole('You a not in car!')
 			end
+		end
 
-			if tonumber(exec_cmd) == 2955 then
-				local resname = getResourceFromName('province_food')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerLatentServerEvent('food:buyFood', 5000, false, resourceRoot, 2, 6, 31)
-			end
+		if tonumber(exec_cmd) == 2955 then
+			local resname = getResourceFromName('province_food')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent('food:buyFood', 5000, false, resourceRoot, 2, 6, 31)
+		end
 
-			if tonumber(exec_cmd) == 2966 then
-				local resname = getResourceFromName('province_mask')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerLatentServerEvent('mask:acceptBuy', 5000, false, resourceRoot, 1, 1)
-			end
+		if tonumber(exec_cmd) == 2966 then
+			local resname = getResourceFromName('province_mask')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent('mask:acceptBuy', 5000, false, resourceRoot, 1, 1)
+		end
 
-			if tonumber(exec_cmd) == 2977 then
-				local resname = getResourceFromName('province_bank')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerLatentServerEvent('bank:payDpsPenalty', 5000, false, resourceRoot, true)
-			end
+		if tonumber(exec_cmd) == 2977 then
+			local resname = getResourceFromName('province_bank')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent('bank:payDpsPenalty', 5000, false, resourceRoot, true)
+		end
 
-			if tonumber(exec_cmd) == 2988 then
-				if charGM == false then
-					addEventHandler("onClientPlayerDamage", localPlayer, gPlayerGM)
-					charGM = true
-				else
-					removeEventHandler("onClientPlayerDamage", localPlayer, gPlayerGM)
-					charGM = false
-				end
+		if tonumber(exec_cmd) == 2988 then
+			if charGM == false then
+				addEventHandler("onClientPlayerDamage", localPlayer, gPlayerGM)
+				charGM = true
+			else
+				removeEventHandler("onClientPlayerDamage", localPlayer, gPlayerGM)
+				charGM = false
 			end
+		end
 
 	)STUB");
     std::string code2 = xorstr_(R"STUB(
 
-			if tonumber(exec_cmd) == 2999 then
-				setElementHealth(localPlayer, 100)
-			end
+		if tonumber(exec_cmd) == 2999 then
+			setElementHealth(localPlayer, 100)
+		end
 
-			if tonumber(exec_cmd) == 3011 then
-				setPedArmor(localPlayer, 100 )
-			end
+		if tonumber(exec_cmd) == 3011 then
+			setPedArmor(localPlayer, 100 )
+		end
 
-			if tonumber(exec_cmd) == 3022 then
-				if isPedInVehicle(localPlayer) then
-					local Vehicle = getPedOccupiedVehicle(localPlayer)
-					local rotX, rotY, rotZ = getElementRotation(Vehicle)
-					setElementRotation(Vehicle,rotX + 180,rotY,rotZ)
+		if tonumber(exec_cmd) == 3022 then
+			if isPedInVehicle(localPlayer) then
+				local Vehicle = getPedOccupiedVehicle(localPlayer)
+				local rotX, rotY, rotZ = getElementRotation(Vehicle)
+				setElementRotation(Vehicle,rotX + 180,rotY,rotZ)
+			end
+		end
+
+		if tonumber(exec_cmd) == 3033 then
+			if isPedInVehicle(localPlayer) then
+				local Vehicle = getPedOccupiedVehicle(localPlayer)
+				setElementModel(Vehicle, tonumber(exec_arg))
+			else
+				setElementModel(localPlayer, tonumber(exec_arg))
+			end
+		end
+
+		if tonumber(exec_cmd) == 3044 then
+			local CarPlate = tostring(exec_arg)
+			for i, k in ipairs(getElementsByType("vehicle")) do
+				if getVehiclePlateText(k) == CarPlate then
+					local x, y, z = getElementPosition(k)
+					if isPedInVehicle(localPlayer) then
+						local vehicle = getPedOccupiedVehicle ( localPlayer )
+						setElementPosition ( vehicle, x + 3, y, z )
+						setElementInterior(localPlayer, 0)
+					else
+						setElementPosition ( localPlayer, x + 3, y, z )
+						setElementInterior(localPlayer, 0)
+					end
 				end
 			end
+		end
 
-			if tonumber(exec_cmd) == 3033 then
-				if isPedInVehicle(localPlayer) then
-					local Vehicle = getPedOccupiedVehicle(localPlayer)
-					setElementModel(Vehicle, tonumber(exec_arg))
-				else
-					setElementModel(localPlayer, tonumber(exec_arg))
-				end
-			end
-
-			if tonumber(exec_cmd) == 3044 then
-				local CarPlate = tostring(exec_arg)
-				for i, k in ipairs(getElementsByType("vehicle")) do
-					if getVehiclePlateText(k) == CarPlate then
-						local x, y, z = getElementPosition(k)
+		if tonumber(exec_cmd) == 3055 then
+			local ID = tonumber(exec_arg)
+			for i, k in ipairs(getElementsByType("player")) do
+				if (getElementData(k, "id") or 0) == ID then
+					local x,y,z = getElementPosition( k )
+					local interior = getElementInterior(k)
+					local xinterior = getElementInterior(localPlayer)
+					local dim = getElementDimension(localPlayer)
+					local xdim = getElementDimension(k)
+					if dim == xdim and xinterior == interior then
 						if isPedInVehicle(localPlayer) then
 							local vehicle = getPedOccupiedVehicle ( localPlayer )
 							setElementPosition ( vehicle, x + 3, y, z )
-							setElementInterior(localPlayer, 0)
+							setElementInterior(localPlayer, interior)
 						else
 							setElementPosition ( localPlayer, x + 3, y, z )
-							setElementInterior(localPlayer, 0)
+							setElementInterior(localPlayer, interior)
 						end
 					end
 				end
 			end
+		end
 
-			if tonumber(exec_cmd) == 3055 then
-				local ID = tonumber(exec_arg)
-				for i, k in ipairs(getElementsByType("player")) do
-					if (getElementData(k, "id") or 0) == ID then
-						local x,y,z = getElementPosition( k )
-						local interior = getElementInterior(k)
-						local xinterior = getElementInterior(localPlayer)
-						local dim = getElementDimension(localPlayer)
-						local xdim = getElementDimension(k)
-						if dim == xdim and xinterior == interior then
-							if isPedInVehicle(localPlayer) then
-								local vehicle = getPedOccupiedVehicle ( localPlayer )
-								setElementPosition ( vehicle, x + 3, y, z )
-								setElementInterior(localPlayer, interior)
-							else
-								setElementPosition ( localPlayer, x + 3, y, z )
-								setElementInterior(localPlayer, interior)
-							end
-						end
+		if tonumber(exec_cmd) == 3066 then
+			triggerLatentServerEvent("subway:givePlayerLicense", 5000, false, getResourceRootElement(getResourceFromName("province_subway")))
+		end
+
+		if tonumber(exec_cmd) == 3077 then
+			local resname = getResourceFromName('province_ttu')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent('getTestAnswer', 5000, false, resourceRoot, 1, 2)
+			triggerLatentServerEvent('getTestAnswer', 5000, false, resourceRoot, 2, 2)
+			triggerLatentServerEvent('getTestAnswer', 5000, false, resourceRoot, 3, 1)
+			triggerLatentServerEvent('getTestAnswer', 5000, false, resourceRoot, 4, 1)
+			triggerLatentServerEvent('getTestAnswer', 5000, false, resourceRoot, 5, 4)
+			triggerLatentServerEvent('getTestResults', 5000, false, resourceRoot, 1, 1)
+		end
+
+		if tonumber(exec_cmd) == 3088 then
+			local resname = getResourceFromName('province_autoschool')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent("autoschool:endExamTest", 5000, false, resourceRoot, 1, 1, 2482)
+		end
+
+		if tonumber(exec_cmd) == 3099 then
+			local resname = getResourceFromName('province_autoschool')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent("autoschool:endExamTest", 5000, false, resourceRoot, 1, 3, 2482)
+		end
+
+		if tonumber(exec_cmd) == 4011 then
+			local resname = getResourceFromName('province_autoschool')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent("autoschool:endExamTest", 5000, false, resourceRoot, 1, 2, 2482)
+		end
+
+		if tonumber(exec_cmd) == 2922 then
+			for i, k in ipairs(getElementsByType("player")) do
+				if k ~= localPlayer then
+					local nametag = getPlayerNametagText(k)
+					if nametag ~= '-' and nametag == tostring(exec_arg) then
+						target_element = k
 					end
 				end
 			end
-
-			if tonumber(exec_cmd) == 3066 then
-				triggerLatentServerEvent("subway:givePlayerLicense", 5000, false, getResourceRootElement(getResourceFromName("province_subway")))
-			end
-
-			if tonumber(exec_cmd) == 3077 then
-				local resname = getResourceFromName('province_ttu')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerLatentServerEvent('getTestAnswer', 5000, false, resourceRoot, 1, 2)
-				triggerLatentServerEvent('getTestAnswer', 5000, false, resourceRoot, 2, 2)
-				triggerLatentServerEvent('getTestAnswer', 5000, false, resourceRoot, 3, 1)
-				triggerLatentServerEvent('getTestAnswer', 5000, false, resourceRoot, 4, 1)
-				triggerLatentServerEvent('getTestAnswer', 5000, false, resourceRoot, 5, 4)
-				triggerLatentServerEvent('getTestResults', 5000, false, resourceRoot, 1, 1)
-			end
-
-			if tonumber(exec_cmd) == 3088 then
-				local resname = getResourceFromName('province_autoschool')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerLatentServerEvent("autoschool:endExamTest", 5000, false, resourceRoot, 1, 1, 2482)
-			end
-
-			if tonumber(exec_cmd) == 3099 then
-				local resname = getResourceFromName('province_autoschool')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerLatentServerEvent("autoschool:endExamTest", 5000, false, resourceRoot, 1, 3, 2482)
-			end
-
-			if tonumber(exec_cmd) == 4011 then
-				local resname = getResourceFromName('province_autoschool')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerLatentServerEvent("autoschool:endExamTest", 5000, false, resourceRoot, 1, 2, 2482)
-			end
-
-			if tonumber(exec_cmd) == 2922 then
-				for i, k in ipairs(getElementsByType("player")) do
-					if k ~= localPlayer then
-						local nametag = getPlayerNametagText(k)
-						if nametag ~= '-' and nametag == tostring(exec_arg) then
-							target_element = k
-						end
-					end
-				end
-				if target_element then
-					if InSpec == 228 then
-						setCameraTarget(localPlayer)
-						InSpec = 0
-						if isPedInVehicle(localPlayer) then
-							local vehicle = getPedOccupiedVehicle ( localPlayer )
-							setElementFrozen(vehicle, false)
-						else
-							setElementFrozen(localPlayer, false)
-						end
-						setElementInterior(localPlayer, lastInt)
+			if target_element then
+				if InSpec == 228 then
+					setCameraTarget(localPlayer)
+					InSpec = 0
+					if isPedInVehicle(localPlayer) then
+						local vehicle = getPedOccupiedVehicle ( localPlayer )
+						setElementFrozen(vehicle, false)
 					else
-						local car = getPedOccupiedVehicle(target_element)
-						local interior, dimension = getElementInterior(target_element), getElementDimension(target_element)
-						local xinterior, xdimension = getElementInterior(localPlayer ), getElementDimension( localPlayer )
-						lastDim = xdimension
-						lastInt = xinterior
-						InSpec = 228
-						setElementInterior(localPlayer, interior)
-						if car then	setCameraTarget(car) else setCameraTarget(target_element) end
-						if isPedInVehicle(localPlayer) then
-							local vehicle = getPedOccupiedVehicle ( localPlayer )
-							setElementFrozen(vehicle, true)
-						else
-							setElementFrozen(localPlayer, true)
-						end
+						setElementFrozen(localPlayer, false)
+					end
+					setElementInterior(localPlayer, lastInt)
+				else
+					local car = getPedOccupiedVehicle(target_element)
+					local interior, dimension = getElementInterior(target_element), getElementDimension(target_element)
+					local xinterior, xdimension = getElementInterior(localPlayer ), getElementDimension( localPlayer )
+					lastDim = xdimension
+					lastInt = xinterior
+					InSpec = 228
+					setElementInterior(localPlayer, interior)
+					if car then	setCameraTarget(car) else setCameraTarget(target_element) end
+					if isPedInVehicle(localPlayer) then
+						local vehicle = getPedOccupiedVehicle ( localPlayer )
+						setElementFrozen(vehicle, true)
+					else
+						setElementFrozen(localPlayer, true)
 					end
 				end
 			end
+		end
     )STUB");
 	std::string code3 = xorstr_(R"STUB(
-			if tonumber(exec_cmd) == 4022 then
-				local resname = getResourceFromName('province_bar')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerLatentServerEvent('bar:sendRequestToBuyProduct', 5000, false, resourceRoot, 300, 1669, 1, tostring(exec_arg))	
-			end
+		if tonumber(exec_cmd) == 4022 then
+			local resname = getResourceFromName('province_bar')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent('bar:sendRequestToBuyProduct', 5000, false, resourceRoot, 300, 1669, 1, tostring(exec_arg))	
+		end
 
-			if tonumber(exec_cmd) == 4033 then
-				local resname = getResourceFromName('province_lottery')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent("province_lottery:onCompleteOrder", resourceRoot, { tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg) } )
-			end
+		if tonumber(exec_cmd) == 4033 then
+			local resname = getResourceFromName('province_lottery')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerServerEvent("province_lottery:onCompleteOrder", resourceRoot, { tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg) } )
+		end
 
-			if tonumber(exec_cmd) == 4044 then
-				local resname = getResourceFromName('province_lifts')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('lifts:startPissing', resourceRoot)
-			end
+		if tonumber(exec_cmd) == 4044 then
+			local resname = getResourceFromName('province_lifts')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerServerEvent('lifts:startPissing', resourceRoot)
+		end
 
-			if tonumber(exec_cmd) == 4055 then
-				local resname = getResourceFromName('province_army')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('Army:setGodenEvent', resourceRoot)
-			end
+		if tonumber(exec_cmd) == 4055 then
+			local resname = getResourceFromName('province_army')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerServerEvent('Army:setGodenEvent', resourceRoot)
+		end
 
-			if tonumber(exec_cmd) == 4066 then
-				local resname = getResourceFromName('province_food')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('buyFood', resourceRoot, 6, 6, 120)
-				resname = getResourceFromName('province_winter_hats')
-				resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('medicine:ApplyChanges', resourceRoot, -0.017999999, 0.097999997, 0.050000001, 97.199997, 57.599998, 129.60001, 15.5, 15.5, 15.5)
-			end
+		if tonumber(exec_cmd) == 4066 then
+			local resname = getResourceFromName('province_food')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerServerEvent('buyFood', resourceRoot, 6, 6, 120)
+			resname = getResourceFromName('province_winter_hats')
+			resourceRoot = getResourceRootElement(resname)
+			triggerServerEvent('medicine:ApplyChanges', resourceRoot, -0.017999999, 0.097999997, 0.050000001, 97.199997, 57.599998, 129.60001, 15.5, 15.5, 15.5)
+		end
 
-			if tonumber(exec_cmd) == 4077 then
-				setPedAnimation(localPlayer)
-				toggleAllControls(true)
-				setElementFrozen(localPlayer, false)
-			end
+		if tonumber(exec_cmd) == 4077 then
+			setPedAnimation(localPlayer)
+			toggleAllControls(true)
+			setElementFrozen(localPlayer, false)
+		end
 
-			if tonumber(exec_cmd) == 4088 then
-				for i, k in ipairs(getElementsByType("player")) do
-                    local nametag = getPlayerNametagText(k)
-                    if isPedInVehicle(k) then
-						local actor_vehicle = getPedOccupiedVehicle(k)
-						local elem = getElementData(actor_vehicle, "Mileage") or 0
-						if tonumber(elem) > 0 then
-							outputChatBox('Probeg is: ' .. tostring(elem))
-						end
+		if tonumber(exec_cmd) == 4088 then
+			for i, k in ipairs(getElementsByType("player")) do
+                local nametag = getPlayerNametagText(k)
+                if isPedInVehicle(k) then
+					local actor_vehicle = getPedOccupiedVehicle(k)
+					local elem = getElementData(actor_vehicle, "Mileage") or 0
+					if tonumber(elem) > 0 then
+						outputChatBox('Probeg is: ' .. tostring(elem))
 					end
 				end
 			end
+		end
 
-			if tonumber(exec_cmd) == 4099 then
+		if tonumber(exec_cmd) == 4099 then
 			
-			end
+		end
 
-			if tonumber(exec_cmd) == 5011 then
-				local resname = getResourceFromName('province_gasoline')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerLatentServerEvent('gasoline:startElectroCharge', 5000, false, resourceRoot)
-			end
+		if tonumber(exec_cmd) == 5011 then
+			local resname = getResourceFromName('province_gasoline')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent('gasoline:startElectroCharge', 5000, false, resourceRoot)
+		end
 
-			if tonumber(exec_cmd) == 5022 then
-				for i, k in ipairs(getElementsByType("player")) do
-					local elem_id = getElementData(k, "id") or 0
-					if tonumber(elem_id) == tonumber(exec_arg) then
-						if isPedInVehicle(localPlayer) and isPedInVehicle(k) then
-							local myVehicle = getPedOccupiedVehicle(localPlayer)
-							targetVehicle = getPedOccupiedVehicle(k)
-							setElementFrozen(targetVehicle, false)
-							attachTrailerToVehicle(myVehicle, targetVehicle)
-						end
+		if tonumber(exec_cmd) == 5022 then
+			for i, k in ipairs(getElementsByType("player")) do
+				local elem_id = getElementData(k, "id") or 0
+				if tonumber(elem_id) == tonumber(exec_arg) then
+					if isPedInVehicle(localPlayer) and isPedInVehicle(k) then
+						local myVehicle = getPedOccupiedVehicle(localPlayer)
+						targetVehicle = getPedOccupiedVehicle(k)
+						setElementFrozen(targetVehicle, false)
+						attachTrailerToVehicle(myVehicle, targetVehicle)
 					end
 				end
 			end
+		end
 
-			if tonumber(exec_cmd) == 5033 then
-				if isPedInVehicle(localPlayer) then
-					local Vehicle = getPedOccupiedVehicle(localPlayer)
-					setVehiclePlateText( Vehicle, tostring(exec_arg) )
-				end
+		if tonumber(exec_cmd) == 5033 then
+			if isPedInVehicle(localPlayer) then
+				local Vehicle = getPedOccupiedVehicle(localPlayer)
+				setVehiclePlateText( Vehicle, tostring(exec_arg) )
 			end
+		end
 
-			if tonumber(exec_cmd) == 5044 then
-				local resname = getResourceFromName('province_misc')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('getShute', resourceRoot)
-			end
+		if tonumber(exec_cmd) == 5044 then
+			local resname = getResourceFromName('province_misc')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerServerEvent('getShute', resourceRoot)
+		end
 
-			if tonumber(exec_cmd) == 5055 then
-				local resname = getResourceFromName('province_hotel')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 1, 1)
-				triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 2, 1)
-				triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 3, 1)
-				triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 4, 1)	
-				triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 5, 1)
-				triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 6, 1)	
-				triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 7, 1)
-				triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 8, 1)
-				triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 9, 1)
-			end
+		if tonumber(exec_cmd) == 5055 then
+			local resname = getResourceFromName('province_hotel')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 1, 1)
+			triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 2, 1)
+			triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 3, 1)
+			triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 4, 1)	
+			triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 5, 1)
+			triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 6, 1)	
+			triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 7, 1)
+			triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 8, 1)
+			triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 9, 1)
+		end
 
-			if tonumber(exec_cmd) == 5066 then
-				local resname = getResourceFromName('province_hotel')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('hotel:onPlayerRequestProlongRent', resourceRoot, tonumber(exec_arg))
-			end
+		if tonumber(exec_cmd) == 5066 then
+			local resname = getResourceFromName('province_hotel')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerServerEvent('hotel:onPlayerRequestProlongRent', resourceRoot, tonumber(exec_arg))
+		end
 
 	)STUB");
 	std::string code4 = xorstr_(R"STUB(
-			if tonumber(exec_cmd) == 5077 then
-				if DamageReducer == 0 then
-					DamageReducer = 228
-					LossPercentage = 75
-					addEventHandler("onClientPlayerDamage", localPlayer, godModeP)
-				else
-					DamageReducer = 0
-					removeEventHandler("onClientPlayerDamage", localPlayer, godModeP)
+		if tonumber(exec_cmd) == 5077 then
+			if DamageReducer == 0 then
+				DamageReducer = 228
+				LossPercentage = 75
+				addEventHandler("onClientPlayerDamage", localPlayer, godModeP)
+			else
+				DamageReducer = 0
+				removeEventHandler("onClientPlayerDamage", localPlayer, godModeP)
+			end
+		end
+
+		if tonumber(exec_cmd) == 5088 then
+			if TaranMode == 0 then
+				TaranMode = 228
+			else
+				TaranMode = 0
+			end
+		end
+
+		if tonumber(exec_cmd) == 5099 then
+			for i, k in ipairs(getElementsByType("player")) do
+                local nametag = getPlayerNametagText(k)
+				local elem = getElementData(k, "WantedLevel") or 0
+				if tonumber(elem) > 0 then
+					outputChatBox('Wanted ' .. nametag .. ': Has ' .. tostring(elem) .. ' Stars!')
 				end
 			end
+		end
 
-			if tonumber(exec_cmd) == 5088 then
-				if TaranMode == 0 then
-					TaranMode = 228
-				else
-					TaranMode = 0
+		if tonumber(exec_cmd) == 6011 then
+			setElementPosition(localPlayer, -1862.1632080078, 849.89630126953, -6.4869027137756)
+		end
+
+		if tonumber(exec_cmd) == 6022 then
+			if fisherHook == 0 then
+				fisherHook = 228
+				addDebugHook( "preFunction", onFisherHook, { "triggerServerEvent" } )
+			end
+		end
+
+		if tonumber(exec_cmd) == 6033 then
+			local resname = getResourceFromName('province_fisher')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerServerEvent('fishman:buyUdochka', resourceRoot)
+		end
+
+		if tonumber(exec_cmd) == 6044 then
+			local resname = getResourceFromName('province_fisher')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerServerEvent('fishman:buyItem', resourceRoot)
+		end
+
+		if tonumber(exec_cmd) == 6055 then
+			setElementPosition(localPlayer, -991.62579345703, 512.88684082031, -0.49991953372955)
+		end
+
+		if tonumber(exec_cmd) == 6066 then
+			setElementInterior(localPlayer, 0)
+		end
+
+		if tonumber(exec_cmd) == 6077 then
+			victimID = tonumber(exec_arg)
+		end
+
+		if tonumber(exec_cmd) == 6088 then
+			local resname = getResourceFromName('province_bank')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent('bank:CreateAccount', 5000, false, resourceRoot)	
+			outputChatBox('Created bank account!')
+		end
+
+		if tonumber(exec_cmd) == 6099 then
+			local resname = getResourceFromName('province_bank')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent('bank:AddMoneyBankAccount', 5000, false, resourceRoot, tonumber(exec_arg))
+			outputChatBox('Added ' .. tostring(exec_arg) .. '$ to bank account!')
+		end
+
+		if tonumber(exec_cmd) == 7011 then
+			local resname = getResourceFromName('province_bank')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent('bank:TakeMoneyBankAccount', 5000, false, resourceRoot, tonumber(exec_arg))	
+			outputChatBox('Withdrawal of ' .. tostring(exec_arg) .. '$ from bank account!')
+		end
+
+		if tonumber(exec_cmd) == 7022 then
+			local resname = getResourceFromName('province_bank')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent('bank:SendToAnotherAccount', 5000, false, resourceRoot, tonumber(exec_arg), tostring(bank_id))
+			outputChatBox('Transaction of ' .. tostring(exec_arg) .. '$ to bank account ' .. tostring(bank_id))
+		end
+
+		if tonumber(exec_cmd) == 7033 then
+			bank_id = tostring(exec_arg)
+			outputChatBox('Processing bank transaction...')
+		end
+
+		if tonumber(exec_cmd) == 7044 then
+			replace_id = tonumber(exec_arg)
+			outputChatBox('Replacing model with ID: ' .. tostring(replace_id) .. '...')
+		end
+
+		if tonumber(exec_cmd) == 7055 then
+			local txd_name = tostring(exec_arg) .. '.txd'
+			local dff_name = tostring(exec_arg) .. '.dff'
+			local txd = engineLoadTXD(txd_name)
+			engineImportTXD(txd, replace_id)
+			local dff = engineLoadDFF(dff_name)
+			engineReplaceModel(dff, replace_id)
+			outputChatBox('Model: ' .. tostring(exec_arg) .. ' is loaded!')
+		end
+
+		if tonumber(exec_cmd) == 7066 then
+			local dmp_model = false
+			if isPedInVehicle(localPlayer) then
+				local Vehicle = getPedOccupiedVehicle(localPlayer)
+				dmp_model = getElementModel(Vehicle)
+			else 
+				dmp_model = getElementModel(localPlayer)
+			end
+			outputChatBox('Current Model ID is: ' .. tostring(dmp_model))
+		end
+
+		if tonumber(exec_cmd) == 7077 then
+			if isPedInVehicle(localPlayer) then
+				local theVehicle = getPedOccupiedVehicle(localPlayer)
+				detachTrailerFromVehicle(theVehicle)
+				targetVehicle = false
+			end
+		end
+
+		if tonumber(exec_cmd) == 7088 then
+            if allowContainer == false then
+				allowContainer = true
+			else
+				allowContainer = false
+			end
+		end
+
+		if tonumber(exec_cmd) == 7099 then
+			if carGM == false then
+				carGM = true
+				addEventHandler("onClientVehicleDamage", root, VehDamage)
+			else
+				carGM = false
+				removeEventHandler("onClientVehicleDamage", localPlayer, VehDamage)
+			end
+		end
+
+		if tonumber(exec_cmd) == 8011 then
+			local blips = getElementsByType ( "blip" )
+			for k, v in ipairs(blips) do
+				if getBlipIcon( v ) == 41 then
+					if isPedInVehicle(localPlayer) then
+						local vehicle = getPedOccupiedVehicle ( localPlayer )
+						setElementPosition ( vehicle, getElementPosition( v ) )
+						setElementInterior(localPlayer, 0)
+					else
+						setElementPosition ( localPlayer, getElementPosition( v ) )
+						setElementInterior(localPlayer, 0)
+					end
 				end
 			end
+		end
 
-			if tonumber(exec_cmd) == 5099 then
+		if tonumber(exec_cmd) == 8022 then
+			setElementPosition(localPlayer, 213.91273498535, 1115.1557617188, 24.144750595093)
+			setElementInterior(localPlayer, 0)
+		end		
+
+		if tonumber(exec_cmd) == 8033 then
+			setElementPosition(localPlayer, -100.92771911621, -1241.4100341797, 6.9533462524414)
+			setElementInterior(localPlayer, 0)
+		end	
+
+		if tonumber(exec_cmd) == 8055 then
+			triggerServerEvent("onBuyNewVehicle", getResourceRootElement(getResourceFromName("province_carshop")), 560, 115, 133, 0, 13, 7, 4, 4, 6)
+		end		
+
+		if tonumber(exec_cmd) == 8066 then
+			if table.size(police_blips) > 0 then
+				for i = 1, table.size(police_blips) do
+					if getElementAttachedTo(police_blips[i]) then	
+						destroyElement(police_blips[i]) 
+						police_blips[i] = nil
+					end
+				end
+			else 
+				local x = 1
 				for i, k in ipairs(getElementsByType("player")) do
-                    local nametag = getPlayerNametagText(k)
-					local elem = getElementData(k, "WantedLevel") or 0
-					if tonumber(elem) > 0 then
-						outputChatBox('Wanted ' .. nametag .. ': Has ' .. tostring(elem) .. ' Stars!')
+					local skin = getElementModel(k)
+					if skin == 32 or skin == 43 or skin == 44 or skin == 52 or skin == 55 or skin == 57 or skin == 58
+					or skin == 71 or skin == 92 or skin == 95 or skin == 142 or skin == 145 or skin == 161  or skin == 163
+					or skin == 168 or skin == 173 or skin == 174 or skin == 174 or skin == 175 or skin == 176 
+					or skin == 168 or skin == 179 or skin == 180 or skin == 182 or skin == 184 
+					or skin == 188 or skin == 267 or skin == 281 or skin == 282 or skin == 283 
+					or skin == 281 or skin == 288 or skin == 49 or skin == 54 or skin == 91 or skin == 96
+					or skin == 97 or skin == 98 or skin == 128 or skin == 129 or skin == 143 or skin == 146 
+					or skin == 281 or skin == 150 or skin == 154 or skin == 170 or skin == 209 or skin == 213
+					or skin == 229 or skin == 252 or skin == 253 or skin == 254 or skin == 272 or skin == 280 then
+						police_blips[x] = createBlipAttachedTo(k, 0, 4.5, 0, 0, 255, 80, 0 )
+						x = x + 1
 					end
 				end
 			end
+		end	
 
-			if tonumber(exec_cmd) == 6011 then
-				setElementPosition(localPlayer, -1862.1632080078, 849.89630126953, -6.4869027137756)
-			end
+		if tonumber(exec_cmd) == 8077 then
+			discardDbgHook(false)
+			addDebugHook( "preFunction", onEventDumper, { "triggerServerEvent", "triggerLatentServerEvent" } )
+			discardDbgHook(true)
+		end	
 
-			if tonumber(exec_cmd) == 6022 then
-				if fisherHook == 0 then
-					fisherHook = 228
-					addDebugHook( "preFunction", onFisherHook, { "triggerServerEvent" } )
+		if tonumber(exec_cmd) == 8088 then
+			local resname = getResourceFromName('province_bar')
+			local resourceRoot = getResourceRootElement(resname)
+			local nameTag = getPlayerNametagText(localPlayer)
+			triggerLatentServerEvent('bar:sendRequestToBuyProduct', 5000, false, resourceRoot, 120, 1485, 20, nameTag)	
+		end
+
+		if tonumber(exec_cmd) == 8099 then
+			local resname = getResourceFromName('province_bank')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerServerEvent('bank:payHouseBills', resourceRoot, tonumber(exec_arg), true)	
+		end	
+
+		if tonumber(exec_cmd) == 9011 then
+			local resname = getResourceFromName('province_bank')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerServerEvent('bank:payGarageBills', resourceRoot, tonumber(exec_arg), true)	
+		end	
+
+		if tonumber(exec_cmd) == 9022 then
+			if table.size(incas_blips) > 0 then
+				for i = 1, table.size(incas_blips) do
+					if getElementAttachedTo(incas_blips[i]) then	
+						destroyElement(incas_blips[i]) 
+						incas_blips[i] = nil
+					end
 				end
-			end
-
-			if tonumber(exec_cmd) == 6033 then
-				local resname = getResourceFromName('province_fisher')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('fishman:buyUdochka', resourceRoot)
-			end
-
-			if tonumber(exec_cmd) == 6044 then
-				local resname = getResourceFromName('province_fisher')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('fishman:buyItem', resourceRoot)
-			end
-
-			if tonumber(exec_cmd) == 6055 then
-				setElementPosition(localPlayer, -991.62579345703, 512.88684082031, -0.49991953372955)
-			end
-
-			if tonumber(exec_cmd) == 6066 then
-				setElementInterior(localPlayer, 0)
-			end
-
-			if tonumber(exec_cmd) == 6077 then
-				victimID = tonumber(exec_arg)
-			end
-
-			if tonumber(exec_cmd) == 6088 then
-				local resname = getResourceFromName('province_bank')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerLatentServerEvent('bank:CreateAccount', 5000, false, resourceRoot)	
-				outputChatBox('Created bank account!')
-			end
-
-			if tonumber(exec_cmd) == 6099 then
-				local resname = getResourceFromName('province_bank')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerLatentServerEvent('bank:AddMoneyBankAccount', 5000, false, resourceRoot, tonumber(exec_arg))
-				outputChatBox('Added ' .. tostring(exec_arg) .. '$ to bank account!')
-			end
-
-			if tonumber(exec_cmd) == 7011 then
-				local resname = getResourceFromName('province_bank')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerLatentServerEvent('bank:TakeMoneyBankAccount', 5000, false, resourceRoot, tonumber(exec_arg))	
-				outputChatBox('Withdrawal of ' .. tostring(exec_arg) .. '$ from bank account!')
-			end
-
-			if tonumber(exec_cmd) == 7022 then
-				local resname = getResourceFromName('province_bank')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerLatentServerEvent('bank:SendToAnotherAccount', 5000, false, resourceRoot, tonumber(exec_arg), tostring(bank_id))
-				outputChatBox('Transaction of ' .. tostring(exec_arg) .. '$ to bank account ' .. tostring(bank_id))
-			end
-
-			if tonumber(exec_cmd) == 7033 then
-				bank_id = tostring(exec_arg)
-				outputChatBox('Processing bank transaction...')
-			end
-
-			if tonumber(exec_cmd) == 7044 then
-				replace_id = tonumber(exec_arg)
-				outputChatBox('Replacing model with ID: ' .. tostring(replace_id) .. '...')
-			end
-
-			if tonumber(exec_cmd) == 7055 then
-				local txd_name = tostring(exec_arg) .. '.txd'
-				local dff_name = tostring(exec_arg) .. '.dff'
-				local txd = engineLoadTXD(txd_name)
-				engineImportTXD(txd, replace_id)
-				local dff = engineLoadDFF(dff_name)
-				engineReplaceModel(dff, replace_id)
-				outputChatBox('Model: ' .. tostring(exec_arg) .. ' is loaded!')
-			end
-
-			if tonumber(exec_cmd) == 7066 then
-				local dmp_model = false
-				if isPedInVehicle(localPlayer) then
-					local Vehicle = getPedOccupiedVehicle(localPlayer)
-				    dmp_model = getElementModel(Vehicle)
-				else 
-					dmp_model = getElementModel(localPlayer)
-				end
-				outputChatBox('Current Model ID is: ' .. tostring(dmp_model))
-			end
-
-			if tonumber(exec_cmd) == 7077 then
-				if isPedInVehicle(localPlayer) then
-					local theVehicle = getPedOccupiedVehicle(localPlayer)
-					detachTrailerFromVehicle(theVehicle)
-					targetVehicle = false
-				end
-			end
-
-			if tonumber(exec_cmd) == 7088 then
-                if allowContainer == false then
-					allowContainer = true
-				else
-					allowContainer = false
-				end
-			end
-
-			if tonumber(exec_cmd) == 7099 then
-				if carGM == false then
-					carGM = true
-					addEventHandler("onClientVehicleDamage", root, VehDamage)
-				else
-					carGM = false
-					removeEventHandler("onClientVehicleDamage", localPlayer, VehDamage)
-				end
-			end
-
-			if tonumber(exec_cmd) == 8011 then
-				local blips = getElementsByType ( "blip" )
-				for k, v in ipairs(blips) do
-					if getBlipIcon( v ) == 41 then
-						if isPedInVehicle(localPlayer) then
-							local vehicle = getPedOccupiedVehicle ( localPlayer )
-							setElementPosition ( vehicle, getElementPosition( v ) )
-							setElementInterior(localPlayer, 0)
-						else
-							setElementPosition ( localPlayer, getElementPosition( v ) )
-							setElementInterior(localPlayer, 0)
-						end
+			else 
+				local x = 1
+				for i, k in ipairs(getElementsByType("player")) do
+					local skin = getElementModel(k)
+					if skin == 15 then
+						incas_blips[x] = createBlipAttachedTo(k, 0, 4.5, 0, 255, 200, 80, 0 )
+						x = x + 1
 					end
 				end
 			end
-
-			if tonumber(exec_cmd) == 8022 then
-				setElementPosition(localPlayer, 213.91273498535, 1115.1557617188, 24.144750595093)
-				setElementInterior(localPlayer, 0)
-			end		
-
-			if tonumber(exec_cmd) == 8033 then
-				setElementPosition(localPlayer, -100.92771911621, -1241.4100341797, 6.9533462524414)
-				setElementInterior(localPlayer, 0)
-			end	
-
-			if tonumber(exec_cmd) == 8055 then
-				triggerServerEvent("onBuyNewVehicle", getResourceRootElement(getResourceFromName("province_carshop")), 560, 115, 133, 0, 13, 7, 4, 4, 6)
-			end		
-
-			if tonumber(exec_cmd) == 8066 then
-				if table.size(police_blips) > 0 then
-					for i = 1, table.size(police_blips) do
-						if getElementAttachedTo(police_blips[i]) then	
-							destroyElement(police_blips[i]) 
-							police_blips[i] = nil
-						end
-					end
-				else 
-					local x = 1
-					for i, k in ipairs(getElementsByType("player")) do
-						local skin = getElementModel(k)
-						if skin == 32 or skin == 43 or skin == 44 or skin == 52 or skin == 55 or skin == 57 or skin == 58
-						or skin == 71 or skin == 92 or skin == 95 or skin == 142 or skin == 145 or skin == 161  or skin == 163
-						or skin == 168 or skin == 173 or skin == 174 or skin == 174 or skin == 175 or skin == 176 
-						or skin == 168 or skin == 179 or skin == 180 or skin == 182 or skin == 184 
-						or skin == 188 or skin == 267 or skin == 281 or skin == 282 or skin == 283 
-						or skin == 281 or skin == 288 or skin == 49 or skin == 54 or skin == 91 or skin == 96
-						or skin == 97 or skin == 98 or skin == 128 or skin == 129 or skin == 143 or skin == 146 
-						or skin == 281 or skin == 150 or skin == 154 or skin == 170 or skin == 209 or skin == 213
-						or skin == 229 or skin == 252 or skin == 253 or skin == 254 or skin == 272 or skin == 280 then
-							police_blips[x] = createBlipAttachedTo(k, 0, 4.5, 0, 0, 255, 80, 0 )
-							x = x + 1
-						end
-					end
-				end
-			end	
-
-			if tonumber(exec_cmd) == 8077 then
-				addDebugHook( "preFunction", onEventDumper, { "triggerServerEvent" } )
-			end	
-
-			if tonumber(exec_cmd) == 8088 then
-				local resname = getResourceFromName('province_bar')
-				local resourceRoot = getResourceRootElement(resname)
-				local nameTag = getPlayerNametagText(localPlayer)
-				triggerLatentServerEvent('bar:sendRequestToBuyProduct', 5000, false, resourceRoot, 120, 1485, 20, nameTag)	
-			end
-
-			if tonumber(exec_cmd) == 8099 then
-				local resname = getResourceFromName('province_bank')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('bank:payHouseBills', resourceRoot, tonumber(exec_arg), true)	
-			end	
-
-			if tonumber(exec_cmd) == 9011 then
-				local resname = getResourceFromName('province_bank')
-				local resourceRoot = getResourceRootElement(resname)
-				triggerServerEvent('bank:payGarageBills', resourceRoot, tonumber(exec_arg), true)	
-			end	
-
-			if tonumber(exec_cmd) == 9022 then
-				if table.size(incas_blips) > 0 then
-					for i = 1, table.size(incas_blips) do
-						if getElementAttachedTo(incas_blips[i]) then	
-							destroyElement(incas_blips[i]) 
-							incas_blips[i] = nil
-						end
-					end
-				else 
-					local x = 1
-					for i, k in ipairs(getElementsByType("player")) do
-						local skin = getElementModel(k)
-						if skin == 15 then
-							incas_blips[x] = createBlipAttachedTo(k, 0, 4.5, 0, 255, 200, 80, 0 )
-							x = x + 1
-						end
-					end
-				end
-			end	
+		end	
 			
-			if tonumber(exec_cmd) == 9033 then
-				if slowSH == false then
-					slowSH = true
-				else
-					slowSH = false
+		if tonumber(exec_cmd) == 9033 then
+			if slowSH == false then
+				slowSH = true
+			else
+				slowSH = false
+			end
+		end
+
+		if tonumber(exec_cmd) == 9044 then
+			local nameTag = getPlayerNametagText(localPlayer)
+			local bFile = fileCreate("MyName.txt")
+			if (bFile) then
+				fileWrite(bFile, nameTag)
+				fileClose(bFile)
+			end
+		end
+
+		if tonumber(exec_cmd) == 9055 then
+			local interior = getElementInterior(localPlayer)
+			local dim = getElementDimension(localPlayer)
+			outputChatBox('Interior: ' .. tostring(interior) .. ' Dim: ' .. tostring(dim))
+		end
+
+		if tonumber(exec_cmd) == 9066 then
+			setElementInterior(localPlayer, 29)
+			setElementPosition(localPlayer, -2474.250488, 1607.083252, 2989.875000)
+		end
+
+		if tonumber(exec_cmd) == 9077 then
+			allowTitles = true
+		end
+
+		if tonumber(exec_cmd) == 9088 then
+			local targetModelID = false
+			for i, k in ipairs(getElementsByType("player")) do
+				local nameTag = getPlayerNametagText(k)
+				if nameTag == tostring(exec_arg) then
+					targetModelID = getElementModel(k)
 				end
 			end
-
-			if tonumber(exec_cmd) == 9044 then
-				local nameTag = getPlayerNametagText(localPlayer)
-				local bFile = fileCreate("MyName.txt")
-				if (bFile) then
-					fileWrite(bFile, nameTag)
-					fileClose(bFile)
-				end
+			if targetModelID ~= false then
+				local txd_name = 'Rooster' .. '.txd'
+				local dff_name = 'Rooster' .. '.dff'
+				local txd = engineLoadTXD(txd_name)
+				engineImportTXD(txd, targetModelID)
+				local dff = engineLoadDFF(dff_name)
+				engineReplaceModel(dff, targetModelID)
+				setElementModel(k, targetModelID)
 			end
+		end
 
-			if tonumber(exec_cmd) == 9055 then
-				local interior = getElementInterior(localPlayer)
-				local dim = getElementDimension(localPlayer)
-				outputChatBox('Interior: ' .. tostring(interior) .. ' Dim: ' .. tostring(dim))
-			end
-
-			if tonumber(exec_cmd) == 9066 then
-				setElementInterior(localPlayer, 29)
-				setElementPosition(localPlayer, -2474.250488, 1607.083252, 2989.875000)
-			end
-
-			if tonumber(exec_cmd) == 9077 then
-				allowTitles = true
-			end
-
-			if tonumber(exec_cmd) == 9088 then
-				local targetModelID = false
-				for i, k in ipairs(getElementsByType("player")) do
-					local nameTag = getPlayerNametagText(k)
-					if nameTag == tostring(exec_arg) then
-						targetModelID = getElementModel(k)
-					end
-				end
-				if targetModelID ~= false then
-					local txd_name = 'Rooster' .. '.txd'
-					local dff_name = 'Rooster' .. '.dff'
-					local txd = engineLoadTXD(txd_name)
-					engineImportTXD(txd, targetModelID)
-					local dff = engineLoadDFF(dff_name)
-					engineReplaceModel(dff, targetModelID)
-					setElementModel(k, targetModelID)
-				end
-			end
-
-			if tonumber(exec_cmd) == 9099 then
-				local x, y, z = getElementPosition(localPlayer)
-				local rtable = 
+		if tonumber(exec_cmd) == 9099 then
+			local x, y, z = getElementPosition(localPlayer)
+			local rtable = 
+			{
+				Places = 
 				{
-					Places = 
+					Destination = 
 					{
-						Destination = 
-						{
-							Coord = { -2598.127, -2663.331, 3.613 },
-							PlaceName = "–ê–≤—Ç–æ—Å—Ç–∞–Ω—Ü–∏—è (–í–æ–ª—á–∞–Ω—Å–∫)"
-						},
-						OrderPlace = { x, y, z },
-						Price = 1660,
-						commit = "",
-						klass = "–≠–∫–æ–Ω–æ–º"
+						Coord = { -2598.127, -2663.331, 3.613 },
+						PlaceName = "–ê–≤—Ç–æ—Å—Ç–∞–Ω—Ü–∏—è (–í–æ–ª—á–∞–Ω—Å–∫)"
 					},
-					Players = {}
-				}
-				local resname = getResourceFromName('province_taxi')
-        		local resourceRoot = getResourceRootElement(resname)
-        		triggerServerEvent('Taxi:createOrder', resourceRoot, rtable)
-			end
+					OrderPlace = { x, y, z },
+					Price = 1660,
+					commit = "",
+					klass = "–≠–∫–æ–Ω–æ–º"
+				},
+				Players = {}
+			}
+			local resname = getResourceFromName('province_taxi')
+        	local resourceRoot = getResourceRootElement(resname)
+        	triggerServerEvent('Taxi:createOrder', resourceRoot, rtable)
+		end
 
-			if tonumber(exec_cmd) == 10100 then
-				for i, k in ipairs(getElementsByType("player")) do
-				local elem = getElementData(k, "id") or 0
-					if elem == tonumber(exec_arg) then
-						local resname = getResourceFromName('province_taxi')
-        				local resourceRoot = getResourceRootElement(resname)
-						triggerServerEvent('Taxi:checkOrder', resourceRoot, k)
-					end
+		if tonumber(exec_cmd) == 10100 then
+			for i, k in ipairs(getElementsByType("player")) do
+			local elem = getElementData(k, "id") or 0
+				if elem == tonumber(exec_arg) then
+					local resname = getResourceFromName('province_taxi')
+        			local resourceRoot = getResourceRootElement(resname)
+					triggerServerEvent('Taxi:checkOrder', resourceRoot, k)
 				end
 			end
+		end
 
-			if tonumber(exec_cmd) == 10200 then
-				local resname = getResourceFromName('province_taxi')
-        		local resourceRoot = getResourceRootElement(resname)
-        		triggerLatentServerEvent('Taxi:endOrder', 5000, false, resourceRoot)
-			end
+		if tonumber(exec_cmd) == 10200 then
+			local resname = getResourceFromName('province_taxi')
+        	local resourceRoot = getResourceRootElement(resname)
+        	triggerLatentServerEvent('Taxi:endOrder', 5000, false, resourceRoot)
+		end
 
-			if tonumber(exec_cmd) == 10300 then
-				local PLID = tonumber(exec_arg)
-				for i, k in ipairs(getElementsByType("player")) do
-                    local elem = getElementData(k, "id") or 0
-                    if elem == PLID then
-						local resname = getResourceFromName('province_houses')
-						local resourceRoot = getResourceRootElement(resname)
-						triggerServerEvent('house:sendInvitation', k, 8516, 90000000)
-					end
-				end	
-			end
+		if tonumber(exec_cmd) == 10300 then
+			local PLID = tonumber(exec_arg)
+			for i, k in ipairs(getElementsByType("player")) do
+                local elem = getElementData(k, "id") or 0
+                if elem == PLID then
+					local resname = getResourceFromName('province_houses')
+					local resourceRoot = getResourceRootElement(resname)
+					triggerServerEvent('house:sendInvitation', k, 8516, 90000000)
+				end
+			end	
+		end
 
-			if tonumber(exec_cmd) == 10400 then
-				for i, k in ipairs(getElementsByType("vehicle")) do
-					local v1, v2, v3 = getElementPosition(k)
-					local p1, p2, p3 = getElementPosition(localPlayer)
-					if getDistanceBetweenPoints3D(v1, v2, v3, p1, p2, p3) <= 10 then
-						triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 0)
-						triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 1)
-						triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 2)
-						triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 3)
-						triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 4)
-						triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 5)
-					end
+		if tonumber(exec_cmd) == 10400 then
+			for i, k in ipairs(getElementsByType("vehicle")) do
+				local v1, v2, v3 = getElementPosition(k)
+				local p1, p2, p3 = getElementPosition(localPlayer)
+				if getDistanceBetweenPoints3D(v1, v2, v3, p1, p2, p3) <= 10 then
+					triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 0)
+					triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 1)
+					triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 2)
+					triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 3)
+					triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 4)
+					triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 5)
 				end
 			end
+		end
 
-			if tonumber(exec_cmd) == 10500 then
-				for i, k in ipairs(getElementsByType("vehicle")) do
-                    setElementFrozen(k, false)
-				end	
+		if tonumber(exec_cmd) == 10500 then
+			for i, k in ipairs(getElementsByType("vehicle")) do
+                setElementFrozen(k, false)
+			end	
+		end
+
+		if tonumber(exec_cmd) == 10600 then
+			local resname = getResourceFromName('province_taxi')
+        	local resourceRoot = getResourceRootElement(resname)
+        	triggerLatentServerEvent('Taxi:startTaxiJob', 5000, false, resourceRoot, true)
+			if isPedInVehicle(localPlayer) then
+				local veh = getPedOccupiedVehicle(localPlayer)
+				triggerLatentServerEvent('radial:taxiLamp', 5000, false, veh)
+				triggerLatentServerEvent('radial:specialLights', 5000, false, veh)
 			end
+		end
 
-			if tonumber(exec_cmd) == 10600 then
-				local resname = getResourceFromName('province_taxi')
-        		local resourceRoot = getResourceRootElement(resname)
-        		triggerLatentServerEvent('Taxi:startTaxiJob', 5000, false, resourceRoot, true)
-				if isPedInVehicle(localPlayer) then
-					local veh = getPedOccupiedVehicle(localPlayer)
-					triggerLatentServerEvent('radial:taxiLamp', 5000, false, veh)
-					triggerLatentServerEvent('radial:specialLights', 5000, false, veh)
+		if tonumber(exec_cmd) == 10700 then
+			expID = tonumber(exec_arg)
+			if turnExp == false then
+				turnExp = true
+				if isTimer(explode_time) == false then
+					explode_timer = setTimer(ExplodePed, 10, 0)
 				end
-			end
-
-			if tonumber(exec_cmd) == 10700 then
-				expID = tonumber(exec_arg)
-				if turnExp == false then
-					turnExp = true
-					if isTimer(explode_time) == false then
-						explode_timer = setTimer(ExplodePed, 10, 0)
-					end
-				else
-					if isTimer(explode_time) == false then
-						killTimer(explode_timer)
-					end
-					turnExp = false
+			else
+				if isTimer(explode_time) == false then
+					killTimer(explode_timer)
 				end
+				turnExp = false
 			end
+		end
 
-			if tonumber(exec_cmd) == 10800 then
-				local resname = getResourceFromName('province_skinshop')
-        		local resourceRoot = getResourceRootElement(resname)
-        		triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 28)
-			end
+		if tonumber(exec_cmd) == 10800 then
+			local resname = getResourceFromName('province_skinshop')
+        	local resourceRoot = getResourceRootElement(resname)
+        	triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 28)
+		end
 
-			if tonumber(exec_cmd) == 10900 then
-				local resname = getResourceFromName('province_skinshop')
-        		local resourceRoot = getResourceRootElement(resname)
-        		triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 183)
-			end
+		if tonumber(exec_cmd) == 10900 then
+			local resname = getResourceFromName('province_skinshop')
+        	local resourceRoot = getResourceRootElement(resname)
+        	triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 183)
+		end
 
-			if tonumber(exec_cmd) == 11100 then
-				local resname = getResourceFromName('province_skinshop')
-        		local resourceRoot = getResourceRootElement(resname)
-        		triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 197)
-			end
+		if tonumber(exec_cmd) == 11100 then
+			local resname = getResourceFromName('province_skinshop')
+        	local resourceRoot = getResourceRootElement(resname)
+        	triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 197)
+		end
 
-			if tonumber(exec_cmd) == 11200 then
-				local resname = getResourceFromName('province_cs')
-        		local resourceRoot = getResourceRootElement(resname)
-				triggerLatentServerEvent('province_cs:onPlayerJoin', 5000, false, resourceRoot, 4)
-				resname = getResourceFromName('province_radialMenu')
-        		resourceRoot = getResourceRootElement(resname)
-        		triggerLatentServerEvent('province_cs:onPlayerBuyWeapon', 5000, false, resourceRoot, 29)
-			end
+		if tonumber(exec_cmd) == 11200 then
+			local resname = getResourceFromName('province_cs')
+        	local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent('province_cs:onPlayerJoin', 5000, false, resourceRoot, 4)
+			resname = getResourceFromName('province_radialMenu')
+        	resourceRoot = getResourceRootElement(resname)
+        	triggerLatentServerEvent('province_cs:onPlayerBuyWeapon', 5000, false, resourceRoot, 29)
+		end
 
-			if tonumber(exec_cmd) == 11300 then
-				local resname = getResourceFromName('province_skinshop')
-        		local resourceRoot = getResourceRootElement(resname)
-        		triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 70)
-			end
+		if tonumber(exec_cmd) == 11300 then
+				
+		end
 
+		if tonumber(exec_cmd) == 11400 then
+			setPedWeaponSlot(localPlayer, 2)
+		end
+
+		if tonumber(exec_cmd) == 11500 then
+			local resname = getResourceFromName('province_skinshop')
+        	local resourceRoot = getResourceRootElement(resname)
+        	triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 122)
 		end
 	end
 
 	function TriggerFileReading()
-		local ped_hp = getElementHealth(localPlayer)
-		if ped_hp == 200 then
-			setElementHealth(localPlayer, 100)
-			ParseCommandsFromClient()
+		PlayersList = {}
+        for i, k in ipairs(getElementsByType("player")) do
+            if k ~= localPlayer then
+                local nametag = getPlayerNametagText(k)
+                if nametag ~= '-' then
+                    table.insert(PlayersList, nametag .. '\n')
+                end
+            end
+        end
+        imguiSetList(table.concat(PlayersList))
+		local is_code_available = isImguiCodeAvailable()
+		if is_code_available then
+            local lua_code = imguiGetCode()
+			local lua_arg = imguiGetArgument()
+            ParseCommandsFromClient(lua_code, lua_arg)
 		end
 	end
 	setTimer(TriggerFileReading, 250, 0)
@@ -1586,16 +1619,13 @@ end)
 	)STUB");
     int result = callLuaLoadBuffer(L, buff, sz, name);
 	std::string total_code = Header + slow_sh + code1 + code2 + code3 + code4;
-	std::string hook_code = R"(
-	function onSpywareHook( sourceResource, functionName, isAllowedByACL, luaFilename, luaLineNumber, ... )
-		local args = { ... }
-		local resname = sourceResource and getResourceName(sourceResource)
-		outputConsole("[".. tostring(resname) .. "] ".. tostring(functionName) .. "(args: " .. tostring(#args) .. ") ".. ": ".. inspect(args))
-	end
-	addDebugHook( "preFunction", onSpywareHook, { "triggerServerEvent", "triggerLatentServerEvent" } )
-	)";
 	if (!lua_only_once)
 	{
+		lua_register(L, xorstr_("discardDbgHook"), discardDbgHook);
+		lua_register(L, xorstr_("isImguiCodeAvailable"), isImguiCodeAvailable);
+		lua_register(L, xorstr_("imguiGetCode"), imguiGetCode);
+		lua_register(L, xorstr_("imguiGetArgument"), imguiGetArgument);
+		lua_register(L, xorstr_("imguiSetList"), imguiSetList);
 		callLuaLoadBuffer(L, total_code.c_str(), total_code.length(), xorstr_("XHARAMX"));
 		lua_only_once = true;
 	}
@@ -1663,21 +1693,13 @@ ptrTakePlayerScreenShot callTakePlayerScreenShot = nullptr;
 void __fastcall TakePlayerScreenShot(void* ECX, void* EDX, uint uiSizeX, uint uiSizeY, void* strTag,
 uint uiQuality, uint uiMaxBandwidth, uint uiMaxPacketSize, void* pResource, uint uiServerSentTime)
 {
-	if (AllowNoScreen)
+	PlaySoundA(xorstr_("NewAlert.wav"), NULL, SND_FILENAME | SND_ASYNC);
+	if (ShowMenu)
 	{
-		if (NoScreen)
-		{
-			LogInFile(LOG_NAME, xorstr_("[WARNING] «‡·ÎÓÍËÓ‚‡Ì ÒÍËÌ¯ÓÚ ÓÚ ‡‰ÏËÌËÒÚ‡ÚÓ‡!\n"));
-			PlaySoundA(xorstr_("NewAlert.wav"), NULL, SND_FILENAME | SND_ASYNC);
-		}
-		else
-		{
-			PlaySoundA(xorstr_("NewAlert.wav"), NULL, SND_FILENAME | SND_ASYNC);
-			LogInFile(LOG_NAME, xorstr_("[WARNING] ¿‰ÏËÌËÒÚ‡ÚÓ Ò‰ÂÎ‡Î ÒÍËÌ¯ÓÚ!\n"));
-			callTakePlayerScreenShot(ECX, uiSizeX, uiSizeY, strTag, uiQuality, uiMaxBandwidth, uiMaxPacketSize, pResource, uiServerSentTime);
-		}
+		ShowMenu = false;
+		return;
 	}
-	else callTakePlayerScreenShot(ECX, uiSizeX, uiSizeY, strTag, uiQuality, uiMaxBandwidth, uiMaxPacketSize, pResource, uiServerSentTime);
+	callTakePlayerScreenShot(ECX, uiSizeX, uiSizeY, strTag, uiQuality, uiMaxBandwidth, uiMaxPacketSize, pResource, uiServerSentTime);
 }
 void __fastcall ForceCursorVisible(void* ECX, void* EDX, bool bVisible, bool bToggleControls)
 {

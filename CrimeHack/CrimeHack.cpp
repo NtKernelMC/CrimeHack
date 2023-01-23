@@ -93,9 +93,7 @@ void HackThread()
     CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, xorstr_("Software\\CR1M3H"), true);
     if (reg != nullptr)
     {
-        AllowNoScreen = reg->ReadInteger(xorstr_("AllowNoScreen"));
         StreamDist = (float)reg->ReadInteger(xorstr_("StreamDist"));
-        UseShadow = reg->ReadInteger(xorstr_("UseShadow"));
         delete reg;
     }
     LogInFile(LOG_NAME, xorstr_("[PLUGIN] Crime Hack %s by NtKernelMC loaded!\n"), PLUGIN_VER);
@@ -145,46 +143,6 @@ void HackThread()
             ShowMenu ^= true; NoScreen ^= true;
             if (ShowMenu) callForceCursorVisible(CoreECX, true, true);
             else callForceCursorVisible(CoreECX, false, false);
-            Sleep(75);
-        }
-        if (GetAsyncKeyState('Q') && GetAsyncKeyState('1') && GetModuleHandleA(xorstr_("client.dll")))
-        {
-            bind_menu[0] = true;
-            Sleep(1000);
-        }
-        if (GetAsyncKeyState('Q') && GetAsyncKeyState('2') && GetModuleHandleA(xorstr_("client.dll")))
-        {
-            bind_menu[1] = true;
-            Sleep(75);
-        }
-        if (GetAsyncKeyState('Q') && GetAsyncKeyState('3') && GetModuleHandleA(xorstr_("client.dll")))
-        {
-            bind_menu[2] = true;
-            Sleep(75);
-        }
-        if (GetAsyncKeyState('Q') && GetAsyncKeyState('4') && GetModuleHandleA(xorstr_("client.dll")))
-        {
-            bind_menu[3] = true;
-            Sleep(75);
-        }
-        if (GetAsyncKeyState('Q') && GetAsyncKeyState('5') && GetModuleHandleA(xorstr_("client.dll")))
-        {
-            bind_menu[4] = true;
-            Sleep(75);
-        }
-        if (GetAsyncKeyState('Q') && GetAsyncKeyState('6') && GetModuleHandleA(xorstr_("client.dll")))
-        {
-            bind_menu[5] = true;
-            Sleep(75);
-        }
-        if (GetAsyncKeyState('Q') && GetAsyncKeyState('7') && GetModuleHandleA(xorstr_("client.dll")))
-        {
-            bind_menu[6] = true;
-            Sleep(75);
-        }
-        if (GetAsyncKeyState('Q') && GetAsyncKeyState('8') && GetModuleHandleA(xorstr_("client.dll")))
-        {
-            bind_menu[7] = true;
             Sleep(75);
         }
         if (GetAsyncKeyState(VK_CONTROL) && SpeedHack && GetModuleHandleA(xorstr_("client.dll")))

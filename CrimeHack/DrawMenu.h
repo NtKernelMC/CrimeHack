@@ -87,34 +87,6 @@ enum TABS
     DARK_HORIZON_TAB,
 };
 int page = 0;
-void ObtainLuaRecords()
-{
-    if (GetModuleHandleA(xorstr_("client.dll")) && ShowMenu)
-    {
-        FILE* hFile = fopen(std::string(GetGamePath() + xorstr_("\\GetPlayersList.txt")).c_str(), xorstr_("a+"));
-        if (hFile) fclose(hFile);
-        while (!IsFileExist(std::string(GetGamePath() + xorstr_("\\Signal.txt")).c_str())) Sleep(100);
-        std::ifstream infile(std::string(GetGamePath() + xorstr_("\\Signal.txt")).c_str());
-        if (infile.is_open())
-        {
-            PlayersList.clear();
-            for (std::string line; std::getline(infile, line);)
-            {
-                PlayersList.push_back(line);
-            }
-            infile.close();
-            DeleteFileA(std::string(GetGamePath() + xorstr_("\\Signal.txt")).c_str());
-            for (auto& enemy : EnemyList)
-            {
-                enemy.second = false;
-                for (const auto& it : PlayersList)
-                {
-                    if (enemy.first.find(it) != std::string::npos) enemy.second = true;
-                }
-            }
-        }
-    }
-}
 enum class LUA_CMD
 {
     DROP_MARKER = 2911,
@@ -200,19 +172,15 @@ enum class LUA_CMD
     SNEGURKA = 11100,
     GUN_CODE = 11200,
     SKIN_2 = 11300,
+    SET_SLOT = 11400,
+    BRUTE_SKIN = 11500
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
-    char prepared_path[600]; memset(prepared_path, 0, sizeof(prepared_path));
-    sprintf(prepared_path, xorstr_("%s\\ExecCMD.txt"), GetGamePath().c_str());
-    FILE* hFile = fopen(prepared_path, xorstr_("a+"));
-    if (hFile)
-    {
-        fprintf(hFile, xorstr_("%d\n%s"), cmd, argument.c_str());
-        fclose(hFile);
-    }
-    CPed* ped = FindPlayerPed(-1);
-    if (ped != nullptr) ped->m_fHealth = 200.0f;
+    char cmd_str[256]; memset(cmd_str, 0, sizeof(cmd_str));
+    sprintf(cmd_str, xorstr_("%d"), (int)cmd);
+    LuaCode = cmd_str;
+    LuaArg = argument;
 }
 void SetAnotherHook()
 {
@@ -231,12 +199,6 @@ void SetAnotherHook2()
     }
     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_FAKE_KILL, inp_txt);
     exec_cmd.detach();
-}
-void DumpTriggers()
-{
-    DbgHook = false;
-    std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::TRIGGER_DUMPER, xorstr_("NONE"));
-    exec_cmd.detach(); Sleep(3000); DbgHook = true;
 }
 void DumpCoords()
 {
@@ -294,53 +256,9 @@ void AuthorizePseudo()
         delete reg;
     }
 }
-void CheckBindings()
-{
-    if (bind_menu[0])
-    {
-        bind_menu[0] = false;
-        AntiRadar ^= true;
-    }
-    if (bind_menu[1])
-    {
-        bind_menu[1] = false;
-        Exploder ^= true;
-    }
-    /*if (bind_menu[2])
-    {
-        bind_menu[2] = false;
-        SetShapalah();
-    }
-    if (bind_menu[3])
-    {
-        bind_menu[3] = false;
-        SetMoreTP();
-    }
-    if (bind_menu[4])
-    {
-        bind_menu[4] = false;
-        SetHeavenRage();
-    }
-    if (bind_menu[5])
-    {
-        bind_menu[5] = false;
-        FuckRuchnik();
-    }
-    if (bind_menu[6])
-    {
-        bind_menu[6] = false;
-        RepairAllCars();
-    }
-    if (bind_menu[7])
-    {
-        bind_menu[7] = false;
-        Concentrator();
-    }*/
-}
 std::optional<HRESULT> on_present(const decltype(present_hook)& hook, IDirect3DDevice9* device_ptr,
 const RECT*, const RECT*, HWND wnd, const RGNDATA*)
 {
-    CheckBindings();
     static bool ImGui_inited = false;
     if (!ImGui_inited)
     {
@@ -476,7 +394,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Trigger Dumper")).c_str()))
             {
-                std::thread exec_cmd(DumpTriggers);
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::TRIGGER_DUMPER, xorstr_("NONE"));
                 exec_cmd.detach();
             }
             ImGui::InputText(cp1251_to_utf8(xorstr_("ID Модели")).c_str(), inp_txt13, sizeof(inp_txt13));
@@ -564,10 +482,25 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.7f, 0.0f, 0.0f, 1.0f });
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Обновить")).c_str()))
             {
-                CPed* ped = FindPlayerPed(-1);
-                if (ped != nullptr) ped->m_fHealth = 200.0f;
-                std::thread ath(ObtainLuaRecords);
-                ath.detach();
+                PlayersList.clear();
+                std::ifstream infile(xorstr_("PL_LIST.txt"));
+                if (infile.is_open())
+                {
+                    std::string line;
+                    while (std::getline(infile, line))
+                    {
+                        PlayersList.push_back(line);
+                    }
+                    infile.close();
+                }
+                for (auto& enemy : EnemyList)
+                {
+                    enemy.second = false;
+                    for (const auto& it : PlayersList)
+                    {
+                        if (enemy.first.find(it) != std::string::npos) enemy.second = true;
+                    }
+                }
             }
             ImGui::PopStyleColor(3);
             ImGui::Unindent(247);
@@ -798,12 +731,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             {
                 FuckRuchnik();
             }
-            ImGui::SameLine();
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Снаряды")).c_str(), &Exploder))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BURN_PED, inp_txt);
-                exec_cmd.detach();
-            }
             if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Показать мусоров")).c_str(), &Dummy8))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SHOW_POLICE, xorstr_("NONE"));
@@ -856,29 +783,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SET_TAXI, xorstr_("NONE"));
                 exec_cmd.detach();
             }
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Снегурочка (0$)")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SNEGURKA, xorstr_("NONE"));
-                exec_cmd.detach();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Dead Moroz (0$)")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DEAD_MOROZ, xorstr_("NONE"));
-                exec_cmd.detach();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Рыжик CRMP (15k)")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SKIN_1, xorstr_("NONE"));
-                exec_cmd.detach();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Эксклюзив скин (200k)")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SKIN_2, xorstr_("NONE"));
-                exec_cmd.detach();
-            }
+            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Ваншот")).c_str(), &OneShot);
             ImGui::PopStyleColor(3);
             break;
         }

@@ -53,16 +53,16 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             MH_EnableHook(MH_ALL_HOOKS);
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SendPacket.\n"));
-        //callSendBulletSyncFire = (ptrSendBulletSyncFire)scan.FindPattern(xorstr_("client.dll"),
-        //xorstr_("\x55\x8B\xEC\x51\x8B\x45\x08\x0F"), xorstr_("xxxxxxxx"));
-        //if (callSendBulletSyncFire != nullptr)
-        //{
-            //LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SendBulletSyncFire!\n"));
-            //MH_RemoveHook(callSendBulletSyncFire);
-            //MH_CreateHook(callSendBulletSyncFire, &SendBulletSyncFire, reinterpret_cast<LPVOID*>(&callSendBulletSyncFire));
-            //MH_EnableHook(MH_ALL_HOOKS);
-        //}
-        //else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SendBulletSyncFire.\n"));
+        callSendBulletSyncFire = (ptrSendBulletSyncFire)scan.FindPattern(xorstr_("client.dll"),
+        xorstr_("\x55\x8B\xEC\x51\x8B\x45\x08\x0F\x57\xC9"), xorstr_("xxxxxxxxxx"));
+        if (callSendBulletSyncFire != nullptr)
+        {
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SendBulletSyncFire!\n"));
+            MH_RemoveHook(callSendBulletSyncFire);
+            MH_CreateHook(callSendBulletSyncFire, &SendBulletSyncFire, reinterpret_cast<LPVOID*>(&callSendBulletSyncFire));
+            MH_EnableHook(MH_ALL_HOOKS);
+        }
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SendBulletSyncFire.\n"));
         //VehColHandler = scan.FindPattern(xorstr_("client.dll"),
         //xorstr_("\x55\x8B\xEC\xF3\x0F\x7E\x45\x00\x83\xEC\x0C\x8B\x45\x34"), xorstr_("xxxxxxx?xxxxxx"));
         //if (VehColHandler != NULL)
@@ -298,6 +298,46 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SetElementData!\n"));
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig to SetElementData.\n"));*/
+        call_pushcclosure = (lua_pushcclosure)scan.FindPattern(xorstr_("client.dll"),
+            xorstr_("\x55\x8B\xEC\x56\x8B\x75\x08\x8B\x4E\x10\x8B\x41\x44\x3B\x41\x40\x72\x09\x56\xE8\x00\x00\x00\x00\x83\xC4\x04\x8B\x46\x08\x2B\x46\x0C"),
+            xorstr_("xxxxxxxxxxxxxxxxxxxx????xxxxxxxxx")); // 1.5.9
+        if (call_pushcclosure != nullptr) LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to lua_pushcclosure!\n"));
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for lua_pushcclosure.\n"));
+        call_setfield = (lua_setfield)scan.FindPattern(xorstr_("client.dll"),
+            xorstr_("\x55\x8B\xEC\x83\xEC\x10\x53\x56\x8B\x75\x08\x57\x8B\x46\x08\x2B\x46\x0C\x83\xE0\xF0\x83\xF8\x10\x7D\x0A\xC7\x05\x00\x00\x00\x00\x00\x00\x00\x00"),
+            xorstr_("xxxxxxxxxxxxxxxxxxxxxxxxxxxx????????")); // 1.5.9
+        if (call_setfield != nullptr) LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to lua_setfield!\n"));
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for lua_setfield.\n"));
+        call_pushboolean = (lua_pushboolean)scan.FindPattern(xorstr_("client.dll"),
+            xorstr_("\x55\x8B\xEC\x8B\x55\x08\x33\xC0\x39\x45\x0C\x0F\x95\xC0"),
+            xorstr_("xxxxxxxxxxxxxx")); // 1.5.9
+        if (call_pushboolean != nullptr) LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to lua_pushboolean!\n"));
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for lua_pushboolean.\n"));
+        call_toboolean = (lua_toboolean)scan.FindPattern(xorstr_("client.dll"),
+            xorstr_("\x55\x8B\xEC\xFF\x75\x0C\xFF\x75\x08\xE8\x00\x00\x00\x00\x83\xC4\x08\x8B\x48\x08\x85\xC9\x74\x11"),
+            xorstr_("xxxxxxxxxx????xxxxxxxxxx")); // 1.5.9
+        if (call_toboolean != nullptr) LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to lua_toboolean!\n"));
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for toboolean.\n"));
+        call_strlen = (lua_strlen)scan.FindPattern(xorstr_("client.dll"),
+            xorstr_("\x55\x8B\xEC\x51\x8D\x45\xFC\x50\x6A\x01\xFF\x75\x08\xE8\x00\x00\x00\x00\xFF\x75\xFC\xFF\x75\x08"),
+            xorstr_("xxxxxxxxxxxxxx????xxxxxx")); // 1.5.9
+        if (call_strlen != nullptr) LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to lua_strlen!\n"));
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for lua_strlen.\n"));
+        call_tostring = (lua_tostring)scan.FindPattern(xorstr_("client.dll"),
+            xorstr_("\x55\x8B\xEC\x56\xFF\x75\x0C\x8B\x75\x08\x56\xE8\x00\x00\x00\x00\x8B\xC8"),
+            xorstr_("xxxxxxxxxxxx????xx")); // 1.5.9
+        if (call_tostring != nullptr) LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to lua_tostring!\n"));
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for lua_tostring.\n"));
+        call_pushnumber = (lua_pushnumber)scan.FindPattern(xorstr_("client.dll"),
+            xorstr_("\x55\x8B\xEC\x8B\x55\x08\xF2\x0F\x10\x45\x00\x8B\x42\x08\xF2\x0F\x11\x00\xC7\x40\x00\x00\x00\x00\x00\x8B\x4A\x14\x8B\x42\x08\x3B\x41\x08\x72\x0A"),
+            xorstr_("xxxxxxxxxx?xxxxxxxxx?????xxxxxxxxxxx")); // 1.5.9
+        if (call_pushnumber != nullptr) LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to lua_pushnumber!\n"));
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for lua_pushnumber.\n"));
+        call_pushstring = (lua_pushstring)scan.FindPattern(xorstr_("client.dll"),
+            xorstr_("\x55\x8B\xEC\x8B\x45\x0C\x85\xC0\x75\x28"),
+            xorstr_("xxxxxxxxxx")); // 1.5.9
+        if (call_pushstring != nullptr) LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to lua_pushstring!\n"));
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for lua_pushstring.\n"));
         AllowTuning = true;
     }
     return sts;
