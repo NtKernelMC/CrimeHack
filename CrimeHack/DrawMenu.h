@@ -177,6 +177,7 @@ enum class LUA_CMD
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
+    InjectAvailable = true;
     char cmd_str[256]; memset(cmd_str, 0, sizeof(cmd_str));
     sprintf(cmd_str, xorstr_("%d"), (int)cmd);
     LuaCode = cmd_str;
