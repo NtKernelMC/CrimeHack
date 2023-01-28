@@ -1,4 +1,4 @@
-typedef bool(__cdecl* ptrTriggerServerEvent)(const char* szName, void* CallWithEntity, void* Arguments);
+ï»¿typedef bool(__cdecl* ptrTriggerServerEvent)(const char* szName, void* CallWithEntity, void* Arguments);
 ptrTriggerServerEvent callTriggerServerEvent = nullptr;
 void __cdecl TriggerServerEvent(const char* szName, void* CallWithEntity, void* Arguments)
 {
@@ -100,7 +100,7 @@ void OrderSpammer()
 			}
 			CPed* ped = FindPlayerPed(-1);
 			if (ped != nullptr) ped->m_fHealth = 200.0f;
-			while (!findStringIC(ReadLastLogLine(), xorstr_("Óâåäîìëåíèå: Âû ïðèáûëè â óêàçàííîå ìåñòî, óäà÷íîãî Âàì äíÿ."))) Sleep(30);
+			while (!findStringIC(ReadLastLogLine(), xorstr_("Ð£Ð²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ðµ: Ð’Ñ‹ Ð¿Ñ€Ð¸Ð±Ñ‹Ð»Ð¸ Ð² ÑƒÐºÐ°Ð·Ð°Ð½Ð½Ð¾Ðµ Ð¼ÐµÑÑ‚Ð¾, ÑƒÐ´Ð°Ñ‡Ð½Ð¾Ð³Ð¾ Ð’Ð°Ð¼ Ð´Ð½Ñ."))) Sleep(30);
 		}
 		Sleep(65);
 	}
@@ -111,7 +111,7 @@ void OrderAccept()
 	{
 		if (GetModuleHandleA(xorstr_("client.dll")) && FakeTaxi)
 		{
-			while (!findStringIC(ReadLastLogLine(), xorstr_("Óâåäîìëåíèå: Îáíîâë¸í ñïèñîê çàêàçîâ."))) Sleep(30);
+			while (!findStringIC(ReadLastLogLine(), xorstr_("Ð£Ð²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð¸Ðµ: ÐžÐ±Ð½Ð¾Ð²Ð»Ñ‘Ð½ ÑÐ¿Ð¸ÑÐ¾Ðº Ð·Ð°ÐºÐ°Ð·Ð¾Ð²."))) Sleep(30);
 			char prepared_path[600]; memset(prepared_path, 0, sizeof(prepared_path));
 			sprintf(prepared_path, xorstr_("%s\\ExecCMD.txt"), GetGamePath().c_str());
 			FILE* hFile = fopen(prepared_path, xorstr_("a+"));
@@ -122,7 +122,7 @@ void OrderAccept()
 			}
 			CPed* ped = FindPlayerPed(-1);
 			if (ped != nullptr) ped->m_fHealth = 200.0f;
-			while (!findStringIC(ReadLastLogLine(), xorstr_("îòïðàâëÿéòåñü ê ìåñòó çàêàçà"))) Sleep(30);
+			while (!findStringIC(ReadLastLogLine(), xorstr_("Ð¾Ñ‚Ð¿Ñ€Ð°Ð²Ð»ÑÐ¹Ñ‚ÐµÑÑŒ Ðº Ð¼ÐµÑÑ‚Ñƒ Ð·Ð°ÐºÐ°Ð·Ð°"))) Sleep(30);
 			hFile = fopen(prepared_path, xorstr_("a+"));
 			if (hFile)
 			{
@@ -142,7 +142,7 @@ bool __fastcall StartGame(void* ECX, void* EDX, const char* szNick, const char* 
 	if (!onlyOnce) onlyOnce = true;
 	else
 	{
-		LogInFile(LOG_NAME, xorstr_("Ïåðåïîäêëþ÷åíèå íà ñåðâåð çàïðåùåíî â öåëÿõ áåçîïàñíîñòè."));
+		LogInFile(LOG_NAME, xorstr_("ÐŸÐµÑ€ÐµÐ¿Ð¾Ð´ÐºÐ»ÑŽÑ‡ÐµÐ½Ð¸Ðµ Ð½Ð° ÑÐµÑ€Ð²ÐµÑ€ Ð·Ð°Ð¿Ñ€ÐµÑ‰ÐµÐ½Ð¾ Ð² Ñ†ÐµÐ»ÑÑ… Ð±ÐµÐ·Ð¾Ð¿Ð°ÑÐ½Ð¾ÑÑ‚Ð¸."));
 		TerminateProcess(GetCurrentProcess(), 0x0);
 	}
 	return callStartGame(ECX, szNick, szPassword, Type, szSecret);
@@ -334,7 +334,7 @@ float fDamage, BYTE ucHitZone, void* pRemoteDamagedPlayer)
 		if (!once)
 		{
 			once = true;
-			LogInFile(LOG_NAME, xorstr_("Àóðà ñìåðòè àêòèâèðîâàíà."));
+			LogInFile(LOG_NAME, xorstr_("ÐÑƒÑ€Ð° ÑÐ¼ÐµÑ€Ñ‚Ð¸ Ð°ÐºÑ‚Ð¸Ð²Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð°."));
 			std::thread BulletSpammer(KillAura);
 			BulletSpammer.detach();
 		}
@@ -469,16 +469,16 @@ void AirBreak()
 			}
 
 			if (*(DWORD*)(0xBA18FC) > 0)
-			{ //ìàøèíà
+			{ //Ð¼Ð°ÑˆÐ¸Ð½Ð°
 				DWORD CARSELF = *(DWORD*)0xBA18FC; //0xBA18FC
 				DWORD car = *(DWORD*)(CARSELF + 0x14);
 
-				//ñêîðîñòü 0
+				//ÑÐºÐ¾Ñ€Ð¾ÑÑ‚ÑŒ 0
 				*(float*)(CARSELF + 0x44) = 0;
 				*(float*)(CARSELF + 0x48) = 0;
 				*(float*)(CARSELF + 0x4C) = 0;
 
-				//ïîë¸ò
+				//Ð¿Ð¾Ð»Ñ‘Ñ‚
 				coordsXforCar += airBrkX;
 				coordsYforCar += airBrkY;
 				coordsZforCar += airBrkZ;
@@ -491,12 +491,12 @@ void AirBreak()
 				*(float*)(CARSELF + 0x54) = 0;
 				*(float*)(CARSELF + 0x58) = 0;
 
-				//àíòèïåðåâîðîò
+				//Ð°Ð½Ñ‚Ð¸Ð¿ÐµÑ€ÐµÐ²Ð¾Ñ€Ð¾Ñ‚
 				*(float*)(car + 0x0) = sin(-(angle));
 				*(float*)(car + 0x4) = cos(-(angle));
 				*(float*)(car + 0x8) = 0;
 
-				//ïîâîðîò
+				//Ð¿Ð¾Ð²Ð¾Ñ€Ð¾Ñ‚
 				*(float*)(car + 0x10) = sin(-(angle + 1.5708));
 				*(float*)(car + 0x14) = cos(-(angle + 1.5708));
 				*(float*)(car + 0x18) = 0;
@@ -506,15 +506,15 @@ void AirBreak()
 			{
 				DWORD PEDSELF = *(DWORD*)0xB6F5F0; //0xB6F5F0
 				DWORD MyMatrix = *(DWORD*)(PEDSELF + 0x14);
-				//ãðàâèòàöèÿ
+				//Ð³Ñ€Ð°Ð²Ð¸Ñ‚Ð°Ñ†Ð¸Ñ
 				*(float*)(PEDSELF + 0x44) = 0;
 				*(float*)(PEDSELF + 0x48) = 0;
 				*(float*)(PEDSELF + 0x4C) = 0;
 
-				//àíòè àíèì
+				//Ð°Ð½Ñ‚Ð¸ Ð°Ð½Ð¸Ð¼
 				*(BYTE*)(PEDSELF + 0x46C) = 3;
 
-				//ïîë¸ò
+				//Ð¿Ð¾Ð»Ñ‘Ñ‚
 				coordsXforPed += airBrkX;
 				coordsYforPed += airBrkY;
 				coordsZforPed += airBrkZ;
@@ -1464,12 +1464,12 @@ end)
 					Destination = 
 					{
 						Coord = { -2598.127, -2663.331, 3.613 },
-						PlaceName = "ÐÐ²Ñ‚Ð¾ÑÑ‚Ð°Ð½Ñ†Ð¸Ñ (Ð’Ð¾Ð»Ñ‡Ð°Ð½ÑÐº)"
+						PlaceName = "Ð Ñ’Ð Ð†Ð¡â€šÐ Ñ•Ð¡ÐƒÐ¡â€šÐ Â°Ð Ð…Ð¡â€ Ð Ñ‘Ð¡Ð (Ð â€™Ð Ñ•Ð Â»Ð¡â€¡Ð Â°Ð Ð…Ð¡ÐƒÐ Ñ”)"
 					},
 					OrderPlace = { x, y, z },
 					Price = 1660,
 					commit = "",
-					klass = "Ð­ÐºÐ¾Ð½Ð¾Ð¼"
+					klass = "Ð Â­Ð Ñ”Ð Ñ•Ð Ð…Ð Ñ•Ð Ñ˜"
 				},
 				Players = {}
 			}
@@ -1802,7 +1802,7 @@ bool __fastcall SendPacket(void* ECX, void* EDX, unsigned char ucPacketID, void*
 	LogInFile(xorstr_("Packet.log"), xorstr_("PacketID: %d | PacketName: %s\n"), ucPacketID, color_name.data());
 	if (ucPacketID == PACKET_ID_PLAYER_TRANSGRESSION)
 	{
-		LogInFile(LOG_NAME, xorstr_("[EVADE] Ñðàáîòàëà çàùèòà îò àâòî-áàíà!\n"));
+		LogInFile(LOG_NAME, xorstr_("[EVADE] Ð¡Ñ€Ð°Ð±Ð¾Ñ‚Ð°Ð»Ð° Ð·Ð°Ñ‰Ð¸Ñ‚Ð° Ð¾Ñ‚ Ð°Ð²Ñ‚Ð¾-Ð±Ð°Ð½Ð°!\n"));
 		return true;
 	}
 	return callSendPacket(ECX, ucPacketID, bitStream, packetPriority, packetReliability, packetOrdering);
@@ -1818,4 +1818,141 @@ int __stdcall hook_connect(SOCKET s, sockaddr* name, int namelen)
 		LogInFile(LOG_NAME, xorstr_("[SOCKET] Connection to IP: %s\n"), inet_ntoa(clientService->sin_addr));
 	}
 	return rslt;
+}
+void TramRage()
+{
+	while (true)
+	{
+		if (TramRAGE)
+		{
+			auto FindDistance3D = [](float x1, float y1, float z1, float x2, float y2, float z2) -> float
+			{
+				return (float)sqrt(pow(x1 - x2, 2.0) + pow(y1 - y2, 2.0) + pow(z1 - z2, 2.0));
+			};
+			DWORD PEDSELF = *(DWORD*)0xB6F5F0;
+			DWORD MyMatrix = *(DWORD*)(PEDSELF + 0x14);
+			float x = *(float*)(MyMatrix + 0x30);
+			float y = *(float*)(MyMatrix + 0x34);
+			float z = *(float*)(MyMatrix + 0x38);
+			for (decltype(auto) point : Points3D)
+			{
+				float min_dist = 60.0f;
+				if (bRouteID == 1) min_dist = 60.0f;
+				else if (bRouteID == 2) min_dist = 65.0f;
+				if (bRouteID == 1 && !bRageOrLegit)
+				{
+					if (std::get<0>(point) == -595.60559082031f) min_dist = 70.0f;
+					else min_dist = 60.0f;
+				}
+				if (bRouteID == 4)
+				{
+					if (std::get<0>(point) == 2828.319580f) // Ã¯Ã°Ã¨ Ã¯Ã°Ã®ÃµÃ®Ã¤Ã¥ Ã¯Ã¥Ã°Ã¢Ã®Ã£Ã® Ã¬Ã Ã°ÃªÃ¥Ã°Ã , Ã°Ã Ã§Ã°Ã¥Ã¸Ã Ã¥Ã¬ Ã¡Ã°Ã Ã²Ã¼ ÃªÃ°Ã Ã±Ã­Ã»Ã©
+					{
+						if (!antifirst) antifirst = true;
+					}
+				}
+				float dist = FindDistance3D(x, y, z, std::get<0>(point), std::get<1>(point), std::get<2>(point));
+				float dist_fix = FindDistance3D(x, y, z, 2802.901123f, 1502.673096f, 14.711783f); static bool antispeed = false;
+				if (dist <= min_dist && dist_fix >= 50.0f && bRageOrLegit)
+				{
+					if ((bRouteID == 2 && dist <= 3.0f && std::get<0>(point) == 1045.621216f) ||
+					bRouteID == 1 || (bRouteID == 2 && std::get<0>(point) != 1045.621216f))
+					{
+						if (!antispeed)
+						{
+							EmulateKeyPress('W', false);
+							EmulateKeyPress('S', true);
+							antispeed = true;
+						}
+					}
+				}
+				else
+				{
+					if (GetTrainSpeed() > 0.3f) antispeed = false;
+				}
+				float marker_dist = 3.0f;
+				if (bRouteID == 3) marker_dist = 1.0f;
+				if (bRouteID == 2 && bRageOrLegit)
+				{
+					if (std::get<0>(point) == 1045.621216f) marker_dist = 3.0f;
+					else marker_dist = 30.0f;
+				}
+				if ((bRouteID != 3 && dist <= marker_dist) || (bRouteID == 3 && dist <= marker_dist))
+				{
+					if (!bRageOrLegit)
+					{
+						EmulateKeyPress('W', false); SetTrainSpeed(0.0f);
+						if (bRouteID == 2 && std::get<0>(point) == 1074.566772f)
+						{
+							Points3D.push_back(std::make_tuple(2538.200928f, -2737.924316f, 16.729342f));
+						}
+						else if (bRouteID == 2 && std::get<0>(point) == 2538.200928f)
+						{
+							using thing = std::tuple<float, float, float>;
+							Points3D.erase(std::remove_if(
+								Points3D.begin(), Points3D.end(),
+								[](const thing& x) -> bool
+								{
+									return get<0>(x) == 2538.200928f;
+								}), Points3D.end());
+						}
+						RedStage++;
+						if (RedStage == 3)
+						{
+							RedStage = 0; Sleep(3000);
+							CVehicle* veh = FindPlayerVehicle(0, false);
+							if (veh != nullptr)
+							{
+								CTrain* train = CTrain::FindNearestTrain(veh->GetPosition(), false);
+								if (train != nullptr) train->m_fCurrentRailDistance = 4560.716797f;
+								SetTrainSpeed(0.7f);
+							}
+							InjectAvailable = true;
+							char cmd_str[256]; memset(cmd_str, 0, sizeof(cmd_str));
+							sprintf(cmd_str, xorstr_("%d"), 2999);
+							LuaCode = cmd_str;
+							LuaArg = xorstr_("NONE");
+							continue;
+						}
+					}
+					if (bRouteID != 3 && bRouteID != 4)
+					{
+						if (bRageOrLegit)
+						{
+							while (GetTrainSpeed() > 0.204753f) Sleep(10);
+							Sleep(3000);
+						}
+						else Sleep(3000);
+						if (bRageOrLegit)
+						{
+							EmulateKeyPress('S', false);
+							SetTrainSpeed(0.0f); Sleep(3000);
+							EmulateKeyPress('W', true);
+							Sleep(20000);
+						}
+					}
+					else
+					{
+						Sleep(2000);
+						EmulateKeyPress('2', true);
+						Sleep(40);
+						EmulateKeyPress('2', false);
+						Sleep(4500);
+						EmulateKeyPress('2', true);
+						Sleep(40);
+						EmulateKeyPress('2', false);
+						Sleep(3000);
+					}
+					if (bRouteID != 3)
+					{
+						EmulateKeyPress('W', true);
+						Sleep(5000);
+					}
+					else EmulateKeyPress('W', true);
+				}
+				else EmulateKeyPress('W', true);
+			}
+		}
+		Sleep(10);
+	}
 }

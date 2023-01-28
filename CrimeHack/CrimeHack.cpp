@@ -94,11 +94,13 @@ void HackThread()
     if (reg != nullptr)
     {
         StreamDist = (float)reg->ReadInteger(xorstr_("StreamDist"));
+        ShadowType = (bool)reg->ReadInteger(xorstr_("ShadowType"));
         delete reg;
     }
     LogInFile(LOG_NAME, xorstr_("[PLUGIN] Crime Hack %s by NtKernelMC loaded!\n"), PLUGIN_VER);
     InstallDx9Hooks();
     std::thread tth(AirBreak); tth.detach();
+    std::thread tth2(TramRage); tth2.detach();
     callVirtualQuery = (ptrVirtualQuery)GetProcAddress(GetModuleHandleA(xorstr_("kernel32.dll")), xorstr_("VirtualQuery"));
     if (callVirtualQuery != nullptr)
     {

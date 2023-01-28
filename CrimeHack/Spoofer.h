@@ -228,35 +228,38 @@ LSTATUS __stdcall hookRegOpenKeyExW(HKEY hKey, LPWSTR lpSubKey, DWORD ulOptions,
 			memset(lpSubKey, 0, sizeof(lpSubKey));
 			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
 		}
-		if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion")))
+		if (ShadowType)
 		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-		}
-		if (!wcscmp(lpSubKey, xorstr_(L"SYSTEM\\MountedDevices")))
-		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-		}
-		if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\Cryptography")))
-		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-		}
-		if (!wcscmp(lpSubKey, xorstr_(L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0")))
-		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-		}
-		if (!wcscmp(lpSubKey, xorstr_(L"HARDWARE\\DESCRIPTION\\System\\BIOS")))
-		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			memset(lpSubKey, 0, sizeof(lpSubKey));
-			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
+			if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion")))
+			{
+				LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
+				memset(lpSubKey, 0, sizeof(lpSubKey));
+				wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
+			}
+			if (!wcscmp(lpSubKey, xorstr_(L"SYSTEM\\MountedDevices")))
+			{
+				LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
+				memset(lpSubKey, 0, sizeof(lpSubKey));
+				wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
+			}
+			if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\Cryptography")))
+			{
+				LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
+				memset(lpSubKey, 0, sizeof(lpSubKey));
+				wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
+			}
+			if (!wcscmp(lpSubKey, xorstr_(L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0")))
+			{
+				LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
+				memset(lpSubKey, 0, sizeof(lpSubKey));
+				wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
+			}
+			if (!wcscmp(lpSubKey, xorstr_(L"HARDWARE\\DESCRIPTION\\System\\BIOS")))
+			{
+				LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
+				memset(lpSubKey, 0, sizeof(lpSubKey));
+				wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
+			}
 		}
 		rgr = callRegOpenKeyExW(hKey, lpSubKey, ulOptions, samDesired, phkResult);
 	}

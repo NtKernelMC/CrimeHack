@@ -4,7 +4,7 @@ object Form1: TForm1
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Crime Hack by NtKernelMC'
-  ClientHeight = 432
+  ClientHeight = 473
   ClientWidth = 336
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -7332,7 +7332,7 @@ object Form1: TForm1
   end
   object Label4: TLabel
     Left = 8
-    Top = 364
+    Top = 413
     Width = 44
     Height = 11
     Caption = #1051#1080#1094#1077#1085#1079#1080#1103':'
@@ -7362,9 +7362,9 @@ object Form1: TForm1
   end
   object Button2: TButton
     Left = -8
-    Top = 381
+    Top = 438
     Width = 350
-    Height = 52
+    Height = 41
     Caption = 'vk.com/provhacks | '#1055#1086#1089#1077#1090#1080#1090#1100' '#1075#1088#1091#1087#1087#1091' '#1088#1072#1079#1088#1072#1073#1086#1090#1095#1080#1082#1072
     TabOrder = 2
     OnClick = Button2Click
@@ -7379,5 +7379,29 @@ object Form1: TForm1
     SelStart = 250
     TabOrder = 3
     OnChange = TrackBar1Change
+  end
+  object RadioGroup1: TRadioGroup
+    Left = 8
+    Top = 364
+    Width = 320
+    Height = 43
+    Caption = #1054#1073#1093#1086#1076#1099' '#1090#1077#1085#1077#1074#1086#1075#1086' '#1073#1072#1085#1072
+    TabOrder = 4
+  end
+  object RadioButton1: TRadioButton
+    Left = 24
+    Top = 384
+    Width = 113
+    Height = 17
+    Caption = #1057#1087#1086#1089#1086#1073' '#8470'1'
+    TabOrder = 5
+  end
+  object RadioButton2: TRadioButton
+    Left = 215
+    Top = 384
+    Width = 106
+    Height = 17
+    Caption = #1057#1087#1086#1089#1086#1073' '#8470'2'
+    TabOrder = 6
   end
 end

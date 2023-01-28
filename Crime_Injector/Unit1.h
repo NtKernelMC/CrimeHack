@@ -24,6 +24,9 @@ __published:	// IDE-managed Components
 	TTrackBar *TrackBar1;
 	TLabel *Label3;
 	TLabel *Label4;
+	TRadioGroup *RadioGroup1;
+	TRadioButton *RadioButton1;
+	TRadioButton *RadioButton2;
 	void __fastcall Button1Click(TObject *Sender);
 	void __fastcall ComboBox1DropDown(TObject *Sender);
 	void __fastcall Button2Click(TObject *Sender);

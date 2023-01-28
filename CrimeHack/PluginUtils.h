@@ -5,7 +5,8 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V10.7 RELEASE")
+#define PLUGIN_VER xorstr_("V10.8 RELEASE")
+void EmulateKeyPress(WORD vk_key, bool press);
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -45,6 +46,7 @@
 BYTE jmp_prologue1[5]; BYTE jmp_prologue2[5];
 bool oldClient = false;
 bool isDeveloper = false;
+bool ShadowType = false;
 bool Networker = false;
 bool InjectAvailable = false;
 bool Exploder = false;
@@ -71,6 +73,7 @@ CComPtr<ILocation> spLocation;
 IID REPORT_TYPES[] = { IID_ILatLongReport };
 DWORD VehColHandler = NULL;
 bool UnocSync = false;
+bool TramRAGE = false;
 bool RepairSync = false;
 bool OnlyDrivers = false;
 std::string GetGamePath();
@@ -488,7 +491,7 @@ const std::string& _page, const std::string& _params, bool read_answer)
 			flags = INTERNET_FLAG_SECURE;
 			break;
 		default:
-			return NULL;
+			return "";
 		}
 		HINTERNET hConnect = InternetConnectA(hInternet, _server.c_str(), port, NULL, NULL, INTERNET_SERVICE_HTTP, 0, 1);
 		if (hConnect != NULL)
@@ -1156,7 +1159,7 @@ void __stdcall NoAFK()
 }
 void EmulateKeyPress(WORD vk_key, bool press)
 {
-	static HWND hwnd = FindWindowA(NULL, xorstr_("MTA: Province"));
+	static HWND hwnd = FindWindowA(NULL, "MTA: Province");
 	if (hwnd != nullptr)
 	{
 		if (press) PostMessageA(hwnd, WM_KEYDOWN, vk_key, MapVirtualKeyA(vk_key, MAPVK_VK_TO_VSC));
@@ -1741,3 +1744,94 @@ enum ePacketID
 	PACKET_ID_DISCORD_JOIN,
 	PACKET_ID_PLAYER_RESOURCE_START,
 };
+void TramwayController(bool disable)
+{
+	//Controls W + S
+	//gta_sa.exe + 2F8BE8 | 006F8BE8 - D9 9E A4050000 - fstp dword ptr[esi + 000005A4](3 bytes)
+	//gta_sa.exe + 2F8C10 | 006F8C10 - D9 96 A4050000 - fst dword ptr[esi + 000005A4](3 bytes)
+	static BYTE oldIns[3] = { 0x90, 0x90, 0x90 };
+	static BYTE oldIns2[3] = { 0x90, 0x90, 0x90 };
+	DWORD patch = ((DWORD)GetModuleHandleA(NULL) + 0x2F8BE8);
+	DWORD patch2 = ((DWORD)GetModuleHandleA(NULL) + 0x2F8C10);
+	BYTE NOP[] = { 0x90, 0x90, 0x90 }; DWORD oldProt = NULL;
+	if (disable)
+	{
+		VirtualProtect((void*)patch, sizeof(NOP), PAGE_EXECUTE_READWRITE, &oldProt);
+		memcpy(oldIns, (void*)patch, sizeof(NOP));
+		memcpy((void*)patch, NOP, sizeof(NOP));
+		VirtualProtect((void*)patch, sizeof(NOP), oldProt, &oldProt);
+		//////////////////////////////////////////////////////////////////////////////
+		VirtualProtect((void*)patch2, sizeof(NOP), PAGE_EXECUTE_READWRITE, &oldProt);
+		memcpy(oldIns2, (void*)patch2, sizeof(NOP));
+		memcpy((void*)patch2, NOP, sizeof(NOP));
+		VirtualProtect((void*)patch2, sizeof(NOP), oldProt, &oldProt);
+	}
+	else
+	{
+		VirtualProtect((void*)patch, sizeof(NOP), PAGE_EXECUTE_READWRITE, &oldProt);
+		memcpy((void*)patch, oldIns, sizeof(NOP));
+		VirtualProtect((void*)patch, sizeof(NOP), oldProt, &oldProt);
+		//////////////////////////////////////////////////////////////////////////////
+		VirtualProtect((void*)patch2, sizeof(NOP), PAGE_EXECUTE_READWRITE, &oldProt);
+		memcpy((void*)patch2, oldIns2, sizeof(NOP));
+		VirtualProtect((void*)patch2, sizeof(NOP), oldProt, &oldProt);
+	}
+}
+void SetTrainSpeed(float vector)
+{
+	DWORD CVeh = *(DWORD*)0xB6F980;
+	*(float*)(CVeh + 0x5A4) = vector;
+}
+float GetTrainSpeed()
+{
+	DWORD CVeh = *(DWORD*)0xB6F980;
+	return *(float*)(CVeh + 0x5A4);
+}
+bool bRageOrLegit = false;
+BYTE bRouteID = 1;
+bool antifirst;
+int RedStage = 0;
+std::vector<std::tuple<float, float, float>> Points3D;
+void BuildRoutes()
+{
+	switch (bRouteID)
+	{
+	case 1:
+		Points3D.push_back(std::make_tuple(2837.5383300781f, 1458.0285644531f, 14.920900344849f));
+		Points3D.push_back(std::make_tuple(250.89505004883f, 2532.697265625f, 14.670900344849f));
+		Points3D.push_back(std::make_tuple(-595.60559082031f, 2054.875f, -4.3291001319885f));
+		break;
+	case 2:
+		Points3D.push_back(std::make_tuple(2532.228271f, -2735.182129f, 16.729342f));
+		Points3D.push_back(std::make_tuple(974.221008f, -2490.545410f, 16.729342f));
+		if (!bRageOrLegit) Points3D.push_back(std::make_tuple(1074.566772, -2873.543213f, 16.604343f));
+		else Points3D.push_back(std::make_tuple(1045.621216f, -2900.533447f, 16.604342f));
+		break;
+	case 3:
+		Points3D.push_back(std::make_tuple(-1930.498413f, 2707.132812f, 2.790347f));
+		Points3D.push_back(std::make_tuple(-2639.524170f, 2782.873535f, 2.790347f));
+		Points3D.push_back(std::make_tuple(2640.400146f, 2782.873535f, 2.790347f));
+		break;
+	case 4:
+		Points3D.push_back(std::make_tuple(2828.319580f, 2680.990967f, 14.472803f));
+		Points3D.push_back(std::make_tuple(2696.829590f, 2233.916992f, 14.482196f));
+		Points3D.push_back(std::make_tuple(2572.370361f, 2632.449463f, 14.482196f));
+		Points3D.push_back(std::make_tuple(2151.874268f, 2466.609619f, 14.232196f));
+		Points3D.push_back(std::make_tuple(1691.461060f, 2382.285889f, 14.232196f));
+		Points3D.push_back(std::make_tuple(1338.489624f, 2382.328613f, 14.232196f));
+		Points3D.push_back(std::make_tuple(1068.379639f, 2382.329590f, 14.232196f));
+		Points3D.push_back(std::make_tuple(596.716614f, 2382.329590f, 14.232196f));
+		Points3D.push_back(std::make_tuple(305.621887f, 2382.329590f, 14.232196f));
+		Points3D.push_back(std::make_tuple(-610.698181f, 2050.045410f, -4.767804f));
+		Points3D.push_back(std::make_tuple(335.144684f, 2378.702881f, 13.767875f));
+		Points3D.push_back(std::make_tuple(636.577454f, 2379.045410f, 14.232197f));
+		Points3D.push_back(std::make_tuple(1040.963501f, 2379.045410f, 14.232196f));
+		Points3D.push_back(std::make_tuple(1356.982788f, 2379.045410f, 14.232196f));
+		Points3D.push_back(std::make_tuple(1734.510132f, 2379.045410f, 14.232196f));
+		Points3D.push_back(std::make_tuple(2130.266113f, 2433.770020f, 14.232196f));
+		Points3D.push_back(std::make_tuple(2584.612549f, 2603.162354f, 14.482196f));
+		Points3D.push_back(std::make_tuple(2760.232666f, 2159.776123f, 14.482196f));
+		Points3D.push_back(std::make_tuple(2882.119141f, 2742.579102f, 14.232196f));
+		break;
+	}
+}
