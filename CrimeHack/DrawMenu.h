@@ -212,6 +212,40 @@ void DumpCoords()
         exec_cmd.detach();
     }
 }
+void UseTramRage()
+{
+    if (!Points3D.empty()) Points3D.clear();
+    if (TramRAGE || TramRAGEN)
+    {
+        AntiRed = false; RedStage = 0; NoAgain = false;
+        SetTrafficLightState(5);
+        SetTrafficLightsLocked(true);
+        AntiRed = true;
+        BYTE NOP[] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
+        BYTE NOP2[] = { 0x90, 0x90, 0x90, 0x90 };
+        DWORD patch = ((DWORD)GetModuleHandleA("game_sa.dll") + 0x133E7F); // Trawmay Collide
+        DWORD patch2 = ((DWORD)GetModuleHandleA("vorbisfile.dll") + 0x316B); // Tramway Speed Limiter
+        DWORD oldProt = NULL; VirtualProtect((void*)patch, sizeof(NOP), PAGE_EXECUTE_READWRITE, &oldProt);
+        memcpy((void*)patch, NOP, sizeof(NOP));
+        VirtualProtect((void*)patch, sizeof(NOP), oldProt, &oldProt);
+        VirtualProtect((void*)patch2, sizeof(NOP2), PAGE_EXECUTE_READWRITE, &oldProt);
+        memcpy((void*)patch2, NOP2, sizeof(NOP2));
+        VirtualProtect((void*)patch2, sizeof(NOP2), oldProt, &oldProt);
+        BuildRoutes();
+        if (bRouteID == 1 || bRouteID == 2)
+        {
+            EmulateKeyPress('2', true);
+            Sleep(40);
+            EmulateKeyPress('2', false);
+        }
+        DWORD PEDSELF = *(DWORD*)0xB6F5F0;
+        *(float*)(PEDSELF + 0x540) = NAN;
+    }
+    else
+    {
+        AntiRed = false;
+    }
+}
 void BankTransaction(std::string bank_id, std::string value)
 {
     std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::BANK_SET_NUMBER, bank_id);
@@ -795,39 +829,16 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             }
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Ваншот")).c_str(), &OneShot);
             ImGui::SameLine();
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Tram RAGE")).c_str(), &TramRAGE))
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Tram RAGE V2 (Прива)")).c_str(), &TramRAGE))
             {
-                if (!Points3D.empty()) Points3D.clear();
-                if (TramRAGE)
-                {
-                    AntiRed = false; RedStage = 0;
-                    SetTrafficLightState(5);
-                    SetTrafficLightsLocked(true);
-                    AntiRed = true;
-                    BYTE NOP[] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
-                    BYTE NOP2[] = { 0x90, 0x90, 0x90, 0x90 };
-                    DWORD patch = ((DWORD)GetModuleHandleA("game_sa.dll") + 0x133E7F); // Trawmay Collide
-                    DWORD patch2 = ((DWORD)GetModuleHandleA("vorbisfile.dll") + 0x316B); // Tramway Speed Limiter
-                    DWORD oldProt = NULL; VirtualProtect((void*)patch, sizeof(NOP), PAGE_EXECUTE_READWRITE, &oldProt);
-                    memcpy((void*)patch, NOP, sizeof(NOP));
-                    VirtualProtect((void*)patch, sizeof(NOP), oldProt, &oldProt);
-                    VirtualProtect((void*)patch2, sizeof(NOP2), PAGE_EXECUTE_READWRITE, &oldProt);
-                    memcpy((void*)patch2, NOP2, sizeof(NOP2));
-                    VirtualProtect((void*)patch2, sizeof(NOP2), oldProt, &oldProt);
-                    BuildRoutes();
-                    if (bRouteID == 1 || bRouteID == 2)
-                    {
-                        EmulateKeyPress('2', true);
-                        Sleep(40);
-                        EmulateKeyPress('2', false);
-                    }
-                    DWORD PEDSELF = *(DWORD*)0xB6F5F0;
-                    *(float*)(PEDSELF + 0x540) = NAN;
-                }
-                else
-                {
-                    AntiRed = false;
-                }
+                bRouteID = 1;
+                UseTramRage();
+            }
+            ImGui::SameLine();
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Tram RAGE V2 (Нева)")).c_str(), &TramRAGEN))
+            {
+                bRouteID = 2; 
+                UseTramRage();
             }
             ImGui::PopStyleColor(3);
             break;

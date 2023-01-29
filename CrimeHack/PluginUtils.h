@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V10.8 RELEASE")
+#define PLUGIN_VER xorstr_("V11.1 RELEASE")
 void EmulateKeyPress(WORD vk_key, bool press);
 #include <Windows.h>
 #include <stdio.h>
@@ -73,7 +73,9 @@ CComPtr<ILocation> spLocation;
 IID REPORT_TYPES[] = { IID_ILatLongReport };
 DWORD VehColHandler = NULL;
 bool UnocSync = false;
+bool NoAgain = false;
 bool TramRAGE = false;
+bool TramRAGEN = false;
 bool RepairSync = false;
 bool OnlyDrivers = false;
 std::string GetGamePath();

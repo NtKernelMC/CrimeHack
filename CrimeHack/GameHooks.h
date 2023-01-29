@@ -1823,7 +1823,7 @@ void TramRage()
 {
 	while (true)
 	{
-		if (TramRAGE)
+		if (TramRAGE || TramRAGEN)
 		{
 			auto FindDistance3D = [](float x1, float y1, float z1, float x2, float y2, float z2) -> float
 			{
@@ -1897,7 +1897,24 @@ void TramRage()
 								}), Points3D.end());
 						}
 						RedStage++;
-						if (RedStage == 3)
+						if (RedStage == 1 && !NoAgain)
+						{
+							Sleep(3000); //6411.521484 - первая метка
+							CVehicle* veh = FindPlayerVehicle(0, false);
+							if (veh != nullptr)
+							{
+								CTrain* train = CTrain::FindNearestTrain(veh->GetPosition(), false);
+								if (train != nullptr)
+								{
+									if (bRouteID == 1) train->m_fCurrentRailDistance = 10448.528320f;
+									if (bRouteID == 2) train->m_fCurrentRailDistance = 6795.120605f;
+								}
+								SetTrainSpeed(0.7f); NoAgain = true;
+							}
+							EmulateKeyPress('W', true);
+							continue;
+						}
+						if (RedStage == 3 && bRouteID == 1)
 						{
 							RedStage = 0; Sleep(3000);
 							CVehicle* veh = FindPlayerVehicle(0, false);
@@ -1912,6 +1929,25 @@ void TramRage()
 							sprintf(cmd_str, xorstr_("%d"), 2999);
 							LuaCode = cmd_str;
 							LuaArg = xorstr_("NONE");
+							EmulateKeyPress('W', true);
+							continue;
+						}
+						if (RedStage == 4 && bRouteID == 2)
+						{
+							RedStage = 0; Sleep(3000);
+							CVehicle* veh = FindPlayerVehicle(0, false);
+							if (veh != nullptr)
+							{
+								CTrain* train = CTrain::FindNearestTrain(veh->GetPosition(), false);
+								if (train != nullptr) train->m_fCurrentRailDistance = 2130.854980f;
+								SetTrainSpeed(0.7f);
+							}
+							InjectAvailable = true;
+							char cmd_str[256]; memset(cmd_str, 0, sizeof(cmd_str));
+							sprintf(cmd_str, xorstr_("%d"), 2999);
+							LuaCode = cmd_str;
+							LuaArg = xorstr_("NONE");
+							EmulateKeyPress('W', true);
 							continue;
 						}
 					}
