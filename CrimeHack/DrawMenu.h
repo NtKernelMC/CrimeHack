@@ -174,7 +174,7 @@ enum class LUA_CMD
     SKIN_2 = 11300,
     SET_SLOT = 11400,
     BRUTE_SKIN = 11500,
-    PL_INFO = 10600
+    PL_INFO = 11600
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {

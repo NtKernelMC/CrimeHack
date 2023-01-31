@@ -1607,7 +1607,7 @@ end)
         	triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 122)
 		end
 
-		if tonumber(exec_cmd) == 11500 then
+		if tonumber(exec_cmd) == 11600 then
 			for i, k in ipairs(getElementsByType("player")) do
 				local elem = getPlayerNametagText(k)
 				if elem == exec_arg then
