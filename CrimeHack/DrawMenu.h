@@ -173,7 +173,8 @@ enum class LUA_CMD
     GUN_CODE = 11200,
     SKIN_2 = 11300,
     SET_SLOT = 11400,
-    BRUTE_SKIN = 11500
+    BRUTE_SKIN = 11500,
+    PL_INFO = 10600
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -622,6 +623,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_SPEC, current_select);
                 exec_cmd.detach();
             }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Пробив")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_INFO, current_select);
+                exec_cmd.detach();
+            }
             ImGui::Unindent(370);
             ImGui::PopStyleColor(3);
             break;
@@ -829,7 +836,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             }
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Ваншот")).c_str(), &OneShot);
             ImGui::SameLine();
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Tram RAGE V2 (Прива)")).c_str(), &TramRAGE))
+            /*if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Tram RAGE V2 (Прива)")).c_str(), &TramRAGE))
             {
                 bRouteID = 1;
                 UseTramRage();
@@ -839,6 +846,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             {
                 bRouteID = 2; 
                 UseTramRage();
+            }
+            ImGui::SameLine();*/
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("2к HP (Vehicle)")).c_str()))
+            {
+                DWORD VEHSELF = *(DWORD*)0xB6F980;
+                *(float*)(VEHSELF + 0x540) = 2000;
             }
             ImGui::PopStyleColor(3);
             break;

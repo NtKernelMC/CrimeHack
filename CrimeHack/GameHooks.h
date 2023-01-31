@@ -690,6 +690,16 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local slowSH = false
 
 
+	function pSetPlayerData(arg0)
+		outputChatBox('Login: ' .. arg0.accName)
+		outputChatBox('IP: ' .. arg0.ip)
+		outputChatBox('Serial: ' .. arg0.serial)
+		outputChatBox('Level: ' .. tostring(arg0.level))
+		outputChatBox('Money: ' .. tostring(arg0.money))
+	end
+	addEvent("aSpectatorClient:SetPlayerData", true)
+	addEventHandler("aSpectatorClient:SetPlayerData", root, pSetPlayerData)
+
 	addEventHandler("onClientVehicleCollision", root,
     function ( hit )
         --outputChatBox('Collision with element: ' .. tostring(hit)) 
@@ -720,7 +730,9 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	function onEventDumper( sourceResource, functionName, isAllowedByACL, luaFilename, luaLineNumber, ... )
 		local args = { ... }
 		local resname = sourceResource and getResourceName(sourceResource)
-		outputConsole("[".. tostring(resname) .. "] ".. tostring(functionName) .. "(args: " .. tostring(#args) .. ") ".. ": ".. inspect(args))
+		if resname ~= 'admin' then
+			outputConsole("[".. tostring(resname) .. "] ".. tostring(functionName) .. "(args: " .. tostring(#args) .. ") ".. ": ".. inspect(args))
+		end
 	end
 
 	addEventHandler("onClientTrailerDetach",root,function(towedBy)
@@ -1593,6 +1605,17 @@ end)
 			local resname = getResourceFromName('province_skinshop')
         	local resourceRoot = getResourceRootElement(resname)
         	triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 122)
+		end
+
+		if tonumber(exec_cmd) == 11500 then
+			for i, k in ipairs(getElementsByType("player")) do
+				local elem = getPlayerNametagText(k)
+				if elem == exec_arg then
+					local resname = getResourceFromName('admin')
+					local resourceRoot = getResourceRootElement(resname)
+					triggerLatentServerEvent('aSpecate:GetPlayerData', 5000, false, resourceRoot, k)
+				end	     
+			end
 		end
 	end
 
