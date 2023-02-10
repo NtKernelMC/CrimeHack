@@ -2,6 +2,8 @@ typedef ULONG(__stdcall* ptrGetAdaptersInfo)(PIP_ADAPTER_INFO AdapterInfo, PULON
 ptrGetAdaptersInfo callGetAdaptersInfo = nullptr;
 ULONG __stdcall hookGetAdaptersInfo(PIP_ADAPTER_INFO AdapterInfo, PULONG SizePointer)
 {
+	std::random_device rd; std::mt19937 mt(rd());
+	std::uniform_int_distribution<int> rv_dist(0, 255);
 	ULONG ret = callGetAdaptersInfo(AdapterInfo, SizePointer);
 	if (AdapterInfo != nullptr)
 	{
@@ -9,12 +11,12 @@ ULONG __stdcall hookGetAdaptersInfo(PIP_ADAPTER_INFO AdapterInfo, PULONG SizePoi
 		{
 			do
 			{
-				AdapterInfo->Address[0] = rand() % 255;
-				AdapterInfo->Address[1] = rand() % 255;
-				AdapterInfo->Address[2] = rand() % 255;
-				AdapterInfo->Address[3] = rand() % 255;
-				AdapterInfo->Address[4] = rand() % 255;
-				AdapterInfo->Address[5] = rand() % 255;
+				AdapterInfo->Address[0] = rv_dist(mt);
+				AdapterInfo->Address[1] = rv_dist(mt);
+				AdapterInfo->Address[2] = rv_dist(mt);
+				AdapterInfo->Address[3] = rv_dist(mt);
+				AdapterInfo->Address[4] = rv_dist(mt);
+				AdapterInfo->Address[5] = rv_dist(mt);
 				AdapterInfo = AdapterInfo->Next;
 			} while (AdapterInfo);
 		}
@@ -54,6 +56,28 @@ std::string mdString(std::string md_sequence, int len)
 	}
 	return newstr;
 }
+std::string getProcName()
+{
+	std::string pname = "";
+	CEasyRegistry* reg = new CEasyRegistry(HKEY_LOCAL_MACHINE, xorstr_("HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0"), true);
+	if (reg != nullptr)
+	{
+		pname = reg->ReadString(xorstr_("ProcessorNameString"));
+		delete reg;
+	}
+	return pname;
+}
+std::string getVendorName()
+{
+	std::string pname = "";
+	CEasyRegistry* reg = new CEasyRegistry(HKEY_LOCAL_MACHINE, xorstr_("HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0"), true);
+	if (reg != nullptr)
+	{
+		pname = reg->ReadString(xorstr_("VendorIdentifier"));
+		delete reg;
+	}
+	return pname;
+}
 void CreateRetranslatorTable()
 {
 	CEasyRegistry* reg = new CEasyRegistry(HKEY_LOCAL_MACHINE, xorstr_("SOFTWARE\\WOW6432Node\\MicrosoftNode"), true);
@@ -63,7 +87,7 @@ void CreateRetranslatorTable()
 		//SYSTEM\\CurrentControlSet\\Control\\IDConfigDB\\Hardware Profiles\\0001 -- Key HwProfileGuid
 		char spf_str[500]; memset(spf_str, 0, sizeof(spf_str)); //{bc1bfdc0-5450-11eb-98c1-806e6f6e6963}
 		sprintf(spf_str, xorstr_("{%s-%s-%s-%s-%s}"), mdString(RsString(8), 8).c_str(), mdString(RsString(4), 4).c_str(),
-		mdString(RsString(4), 4).c_str(), mdString(RsString(4), 4).c_str(), mdString(RsString(12), 12).c_str());
+			mdString(RsString(4), 4).c_str(), mdString(RsString(4), 4).c_str(), mdString(RsString(12), 12).c_str());
 		reg->WriteString(xorstr_("HwProfileGuid"), spf_str);
 		//"SOFTWARE\\Microsoft\\MSLicensing\\HardwareID", "ClientHWID" 
 		BYTE msLicense[20]; // 02 00 00 00 01 6c fa 5f etc..
@@ -76,7 +100,7 @@ void CreateRetranslatorTable()
 		//SOFTWARE\\Microsoft\\SQMClient "MachineId" {AC865647-7C56-41F4-A961-F33F915AF9D6}
 		memset(spf_str, 0, sizeof(spf_str));
 		sprintf(spf_str, xorstr_("{%s-%s-%s-%s-%s}"), mdString(RsString(8), 8).c_str(), mdString(RsString(4), 4).c_str(),
-		mdString(RsString(4), 4).c_str(), mdString(RsString(4), 4).c_str(), mdString(RsString(12), 12).c_str());
+			mdString(RsString(4), 4).c_str(), mdString(RsString(4), 4).c_str(), mdString(RsString(12), 12).c_str());
 		for (decltype(auto) spf : spf_str)
 		{
 			spf = toupper(spf);
@@ -103,7 +127,7 @@ void CreateRetranslatorTable()
 		//SOFTWARE\\Microsoft\\Cryptography -- MachineGuid
 		memset(spf_str, 0, sizeof(spf_str)); //19c33b1a-3622-4fe8-9d3b-42e7b5d8851e
 		sprintf(spf_str, xorstr_("%s-%s-%s-%s-%s"), mdString(RsString(8), 8).c_str(), mdString(RsString(4), 4).c_str(),
-		mdString(RsString(4), 4).c_str(), mdString(RsString(4), 4).c_str(), mdString(RsString(12), 12).c_str());
+			mdString(RsString(4), 4).c_str(), mdString(RsString(4), 4).c_str(), mdString(RsString(12), 12).c_str());
 		reg->WriteString(xorstr_("MachineGuid"), spf_str);
 		//HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0
 		std::vector<std::string> ProcessorsList;
@@ -120,7 +144,8 @@ void CreateRetranslatorTable()
 		ProcessorsList.push_back(xorstr_("13th Gen Intel(R) Core(TM) i7-10200H @ 3.30GHz"));
 		ProcessorsList.push_back(xorstr_("15th Gen Intel(R) Xeon(TM) i9-10200H @ 3.90GHz"));
 		std::uniform_int_distribution<int> dist(0, ProcessorsList.size() - 1);
-		reg->WriteString(xorstr_("ProcessorNameString"), ProcessorsList[dist(mt)].c_str());
+		reg->WriteString(xorstr_("ProcessorNameString"), getProcName().c_str());
+		reg->WriteString(xorstr_("VendorIdentifier"), getVendorName().c_str());
 		std::vector<std::string> SteppingsList;
 		SteppingsList.push_back(xorstr_("Intel64 Family 2 Model 142 Stepping 1"));
 		SteppingsList.push_back(xorstr_("Intel64 Family 1 Model 143 Stepping 3"));
@@ -135,7 +160,7 @@ void CreateRetranslatorTable()
 		SteppingsList.push_back(xorstr_("AMD64 Family 33 Model 15 Stepping 2"));
 		SteppingsList.push_back(xorstr_("AMD64 Family 34 Model 16 Stepping 1"));
 		std::uniform_int_distribution<int> sdist(0, SteppingsList.size() - 1);
-		reg->WriteString(xorstr_("Identifier"), SteppingsList[sdist(mt)].c_str());
+		reg->WriteString(xorstr_("Identifier"), RsString(25).c_str());
 		BYTE procRevision[8]; //0d 82 00 08 00 00 00 00
 		for (decltype(auto) binByte : procRevision)
 		{
@@ -153,7 +178,7 @@ void CreateRetranslatorTable()
 		MotherboardsList.push_back(xorstr_("MSI Tech Computer"));
 		MotherboardsList.push_back(xorstr_("Arduino Technologies"));
 		std::uniform_int_distribution<int> mdist(0, MotherboardsList.size() - 1);
-		reg->WriteString(xorstr_("BaseBoardManufacturer"), MotherboardsList[mdist(mt)].c_str());
+		reg->WriteString(xorstr_("BaseBoardManufacturer"), RsString(25).c_str());
 		memset(spf_str, 0, sizeof(spf_str)); // FX516PM
 		sprintf(spf_str, xorstr_("%s"), RsString(7).c_str());
 		for (decltype(auto) spf : spf_str)
@@ -176,7 +201,7 @@ void CreateRetranslatorTable()
 		VendorsList.push_back(xorstr_("Ozark Corp International, LLC."));
 		VendorsList.push_back(xorstr_("Arduino International, Ltd."));
 		std::uniform_int_distribution<int> vdist(0, VendorsList.size() - 1);
-		reg->WriteString(xorstr_("BIOSVendor"), VendorsList[vdist(mt)].c_str());
+		reg->WriteString(xorstr_("BIOSVendor"), RsString(25).c_str());
 		std::uniform_int_distribution<int> bsdist_4(300, 399);
 		memset(spf_str, 0, sizeof(spf_str)); //FX516PM.322
 		sprintf(spf_str, xorstr_("%s.%d"), baseboard_serial.c_str(), bsdist_4(mt));
@@ -228,38 +253,35 @@ LSTATUS __stdcall hookRegOpenKeyExW(HKEY hKey, LPWSTR lpSubKey, DWORD ulOptions,
 			memset(lpSubKey, 0, sizeof(lpSubKey));
 			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
 		}
-		if (ShadowType)
+		/*if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion")))
 		{
-			if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion")))
-			{
-				LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-				memset(lpSubKey, 0, sizeof(lpSubKey));
-				wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-			}
-			if (!wcscmp(lpSubKey, xorstr_(L"SYSTEM\\MountedDevices")))
-			{
-				LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-				memset(lpSubKey, 0, sizeof(lpSubKey));
-				wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-			}
-			if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\Cryptography")))
-			{
-				LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-				memset(lpSubKey, 0, sizeof(lpSubKey));
-				wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-			}
-			if (!wcscmp(lpSubKey, xorstr_(L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0")))
-			{
-				LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-				memset(lpSubKey, 0, sizeof(lpSubKey));
-				wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-			}
-			if (!wcscmp(lpSubKey, xorstr_(L"HARDWARE\\DESCRIPTION\\System\\BIOS")))
-			{
-				LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-				memset(lpSubKey, 0, sizeof(lpSubKey));
-				wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
-			}
+			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
+			memset(lpSubKey, 0, sizeof(lpSubKey));
+			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
+		}*/
+		if (!wcscmp(lpSubKey, xorstr_(L"SYSTEM\\MountedDevices")))
+		{
+			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
+			memset(lpSubKey, 0, sizeof(lpSubKey));
+			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
+		}
+		/*if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\Cryptography")))
+		{
+			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
+			memset(lpSubKey, 0, sizeof(lpSubKey));
+			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
+		}*/
+		if (!wcscmp(lpSubKey, xorstr_(L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0")))
+		{
+			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
+			memset(lpSubKey, 0, sizeof(lpSubKey));
+			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
+		}
+		if (!wcscmp(lpSubKey, xorstr_(L"HARDWARE\\DESCRIPTION\\System\\BIOS")))
+		{
+			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
+			memset(lpSubKey, 0, sizeof(lpSubKey));
+			wcscpy(lpSubKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"));
 		}
 		rgr = callRegOpenKeyExW(hKey, lpSubKey, ulOptions, samDesired, phkResult);
 	}

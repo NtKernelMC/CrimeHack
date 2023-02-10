@@ -174,7 +174,8 @@ enum class LUA_CMD
     SKIN_2 = 11300,
     SET_SLOT = 11400,
     BRUTE_SKIN = 11500,
-    PL_INFO = 11600
+    PL_INFO = 11600,
+    FUCK_SERVER = 11700,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -427,12 +428,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 CClock::SetGameClock(12, 0, 1);
             }
             ImGui::InputText(cp1251_to_utf8(xorstr_("Имя файла")).c_str(), inp_txt12, sizeof(inp_txt12));
-            ImGui::SameLine();
+            /*ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Trigger Dumper")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::TRIGGER_DUMPER, xorstr_("NONE"));
                 exec_cmd.detach();
-            }
+            }*/
             ImGui::InputText(cp1251_to_utf8(xorstr_("ID Модели")).c_str(), inp_txt13, sizeof(inp_txt13));
             ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Coord Dumper")).c_str()))
@@ -623,12 +624,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_SPEC, current_select);
                 exec_cmd.detach();
             }
-            ImGui::SameLine();
+            /*ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Пробив")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_INFO, current_select);
                 exec_cmd.detach();
-            }
+            }*/
             ImGui::Unindent(370);
             ImGui::PopStyleColor(3);
             break;
@@ -835,24 +836,18 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 exec_cmd.detach();
             }
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Ваншот")).c_str(), &OneShot);
-            ImGui::SameLine();
-            /*if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Tram RAGE V2 (Прива)")).c_str(), &TramRAGE))
+            /*ImGui::SameLine();
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Tram RAGE V3 (Прива)")).c_str(), &TramRAGE))
             {
                 bRouteID = 1;
                 UseTramRage();
             }
             ImGui::SameLine();
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Tram RAGE V2 (Нева)")).c_str(), &TramRAGEN))
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Tram RAGE V3 (Нева)")).c_str(), &TramRAGEN))
             {
                 bRouteID = 2; 
                 UseTramRage();
-            }
-            ImGui::SameLine();*/
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("2к HP (Vehicle)")).c_str()))
-            {
-                DWORD VEHSELF = *(DWORD*)0xB6F980;
-                *(float*)(VEHSELF + 0x540) = 2000;
-            }
+            }*/
             ImGui::PopStyleColor(3);
             break;
         }

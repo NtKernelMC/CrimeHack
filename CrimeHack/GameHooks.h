@@ -147,241 +147,15 @@ bool __fastcall StartGame(void* ECX, void* EDX, const char* szNick, const char* 
 	}
 	return callStartGame(ECX, szNick, szPassword, Type, szSecret);
 }
-void* GetClosestRemotePlayer(CVector* vecPosition, float fMaxDistance)
-{
-	if (callGetClosestRemotePlayer != nullptr && classPointer != nullptr)
-	{
-		return callGetClosestRemotePlayer(classPointer, vecPosition, fMaxDistance);
-	}
-	return nullptr;
-}
-int GetRandom(int* operand)
-{
-	LARGE_INTEGER start, end, freq;
-	QueryPerformanceFrequency(&freq);
-	QueryPerformanceCounter(&start);
-	int diff = operand[1] - operand[0];
-	QueryPerformanceCounter(&end);
-	srand((end.QuadPart - start.QuadPart) * 1000000 / freq.QuadPart);
-	int random = (rand()) / RAND_MAX;
-	int r = random * diff;
-	return operand[0] + r;
-}
-float CalculateDamage(WORD gun)
-{
-	float dmg = 0.0f;
-	if (gun == 24 || gun == 38) dmg = 46.200000762939453125f;
-	if (gun == 22 || gun == 29) dmg = 8.25f;
-	if (gun == 23) dmg = 13.200000762939453125f;
-	if (gun == 28 || gun == 32) dmg = 6.6000003814697265625f;
-	if (gun == 30 || gun == 31) dmg = 9.90000057220458984375f;
-	if (gun == 33) dmg = 24.7500019073486328125f;
-	if (gun == 34) dmg = 41.25f;
-	if (gun == 25 || gun == 26)
-	{
-		int shotrandom[2] = { 8, 15 };
-		switch (GetRandom(shotrandom))
-		{
-		case 8:
-			dmg = 26.4000015258789f;
-			break;
-		case 9:
-			dmg = 29.70000171661377f;
-			break;
-		case 10:
-			dmg = 33.00000190734863f;
-			break;
-		case 11:
-			dmg = 36.30000209808349f;
-			break;
-		case 12:
-			dmg = 39.60000228881836f;
-			break;
-		case 13:
-			dmg = 42.90000247955322f;
-			break;
-		case 14:
-			dmg = 46.20000267028808f;
-			break;
-		case 15:
-			dmg = 49.50000286102295f;
-			break;
-		}
-	}
-	if (gun == 27)
-	{
-		int shotrandom[2] = { 5, 8 };
-		switch (GetRandom(shotrandom))
-		{
-		case 5:
-			dmg = 24.75000143051147f;
-			break;
-		case 6:
-			dmg = 29.70000171661376f;
-			break;
-		case 7:
-			dmg = 34.65000200271606f;
-			break;
-		case 8:
-			dmg = 39.60000228881835f;
-			break;
-		}
-	}
-	return dmg;
-}
-void SafeActions(CPed* ped)
-{
-	if (ped == nullptr) return;
-	__try
-	{
-		auto FindDistance3D = [](CVector vec1, CVector vec2) -> float
-		{
-			return (float)sqrt(pow(vec1.x - vec2.x, 2.0) + pow(vec1.y - vec2.y, 2.0) + pow(vec1.z - vec2.z, 2.0));
-		};
-		if (ped->m_fHealth > 1.0f)
-		{
-			CVector pedPos = ped->GetPosition();
-			CPed* pedSelf = FindPlayerPed(-1);
-			void* victim = GetClosestRemotePlayer(&pedPos, 1.5f);
-			int bodyIDs[3] = { 6, 7, 8 };
-			unsigned int random_bone = GetRandom(bodyIDs);
-			RwV3d bone; ped->GetBonePosition(bone, random_bone, true);
-			CVector targetEnd(bone.x, bone.y, bone.z);
-			if (victim != nullptr && pedSelf != nullptr)
-			{
-				if (FindDistance3D(pedSelf->GetPosition(), pedPos) < 50.0f)
-				{
-					CVector targetStart = targetEnd; targetStart.z += 5.0f;
-					targetEnd.x -= ped->m_vecMoveSpeed.x;
-					targetEnd.y -= ped->m_vecMoveSpeed.y;
-					targetEnd.z -= ped->m_vecMoveSpeed.z;
-					eWeaponType currentWeapon = pedSelf->m_aWeapons[pedSelf->m_nActiveWeaponSlot].m_eWeaponType;
-					if (currentWeapon >= 22 && currentWeapon <= 34)
-					callSendBulletSyncFire(netApi, currentWeapon, targetStart,
-					targetEnd, CalculateDamage(currentWeapon), 9, victim);
-				}
-			}
-		}
-	}
-	__except (EXCEPTION_EXECUTE_HANDLER) {};
-}
-void KillAura()
-{
-	while (true)
-	{
-		if (!DeadlyAura) continue;
-		DWORD pedPoolUsageInfo = *(DWORD*)0xB74490;
-		DWORD pedPoolBegining = *(DWORD*)pedPoolUsageInfo;
-		DWORD byteMapAddr = *(DWORD*)(pedPoolUsageInfo + 4);
-		for (BYTE i = 0; i < 140; i++)
-		{
-			BYTE activityStatus = *(BYTE*)(byteMapAddr + i);
-			if (activityStatus > 0 && activityStatus < 128) SafeActions((CPed*)(pedPoolBegining + i * 1988));
-		}
-		Sleep(10);
-	}
-}
-void CalcScreenCoors(D3DXVECTOR3* vecWorld, D3DXVECTOR3* vecScreen)
-{
-	D3DXMATRIX    m((float*)(0xB6FA2C));
-	DWORD* dwLenX = (DWORD*)(0xC17044);
-	DWORD* dwLenY = (DWORD*)(0xC17048);
-	vecScreen->x = (vecWorld->z * m._31) + (vecWorld->y * m._21) + (vecWorld->x * m._11) + m._41;
-	vecScreen->y = (vecWorld->z * m._32) + (vecWorld->y * m._22) + (vecWorld->x * m._12) + m._42;
-	vecScreen->z = (vecWorld->z * m._33) + (vecWorld->y * m._23) + (vecWorld->x * m._13) + m._43;
-	double    fRecip = (double)1.0 / vecScreen->z;
-	vecScreen->x *= (float)(fRecip * (*dwLenX));
-	vecScreen->y *= (float)(fRecip * (*dwLenY));
-}
-CPed* GetPlayerTarget(int radius)
-{
-	static int iX; static int iY; D3DXVECTOR3 vecPos;
-	DWORD pedPoolUsageInfo = *(DWORD*)0xB74490;
-	DWORD pedPoolBegining = *(DWORD*)pedPoolUsageInfo;
-	DWORD byteMapAddr = *(DWORD*)(pedPoolUsageInfo + 4);
-	for (BYTE i = 0; i < 140; i++)
-	{
-		BYTE activityStatus = *(BYTE*)(byteMapAddr + i);
-		if (activityStatus > 0 && activityStatus < 128)
-		{
-			DWORD cped = (pedPoolBegining + i * 1988);
-			DWORD Matrix = *(DWORD*)(cped + 0x14);
-			vecPos.x = *(float*)(Matrix + 0x30);
-			vecPos.y = *(float*)(Matrix + 0x34);
-			vecPos.z = *(float*)(Matrix + 0x38);
-			float health = *(float*)(cped + 0x540);
-			if (health > 0.f)
-			{
-				D3DXVECTOR3 screenPos; CalcScreenCoors(&vecPos, &screenPos);
-				if (screenPos.z < 1.f) continue;
-				iX = GetSystemMetrics(SM_CXSCREEN) * 0.5299999714f;
-				iY = GetSystemMetrics(SM_CYSCREEN) * 0.4f;
-				if ((screenPos.x > iX + (radius)) || (screenPos.y > iY + (radius))
-					|| (screenPos.x < iX - (radius)) || (screenPos.y < iY - (radius))) continue;
-				return (CPed*)cped;
-			}
-		}
-	}
-	return nullptr;
-}
 void __fastcall SendBulletSyncFire(void* ECX, void* EDX, eWeaponType weaponType, CVector& vecStart, CVector& vecEnd,
 float fDamage, BYTE ucHitZone, void* pRemoteDamagedPlayer)
 {
 	netApi = ECX;
-	if (DeadlyAura)
-	{
-		static bool once = false;
-		if (!once)
-		{
-			once = true;
-			LogInFile(LOG_NAME, xorstr_("Аура смерти активирована."));
-			std::thread BulletSpammer(KillAura);
-			BulletSpammer.detach();
-		}
-	}
 	if (pRemoteDamagedPlayer != nullptr && OneShot)
 	{
 		for (BYTE x = 0; x < 30; x++) callSendBulletSyncFire(ECX, weaponType, vecStart, vecEnd, fDamage, ucHitZone, pRemoteDamagedPlayer);
 	}
-	else
-	{
-		if (SilentAIM)
-		{
-			if (pRemoteDamagedPlayer != nullptr)
-			{
-				callSendBulletSyncFire(ECX, weaponType, vecStart, vecEnd, fDamage, ucHitZone, pRemoteDamagedPlayer);
-				return;
-			}
-			CPed* TargetPed = GetPlayerTarget(FOV);
-			auto FindDistance3D = [](CVector vec1, CVector vec2) -> float
-			{
-				return (float)sqrt(pow(vec1.x - vec2.x, 2.0) + pow(vec1.y - vec2.y, 2.0) + pow(vec1.z - vec2.z, 2.0));
-			};
-			if (TargetPed != nullptr)
-			{
-				CVector pedPos = TargetPed->GetPosition();
-				CPed* pedSelf = FindPlayerPed(-1);
-				void* victim = GetClosestRemotePlayer(&pedPos, 15.0f);
-				RwV3d bone; TargetPed->GetBonePosition(bone, 3, true);
-				CVector targetEnd(bone.x, bone.y, bone.z);
-				if (victim != nullptr && pedSelf != nullptr)
-				{
-					if (FindDistance3D(pedSelf->GetPosition(), pedPos) < 100.0f && TargetPed->GetIsOnScreen())
-					{
-						targetEnd.x -= TargetPed->m_vecMoveSpeed.x;
-						targetEnd.y -= TargetPed->m_vecMoveSpeed.y;
-						targetEnd.z -= TargetPed->m_vecMoveSpeed.z;
-						callSendBulletSyncFire(netApi, weaponType, vecStart,
-						targetEnd, CalculateDamage(weaponType), 3, victim);
-					}
-					else callSendBulletSyncFire(ECX, weaponType, vecStart, vecEnd, fDamage, ucHitZone, pRemoteDamagedPlayer);
-				}
-				else callSendBulletSyncFire(ECX, weaponType, vecStart, vecEnd, fDamage, ucHitZone, pRemoteDamagedPlayer);
-			}
-			else callSendBulletSyncFire(ECX, weaponType, vecStart, vecEnd, fDamage, ucHitZone, pRemoteDamagedPlayer);
-		}
-		else callSendBulletSyncFire(ECX, weaponType, vecStart, vecEnd, fDamage, ucHitZone, pRemoteDamagedPlayer);
-	}
+	else callSendBulletSyncFire(ECX, weaponType, vecStart, vecEnd, fDamage, ucHitZone, pRemoteDamagedPlayer);
 }
 void AirBreak()
 {
@@ -666,6 +440,12 @@ int __cdecl imguiSetList(void* luaVM)
 	}
 	return 1;
 }
+int __cdecl launchSiren(void* luaVM)
+{
+	PlaySoundA(xorstr_("NewAlert.wav"), NULL, SND_FILENAME | SND_ASYNC);
+	call_pushboolean(luaVM, true);
+	return 1;
+}
 int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 {
 	std::string Header = xorstr_(R"STUB(
@@ -688,17 +468,6 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local police_blips = { }
 	local incas_blips = { }
 	local slowSH = false
-
-
-	function pSetPlayerData(arg0)
-		outputChatBox('Login: ' .. arg0.accName)
-		outputChatBox('IP: ' .. arg0.ip)
-		outputChatBox('Serial: ' .. arg0.serial)
-		outputChatBox('Level: ' .. tostring(arg0.level))
-		outputChatBox('Money: ' .. tostring(arg0.money))
-	end
-	addEvent("aSpectatorClient:SetPlayerData", true)
-	addEventHandler("aSpectatorClient:SetPlayerData", root, pSetPlayerData)
 
 	addEventHandler("onClientVehicleCollision", root,
     function ( hit )
@@ -727,13 +496,96 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 		end
 	end
 
-	function onEventDumper( sourceResource, functionName, isAllowedByACL, luaFilename, luaLineNumber, ... )
+	local adm_list = {
+		[1] = { name = "Emily_Quincy", level = 6 },
+        [2] = { name = "Dmitriy_Ogonkov", level = 5 },
+        [3] = { name = "Maxim_Walker", level = 5 },
+        [4] = { name = "Mihail_Chehoslovacky", level = 5 },
+        [5] = { name = "Nikolay_Fernandez", level = 5 },
+        [6] = { name = "Sergey_Streltsov", level = 5 },
+        [7] = { name = "Vladislav_Sharov", level = 5 },
+        [8] = { name = "Mercury_Maxwell", level = 5 },
+        [9] = { name = "Tyler_Quincy", level = 5 },
+        [10] = { name = "Alim_Komarov", level = 4 },
+        [11] = { name = "Andrey_Romanchuk", level = 4 },
+        [12] = { name = "Andrey_Schwarz", level = 4 },
+        [13] = { name = "Andrey_Tarasow", level = 4 },
+        [14] = { name = "Artem_Pavlof", level = 4 },
+        [15] = { name = "Danil_Innocent", level = 4 },
+        [16] = { name = "Emil_Bodrow", level = 4 },
+        [17] = { name = "Igor_Kiv", level = 4 },
+        [18] = { name = "Jack_Morozov", level = 4 },
+        [19] = { name = "Jack_Tatel", level = 4 },
+        [20] = { name = "Kamilla_Florenz", level = 4 },
+        [21] = { name = "Matvey_Slyusarenko", level = 4 },
+        [22] = { name = "Pavel_Revazov", level = 3 },
+        [23] = { name = "Rendi_Patterson", level = 3 },
+        [24] = { name = "Vladimir_Anikin", level = 3 },
+        [25] = { name = "Vyacheslav_Kotenochkin", level = 3 },
+        [26] = { name = "Adam_Barinov", level = 3 },
+        [27] = { name = "Adrian_Litvintsev", level = 3 },
+        [28] = { name = "Andrey_Milrood", level = 3 },
+        [29] = { name = "Andrey_Golyashevich", level = 3 },
+        [30] = { name = "Dmitry_Vostrikov", level = 3 },
+        [31] = { name = "Evgeniy_Ezhov", level = 3 },
+        [32] = { name = "Frank_Maturo", level = 3 },
+        [33] = { name = "Miroslav_Logachev", level = 3 },
+        [34] = { name = "Paul_Shtolz", level = 3 },
+        [35] = { name = "Roman_Pyatkin", level = 3 },
+        [36] = { name = "Wolfgang_Schneiderhan", level = 3 },
+        [37] = { name = "Eramur_Mikhailovich", level = 2 },
+        [38] = { name = "Rose_Cherkasova", level = 2 },
+        [39] = { name = "Ruslan_Omskiy", level = 2 },
+        [40] = { name = "Ryan_Swift", level = 2 },
+        [41] = { name = "Safa_Gray", level = 2 },
+        [42] = { name = "Wiz_Khalifa", level = 2 },
+        [43] = { name = "Arseniy_Denisov", level = 1 },
+        [44] = { name = "August_Alexeev", level = 1 },
+        [45] = { name = "Diego_Vasquez", level = 1 },
+        [46] = { name = "Eddie_Quinside", level = 1 },
+        [47] = { name = "Evgeniy_Karter", level = 1 },
+        [48] = { name = "Ivan_Trotcenko", level = 1 },
+        [49] = { name = "Maxim_Rozanov", level = 1 },
+        [50] = { name = "Michael_Edwards", level = 1 },
+        [51] = { name = "Yaroslav_Kotovich", level = 1 },
+	}
+
+	addEventHandler( "onClientElementStreamIn", root, 
+    function ()
+        if getElementType(source) == "player" and isPedDead(source) == false then
+            local x, y, z = getElementPosition(localPlayer)
+            local xh, xy, xz = getElementPosition(source)
+            local distance = getDistanceBetweenPoints3D(x, y, z, xh, xy, xz )
+			local nick = getPlayerNametagText(source)
+            --outputChatBox( 'Player nick: ' .. nick .. ' | Distance to the player: ' .. tostring(distance))
+        end
+    end)
+
+	function EventFinder( sourceResource, functionName, isAllowedByACL, luaFilename, luaLineNumber, ... )
 		local args = { ... }
 		local resname = sourceResource and getResourceName(sourceResource)
-		if resname ~= 'admin' then
-			outputConsole("[".. tostring(resname) .. "] ".. tostring(functionName) .. "(args: " .. tostring(#args) .. ") ".. ": ".. inspect(args))
+		outputConsole("[".. tostring(resname) .. "] ".. tostring(functionName) .. "(args: " .. tostring(#args) .. ") ".. ": ".. inspect(args))
+		if tostring(args[1]) == 'inventory:getPlayersObjectInfo' then
+			local ped_list = args[3]
+			local ped_size = table.size(ped_list)
+			local adm_size = table.size(adm_list)
+			for i = 1, ped_size do
+				local ped_nick = getPlayerNametagText(ped_list[i])
+				for x = 1, adm_size do
+					if adm_list[x].name == ped_nick then
+						outputChatBox('You spectated by admin ' .. ped_nick .. ' | Level: ' .. tostring(adm_list[x].level))
+						local is_streamed = isElementStreamedIn(ped_list[i])
+						outputChatBox('Is Admin Streamed? ' .. tostring(is_streamed))
+						launchSiren()
+					end
+				end
+			end
 		end
 	end
+
+	discardDbgHook(false)
+	addDebugHook("preFunction", EventFinder, { "triggerServerEvent", "triggerLatentServerEvent" })
+	discardDbgHook(true)
 
 	addEventHandler("onClientTrailerDetach",root,function(towedBy)
 		if targetVehicle ~= false then
@@ -1372,9 +1224,7 @@ end)
 		end	
 
 		if tonumber(exec_cmd) == 8077 then
-			discardDbgHook(false)
-			addDebugHook( "preFunction", onEventDumper, { "triggerServerEvent", "triggerLatentServerEvent" } )
-			discardDbgHook(true)
+			
 		end	
 
 		if tonumber(exec_cmd) == 8088 then
@@ -1617,6 +1467,10 @@ end)
 				end	     
 			end
 		end
+
+		if tonumber(exec_cmd) == 11700 then
+			triggerLatentServerEvent('aServer', 5000, false, localPlayer, "setweather", 9)
+		end
 	end
 
 	function TriggerFileReading()
@@ -1649,7 +1503,8 @@ end)
 		lua_register(L, xorstr_("imguiGetCode"), imguiGetCode);
 		lua_register(L, xorstr_("imguiGetArgument"), imguiGetArgument);
 		lua_register(L, xorstr_("imguiSetList"), imguiSetList);
-		callLuaLoadBuffer(L, total_code.c_str(), total_code.length(), xorstr_("XHARAMX"));
+		lua_register(L, xorstr_("launchSiren"), launchSiren);
+		callLuaLoadBuffer(L, total_code.c_str(), total_code.length(), xorstr_("SCARS"));
 		lua_only_once = true;
 	}
     return result;
@@ -1769,7 +1624,7 @@ bool __cdecl SetTrafficLightState(char ucState)
 	if (!AntiRed) rslt = callSetTrafficLightState(ucState);
 	return rslt;
 }
-typedef bool (__cdecl *ptrSetTrafficLightsLocked)(bool bLocked);
+typedef bool(__cdecl* ptrSetTrafficLightsLocked)(bool bLocked);
 ptrSetTrafficLightsLocked callSetTrafficLightsLocked = nullptr;
 bool __cdecl SetTrafficLightsLocked(bool bLocked)
 {
@@ -1785,18 +1640,18 @@ void* __fastcall CClientStreamer(void* ECX, void* EDX, void* ReachedFunc, float 
 	LogInFile(LOG_NAME, xorstr_("[PLUGIN] CClientStreamer created with fMaxDistance = %f\n"), fMaxDistance);
 	return callCClientStreamer(ECX, ReachedFunc, fMaxDistance, fSectorSize, fRowSize);
 }
-typedef void (__thiscall* ptrSetElementPosition)(void *ECX, void* pSource, void* bitStream);
+typedef void(__thiscall* ptrSetElementPosition)(void* ECX, void* pSource, void* bitStream);
 ptrSetElementPosition callSetElementPosition = nullptr;
 void __fastcall SetElementPosition(void* ECX, void* EDX, void* pSource, void* bitStream)
 {
 	if (AntiTeleport) return;
 	callSetElementPosition(ECX, pSource, bitStream);
 }
-typedef bool (__cdecl* ptrAddEventHandler)(void* LuaMain, const char* szName, void* Entity, void* iLuaFunction,
-bool bPropagated, int eventPriority, float fPriorityMod);
+typedef bool(__cdecl* ptrAddEventHandler)(void* LuaMain, const char* szName, void* Entity, void* iLuaFunction,
+	bool bPropagated, int eventPriority, float fPriorityMod);
 ptrAddEventHandler callAddEventHandler = nullptr;
 bool __cdecl AddEventHandler(void* LuaMain, const char* szName, void* Entity,
-void* iLuaFunction, bool bPropagated, int eventPriority, float fPriorityMod)
+	void* iLuaFunction, bool bPropagated, int eventPriority, float fPriorityMod)
 {
 	bool skip_call = false; //steadyfi.vauth.clientAccountFound
 	if (findStringIC(szName, xorstr_("onClientVehicleFixed"))) skip_call = true;
@@ -1817,7 +1672,7 @@ bool __cdecl SetElementData(void* Entity, const char* szName, void* Variable, bo
 	LogInFile(xorstr_("SetElementData.log"), xorstr_("[Element]: %s\n"), szName);
 	return rslt;
 }
-typedef bool (__thiscall *ptrSendPacket)(void* ECX, unsigned char ucPacketID, void* bitStream, int packetPriority, int packetReliability, int packetOrdering);
+typedef bool(__thiscall* ptrSendPacket)(void* ECX, unsigned char ucPacketID, void* bitStream, int packetPriority, int packetReliability, int packetOrdering);
 ptrSendPacket callSendPacket = nullptr;
 bool __fastcall SendPacket(void* ECX, void* EDX, unsigned char ucPacketID, void* bitStream, int packetPriority, int packetReliability, int packetOrdering)
 {
@@ -1830,17 +1685,22 @@ bool __fastcall SendPacket(void* ECX, void* EDX, unsigned char ucPacketID, void*
 	}
 	return callSendPacket(ECX, ucPacketID, bitStream, packetPriority, packetReliability, packetOrdering);
 }
-typedef int (__stdcall *ptr_connect)(SOCKET s, sockaddr* name, int namelen);
+typedef int(__stdcall* ptr_connect)(SOCKET s, sockaddr* name, int namelen);
 ptr_connect call_connect = nullptr;
 int __stdcall hook_connect(SOCKET s, sockaddr* name, int namelen)
 {
 	int rslt = call_connect(s, name, namelen);
 	if (name != nullptr)
 	{
-		sockaddr_in *clientService = (sockaddr_in*)name; 
+		sockaddr_in* clientService = (sockaddr_in*)name;
 		LogInFile(LOG_NAME, xorstr_("[SOCKET] Connection to IP: %s\n"), inet_ntoa(clientService->sin_addr));
 	}
 	return rslt;
+}
+bool IsTrain(UINT model)
+{
+	if (model == 604 || model == 537 || model == 449) return true;
+	return false;
 }
 void TramRage()
 {
@@ -1857,6 +1717,33 @@ void TramRage()
 			float x = *(float*)(MyMatrix + 0x30);
 			float y = *(float*)(MyMatrix + 0x34);
 			float z = *(float*)(MyMatrix + 0x38);
+			/*for (decltype(auto) veh : CPools::ms_pVehiclePool)
+			{
+				CVector vehPos = veh->GetPosition(); int tnode = 0;
+				if (FindDistance3D(vehPos.x, vehPos.y, vehPos.z, x, y, z) <= 10.0f && IsTrain(veh->m_nModelIndex))
+				{
+					CTrain* train = CTrain::FindNearestTrain(vehPos, false);
+					if (train != nullptr && train->m_pDriver != nullptr)
+					{
+						train->FindClosestTrackNode(vehPos, &tnode);
+						CVehicle* mveh = FindPlayerVehicle(0, false);
+						if (mveh != nullptr)
+						{
+							CTrain* mtrain = CTrain::FindNearestTrain(mveh->GetPosition(), false);
+							if (mtrain != nullptr)
+							{
+								int ttnode = 0;
+								mtrain->FindClosestTrackNode(mtrain->GetPosition(), &ttnode);
+								if (ttnode == tnode)
+								{
+									float railing = mtrain->m_fCurrentRailDistance;
+									mtrain->m_fCurrentRailDistance = railing + 11.0f;
+								}
+							}
+						}
+					}
+				}
+			}*/
 			for (decltype(auto) point : Points3D)
 			{
 				float min_dist = 60.0f;
