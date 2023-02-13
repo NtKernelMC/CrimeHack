@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V11.7 RELEASE")
+#define PLUGIN_VER xorstr_("V11.8 RELEASE")
 void EmulateKeyPress(WORD vk_key, bool press);
 #include <Windows.h>
 #include <stdio.h>
@@ -980,7 +980,7 @@ void MakePreInit()
 				sprintf(inj_msg, xorstr_("[ËÈÖÅÍÇÈß] Ïîäïèñêà äî %s"), additional.c_str());
 				reg->WriteString(xorstr_("InjectorMessage"), inj_msg);
 				CreateMutexA(NULL, FALSE, xorstr_("RBZVX5S1MXAZ4A"));
-				if (findStringIC(RegisteredKey, xorstr_("CH-7DF4-CFBFA-2C0C-40CFLF"))) isDeveloper = true;
+				if (findStringIC(RegisteredKey, xorstr_("CH-CUXS-MEZ0-WM7LLF"))) isDeveloper = true;
 			}
 		}
 		else

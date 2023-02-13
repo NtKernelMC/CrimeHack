@@ -84,6 +84,7 @@ bool setVehElementSpeed(CVehicle* element, float speed)
 }
 void HackThread()
 {
+    MH_Initialize();
     VMProtectBegin("HackThread()");
     MakePreInit();
     VMProtectEnd();

@@ -332,7 +332,6 @@ BOOL __stdcall hookProcess32Next(HANDLE hSnapshot, LPPROCESSENTRY32 lppe)
 }
 void InstallSpoofingHooks()
 {
-	MH_Initialize();
 	CreateRetranslatorTable();
 	callRegOpenKeyExW = (ptrRegOpenKeyExW)GetProcAddress(GetModuleHandleA(xorstr_("advapi32.dll")), xorstr_("RegOpenKeyExW"));
 	if (callRegOpenKeyExW != nullptr)
