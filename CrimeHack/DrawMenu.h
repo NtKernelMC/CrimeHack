@@ -176,6 +176,8 @@ enum class LUA_CMD
     BRUTE_SKIN = 11500,
     PL_INFO = 11600,
     FUCK_SERVER = 11700,
+    DROP_MOLOTOV = 11800,
+    DROP_GRENADE = 11900
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -836,18 +838,18 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 exec_cmd.detach();
             }
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Ваншот")).c_str(), &OneShot);
-            /*ImGui::SameLine();
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Tram RAGE V3 (Прива)")).c_str(), &TramRAGE))
+            ImGui::SameLine();
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Кидать молотовы")).c_str(), &TramRAGE))
             {
-                bRouteID = 1;
-                UseTramRage();
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DROP_MOLOTOV, inp_txt);
+                exec_cmd.detach();
             }
             ImGui::SameLine();
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Tram RAGE V3 (Нева)")).c_str(), &TramRAGEN))
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Кидать гранаты")).c_str(), &TramRAGEN))
             {
-                bRouteID = 2; 
-                UseTramRage();
-            }*/
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DROP_GRENADE, inp_txt);
+                exec_cmd.detach();
+            }
             ImGui::PopStyleColor(3);
             break;
         }

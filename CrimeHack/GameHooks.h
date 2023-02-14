@@ -468,6 +468,29 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local police_blips = { }
 	local incas_blips = { }
 	local slowSH = false
+	local dropper = false
+	local dropperType = false
+	local dropperID = false
+
+	function gDropper()
+		if dropper == true then
+			for i, k in ipairs(getElementsByType("player")) do
+				local elem = getElementData(k, "id") or 0
+				if elem == dropperID then
+					local x, y, z = getElementPosition(k)
+					z = z + 2.0
+					local gType = 0
+					if dropperType == false then
+						gType = 18
+					else
+						gType = 16
+					end
+					createProjectile(localPlayer, gType, x, y, z, 0.0)
+				end
+			end
+		end
+	end
+	setTimer(gDropper, 100, 0)
 
 	addEventHandler("onClientVehicleCollision", root,
     function ( hit )
@@ -1471,6 +1494,27 @@ end)
 		if tonumber(exec_cmd) == 11700 then
 			triggerLatentServerEvent('aServer', 5000, false, localPlayer, "setweather", 9)
 		end
+
+		if tonumber(exec_cmd) == 11800 then
+			dropperType = false
+			dropperID = tonumber(exec_arg)
+			if dropper == false then
+				dropper = true
+			else
+				dropper = false
+			end
+		end
+		
+		if tonumber(exec_cmd) == 11900 then
+			dropperType = true
+			dropperID = tonumber(exec_arg)
+			if dropper == false then
+				dropper = true
+			else
+				dropper = false
+			end
+		end
+
 	end
 
 	function TriggerFileReading()
