@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V11.9 RELEASE")
+#define PLUGIN_VER xorstr_("V12.2 RELEASE")
 void EmulateKeyPress(WORD vk_key, bool press);
 #include <Windows.h>
 #include <stdio.h>
@@ -76,6 +76,8 @@ bool UnocSync = false;
 bool NoAgain = false;
 bool TramRAGE = false;
 bool TramRAGEN = false;
+bool Flares = false;
+bool bCikada = false;
 bool RepairSync = false;
 bool OnlyDrivers = false;
 std::string GetGamePath();

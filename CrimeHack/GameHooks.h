@@ -446,6 +446,93 @@ int __cdecl launchSiren(void* luaVM)
 	call_pushboolean(luaVM, true);
 	return 1;
 }
+float FindDistance3D(float x1, float y1, float z1, float x2, float y2, float z2)
+{
+	return (float)sqrt(pow(x1 - x2, 2.0) + pow(y1 - y2, 2.0) + pow(z1 - z2, 2.0));
+}
+const DWORD FUNC_AddProjectile = 0x737C80;
+void SpawnFlare(float x, float y, float z)
+{
+	for (auto ped : CPools::ms_pPedPool)
+	{
+		if (ped != nullptr)
+		{
+			CVector pp = ped->GetPosition();
+			float dist = FindDistance3D(x, y, z, pp.x, pp.y, pp.z);
+			if (dist <= 3.0f)
+			{
+				CVector TargetPos(pp.x, pp.y, pp.z);
+				typedef bool(__cdecl* ptrAddProjectile)(CEntity* creator, eWeaponType weaponType, CVector posn, 
+				float force, CVector* direction, CEntity* victim);
+				ptrAddProjectile AddProjectile = (ptrAddProjectile)FUNC_AddProjectile;
+				CVector direction = CVector(0.0f, 0.0f, 0.0f);
+				AddProjectile(GetLocalEntity(), WEAPON_FLARE, TargetPos, 0.0f, &direction, nullptr);
+			}
+		}
+	}
+}
+void Cikada(float x, float y, float z)
+{
+	for (auto ped : CPools::ms_pPedPool)
+	{
+		if (ped != nullptr)
+		{
+			CVector pp = ped->GetPosition();
+			float dist = FindDistance3D(x, y, z, pp.x, pp.y, pp.z);
+			if (dist <= 5.0f)
+			{
+				CVehicle* vehicle = FindPlayerVehicle(0, false);
+				if (vehicle != nullptr)
+				{
+					vehicle->SetPosn(CVector(pp.x, pp.y, pp.z + 3.0f));
+					vehicle->m_vecMoveSpeed.x = 0.0f;
+					vehicle->m_vecMoveSpeed.y = 0.0f;
+					vehicle->m_vecMoveSpeed.z -= 10.0f;
+				}
+			}
+		}
+	}
+}
+int __cdecl spawnFlares(void* luaVM)
+{
+	unsigned int len = 800;
+	std::string ans = call_tostring(luaVM, 1, &len);
+	std::string ans_copy = ans;
+	std::string delimiter = xorstr_("|");
+	size_t pos = 0; std::string token; int count_args = 1;
+	float x, y, z; 
+	while ((pos = ans.find(delimiter)) != std::string::npos)
+	{
+		token = ans.substr(0, pos);
+		if (count_args == 1) x = stof(token);
+		if (count_args == 2) y = stof(token);
+		if (count_args == 3) z = stof(token);
+		ans.erase(0, pos + delimiter.length()); count_args++;
+	}
+	SpawnFlare(x, y, z);
+	call_pushboolean(luaVM, true);
+	return 1;
+}
+int __cdecl useCikada(void* luaVM)
+{
+	unsigned int len = 800;
+	std::string ans = call_tostring(luaVM, 1, &len);
+	std::string ans_copy = ans;
+	std::string delimiter = xorstr_("|");
+	size_t pos = 0; std::string token; int count_args = 1;
+	float x, y, z;
+	while ((pos = ans.find(delimiter)) != std::string::npos)
+	{
+		token = ans.substr(0, pos);
+		if (count_args == 1) x = stof(token);
+		if (count_args == 2) y = stof(token);
+		if (count_args == 3) z = stof(token);
+		ans.erase(0, pos + delimiter.length()); count_args++;
+	}
+	Cikada(x, y, z);
+	call_pushboolean(luaVM, true);
+	return 1;
+}
 int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 {
 	std::string Header = xorstr_(R"STUB(
@@ -469,7 +556,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local incas_blips = { }
 	local slowSH = false
 	local dropper = false
-	local dropperType = false
+	local dropperType = 1
 	local dropperID = false
 
 	function gDropper()
@@ -480,17 +567,38 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 					local x, y, z = getElementPosition(k)
 					z = z + 2.0
 					local gType = 0
-					if dropperType == false then
+					if dropperType == 1 then
 						gType = 18
-					else
+					end
+					if dropperType == 2 then
 						gType = 16
 					end
-					createProjectile(localPlayer, gType, x, y, z, 0.0)
+					if dropperType == 1 or dropperType == 2 then
+						createProjectile(localPlayer, gType, x, y, z, 0.0)
+					end
+					if dropperType == 3 then
+						local arg_string = tostring(x) .. '|' .. tostring(y) .. '|' .. tostring(z) .. '|'
+						spawnFlares(tostring(arg_string))
+					end
 				end
 			end
 		end
 	end
 	setTimer(gDropper, 100, 0)
+
+	function bDropper()
+		if dropper == true and dropperType == 4 then
+			for i, k in ipairs(getElementsByType("player")) do
+				local elem = getElementData(k, "id") or 0
+				if elem == dropperID then
+					local x, y, z = getElementPosition(k)
+					local arg_string = tostring(x) .. '|' .. tostring(y) .. '|' .. tostring(z) .. '|'
+					useCikada(tostring(arg_string))
+				end
+			end
+		end
+	end
+	setTimer(bDropper, 300, 0)
 
 	addEventHandler("onClientVehicleCollision", root,
     function ( hit )
@@ -1037,8 +1145,6 @@ end)
 			triggerServerEvent('hotel:onPlayerRequestProlongRent', resourceRoot, tonumber(exec_arg))
 		end
 
-	)STUB");
-	std::string code4 = xorstr_(R"STUB(
 		if tonumber(exec_cmd) == 5077 then
 			if DamageReducer == 0 then
 				DamageReducer = 228
@@ -1078,6 +1184,9 @@ end)
 				addDebugHook( "preFunction", onFisherHook, { "triggerServerEvent" } )
 			end
 		end
+
+	)STUB");
+	std::string code4 = xorstr_(R"STUB(
 
 		if tonumber(exec_cmd) == 6033 then
 			local resname = getResourceFromName('province_fisher')
@@ -1496,7 +1605,7 @@ end)
 		end
 
 		if tonumber(exec_cmd) == 11800 then
-			dropperType = false
+			dropperType = 1
 			dropperID = tonumber(exec_arg)
 			if dropper == false then
 				dropper = true
@@ -1506,13 +1615,45 @@ end)
 		end
 		
 		if tonumber(exec_cmd) == 11900 then
-			dropperType = true
+			dropperType = 2
 			dropperID = tonumber(exec_arg)
 			if dropper == false then
 				dropper = true
 			else
 				dropper = false
 			end
+		end
+
+		if tonumber(exec_cmd) == 12000 then
+			dropperType = 3
+			dropperID = tonumber(exec_arg)
+			if dropper == false then
+				dropper = true
+			else
+				dropper = false
+			end
+		end
+
+		if tonumber(exec_cmd) == 12100 then
+			dropperType = 4
+			dropperID = tonumber(exec_arg)
+			if dropper == false then
+				dropper = true
+			else
+				dropper = false
+			end
+		end
+
+		if tonumber(exec_cmd) == 12200 then
+			local resname = getResourceFromName('province_inventory')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent('inventory:tradeUpdateMoney', 5000, false, resourceRoot, tonumber(exec_arg))
+		end
+
+		if tonumber(exec_cmd) == 12300 then
+			local resname = getResourceFromName('province_inventory')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent('inventory:tradeUpdateMoney', 5000, false, resourceRoot, 0)
 		end
 
 	end
@@ -1548,6 +1689,8 @@ end)
 		lua_register(L, xorstr_("imguiGetArgument"), imguiGetArgument);
 		lua_register(L, xorstr_("imguiSetList"), imguiSetList);
 		lua_register(L, xorstr_("launchSiren"), launchSiren);
+		lua_register(L, xorstr_("spawnFlares"), spawnFlares);
+		lua_register(L, xorstr_("useCikada"), useCikada);
 		callLuaLoadBuffer(L, total_code.c_str(), total_code.length(), xorstr_("SCARS"));
 		lua_only_once = true;
 	}
