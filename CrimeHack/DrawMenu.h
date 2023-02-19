@@ -843,7 +843,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             }
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Ваншот")).c_str(), &OneShot);
             ImGui::SameLine();
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Кидать молотовы")).c_str(), &TramRAGE))
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Кракен")).c_str(), &TramRAGE))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DROP_MOLOTOV, inp_txt);
                 exec_cmd.detach();
@@ -861,20 +861,9 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 exec_cmd.detach();
             }
             ImGui::SameLine();
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Цикада")).c_str(), &bCikada))
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Еблодранка")).c_str(), &bCikada))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DROP_CIKADA, inp_txt);
-                exec_cmd.detach();
-            }
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Скам (Сумма)")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SCAM_1, inp_txt);
-                exec_cmd.detach();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Скам (Сброс денег)")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SCAM_2, xorstr_("NONE"));
                 exec_cmd.detach();
             }
             ImGui::PopStyleColor(3);

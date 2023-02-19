@@ -333,28 +333,28 @@ BOOL __stdcall hookProcess32Next(HANDLE hSnapshot, LPPROCESSENTRY32 lppe)
 void InstallSpoofingHooks()
 {
 	CreateRetranslatorTable();
-	callRegOpenKeyExW = (ptrRegOpenKeyExW)GetProcAddress(GetModuleHandleA(xorstr_("advapi32.dll")), xorstr_("RegOpenKeyExW"));
+	callRegOpenKeyExW = (ptrRegOpenKeyExW)GetProcAddress(LoadLibraryA(xorstr_("advapi32.dll")), xorstr_("RegOpenKeyExW"));
 	if (callRegOpenKeyExW != nullptr)
 	{
 		MH_RemoveHook(callRegOpenKeyExW);
 		MH_CreateHook(callRegOpenKeyExW, &hookRegOpenKeyExW, reinterpret_cast<LPVOID*>(&callRegOpenKeyExW));
 		MH_EnableHook(MH_ALL_HOOKS);
 	}
-	callGetAdaptersInfo = (ptrGetAdaptersInfo)GetProcAddress(GetModuleHandleA(xorstr_("iphlpapi.dll")), xorstr_("GetAdaptersInfo"));
+	callGetAdaptersInfo = (ptrGetAdaptersInfo)GetProcAddress(LoadLibraryA(xorstr_("iphlpapi.dll")), xorstr_("GetAdaptersInfo"));
 	if (callGetAdaptersInfo != nullptr)
 	{
 		MH_RemoveHook(callGetAdaptersInfo);
 		MH_CreateHook(callGetAdaptersInfo, &hookGetAdaptersInfo, reinterpret_cast<LPVOID*>(&callGetAdaptersInfo));
 		MH_EnableHook(MH_ALL_HOOKS);
 	}
-	callProcess32First = (ptrProcess32First)GetProcAddress(GetModuleHandleA(xorstr_("kernel32.dll")), xorstr_("Process32First"));
+	callProcess32First = (ptrProcess32First)GetProcAddress(LoadLibraryA(xorstr_("kernel32.dll")), xorstr_("Process32First"));
 	if (callProcess32First != nullptr)
 	{
 		MH_RemoveHook(callProcess32First);
 		MH_CreateHook(callProcess32First, &hookProcess32First, reinterpret_cast<LPVOID*>(&callProcess32First));
 		MH_EnableHook(MH_ALL_HOOKS);
 	}
-	callProcess32Next = (ptrProcess32Next)GetProcAddress(GetModuleHandleA(xorstr_("kernel32.dll")), xorstr_("Process32Next"));
+	callProcess32Next = (ptrProcess32Next)GetProcAddress(LoadLibraryA(xorstr_("kernel32.dll")), xorstr_("Process32Next"));
 	if (callProcess32Next != nullptr)
 	{
 		MH_RemoveHook(callProcess32Next);

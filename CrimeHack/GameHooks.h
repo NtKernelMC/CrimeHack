@@ -471,6 +471,21 @@ void SpawnFlare(float x, float y, float z)
 		}
 	}
 }
+CVector GetVectorToCoords(const CVector& from, const CVector& to)
+{
+	CVector result;
+	result.x = to.x - from.x;
+	result.y = to.y - from.y;
+	result.z = to.z - from.z;
+	float length = std::sqrt(result.x * result.x + result.y * result.y + result.z * result.z);
+	if (length != 0.0f)
+	{
+		result.x /= length;
+		result.y /= length;
+		result.z /= length;
+	}
+	return result;
+}
 void Cikada(float x, float y, float z)
 {
 	for (auto ped : CPools::ms_pPedPool)
@@ -479,15 +494,21 @@ void Cikada(float x, float y, float z)
 		{
 			CVector pp = ped->GetPosition();
 			float dist = FindDistance3D(x, y, z, pp.x, pp.y, pp.z);
-			if (dist <= 5.0f)
+			if (dist <= 3.0f)
 			{
-				CVehicle* vehicle = FindPlayerVehicle(0, false);
-				if (vehicle != nullptr)
+				CPed* pedSelf = FindPlayerPed(-1);
+				if (pedSelf != nullptr)
 				{
-					vehicle->SetPosn(CVector(pp.x, pp.y, pp.z + 3.0f));
-					vehicle->m_vecMoveSpeed.x = 0.0f;
-					vehicle->m_vecMoveSpeed.y = 0.0f;
-					vehicle->m_vecMoveSpeed.z -= 10.0f;
+					//CMatrixLink* playerMatrix = pedSelf->m_matrix;
+					//CVector camDirection = playerMatrix->at;
+					//CVector camPosition = playerMatrix->pos;
+					//CVector camTarget = camPosition + camDirection;
+					CVector vec = GetVectorToCoords(pedSelf->GetPosition(), ped->GetPosition());
+					pedSelf->m_vecMoveSpeed.x = vec.x;
+					pedSelf->m_vecMoveSpeed.y = vec.y;
+					pedSelf->m_vecMoveSpeed.z = vec.z;
+					//pedSelf->speed
+					//LogInFile(LOG_NAME, "x %f y %f z %f\n", vec.x, vec.y, vec.z);
 				}
 			}
 		}
@@ -529,6 +550,7 @@ int __cdecl useCikada(void* luaVM)
 		if (count_args == 3) z = stof(token);
 		ans.erase(0, pos + delimiter.length()); count_args++;
 	}
+	//LogInFile(LOG_NAME, "str %s\n", ans_copy.c_str());
 	Cikada(x, y, z);
 	call_pushboolean(luaVM, true);
 	return 1;
@@ -559,22 +581,58 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local dropperType = 1
 	local dropperID = false
 
+	function GetVectorToCoords(from, to, length)
+		local result = 
+		{
+			x = to.x - from.x,
+			y = to.y - from.y,
+			z = to.z - from.z
+		}
+		local vecLength = math.sqrt(result.x^2 + result.y^2 + result.z^2)
+		if vecLength ~= 0 then
+			result.x = result.x / vecLength
+			result.y = result.y / vecLength
+			result.z = result.z / vecLength
+		end
+		local xSign, ySign, zSign = 1, 1, 1
+		if result.x < 0 then xSign = -1 end
+		if result.y < 0 then ySign = -1 end
+		if result.z < 0 then zSign = -1 end
+		result.x = result.x * (vecLength + length) * xSign
+		result.y = result.y * (vecLength + length) * ySign
+		result.z = result.z * (vecLength + length) * zSign
+		return result
+	end
+
 	function gDropper()
 		if dropper == true then
 			for i, k in ipairs(getElementsByType("player")) do
 				local elem = getElementData(k, "id") or 0
 				if elem == dropperID then
 					local x, y, z = getElementPosition(k)
-					z = z + 2.0
+					local mX, mY, mZ
+					mX = x + 2.0
+					mY = y
+					mZ = z + 2.0
 					local gType = 0
 					if dropperType == 1 then
-						gType = 18
+						gType = 17
 					end
 					if dropperType == 2 then
-						gType = 16
+						gType = 21
 					end
 					if dropperType == 1 or dropperType == 2 then
-						createProjectile(localPlayer, gType, x, y, z, 0.0)
+						local targetVec = {}
+						local myVec = {}
+						targetVec.x = x
+						targetVec.y = y
+						targetVec.z = z
+						myVec.x = mX
+						myVec.y = mY
+						myVec.z = mZ
+						local vecLen = getDistanceBetweenPoints3D(x, y, z, mX, mY, mZ)
+						local vecToTarget = GetVectorToCoords(myVec, targetVec, vecLen)
+						createProjectile(localPlayer, gType, x, y, z, 1.0, k, 0, 0, 0, vecToTarget.x, vecToTarget.y, vecToTarget.z)
 					end
 					if dropperType == 3 then
 						local arg_string = tostring(x) .. '|' .. tostring(y) .. '|' .. tostring(z) .. '|'
@@ -592,13 +650,27 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 				local elem = getElementData(k, "id") or 0
 				if elem == dropperID then
 					local x, y, z = getElementPosition(k)
-					local arg_string = tostring(x) .. '|' .. tostring(y) .. '|' .. tostring(z) .. '|'
-					useCikada(tostring(arg_string))
+					local mX, mY, mZ = getElementPosition(localPlayer)
+					mX = x + 3.0
+					mY = y
+					mZ = z + 0.2
+					setElementPosition(localPlayer, mX, mY, mZ)
+					local targetVec = {}
+					local myVec = {}
+					targetVec.x = x
+					targetVec.y = y
+					targetVec.z = z
+					myVec.x = mX
+					myVec.y = mY
+					myVec.z = mZ
+					local vecLen = getDistanceBetweenPoints3D(x, y, z, mX, mY, mZ)
+					local vecToTarget = GetVectorToCoords(myVec, targetVec, vecLen)
+					setElementVelocity(localPlayer, vecToTarget.x, vecToTarget.y, vecToTarget.z)
 				end
 			end
 		end
 	end
-	setTimer(bDropper, 300, 0)
+	setTimer(bDropper, 1000, 0)
 
 	addEventHandler("onClientVehicleCollision", root,
     function ( hit )
@@ -726,6 +798,10 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 
 	function gPlayerGM(attacker, weapon, bodypart, loss)
 		cancelEvent()
+	end
+
+	function cancelPedDamage( attacker )
+		cancelEvent() 
 	end
 
 	function VehDamage(attacker, weapon, loss, x, y, z, tire)
@@ -888,9 +964,11 @@ end)
 		if tonumber(exec_cmd) == 2988 then
 			if charGM == false then
 				addEventHandler("onClientPlayerDamage", localPlayer, gPlayerGM)
+				addEventHandler("onClientPedDamage", localPlayer, cancelPedDamage)
 				charGM = true
 			else
 				removeEventHandler("onClientPlayerDamage", localPlayer, gPlayerGM)
+				removeEventHandler("onClientPedDamage", localPlayer, cancelPedDamage)
 				charGM = false
 			end
 		end
