@@ -843,7 +843,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             }
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Ваншот")).c_str(), &OneShot);
             ImGui::SameLine();
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Кракен")).c_str(), &TramRAGE))
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Kraken V2")).c_str(), &TramRAGE))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DROP_MOLOTOV, inp_txt);
                 exec_cmd.detach();
@@ -860,12 +860,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DROP_FLARES, inp_txt);
                 exec_cmd.detach();
             }
-            ImGui::SameLine();
+            /*ImGui::SameLine();
             if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Еблодранка")).c_str(), &bCikada))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DROP_CIKADA, inp_txt);
                 exec_cmd.detach();
-            }
+            }*/
             ImGui::PopStyleColor(3);
             break;
         }

@@ -96,7 +96,7 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             MH_EnableHook(MH_ALL_HOOKS);
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for CClientStreamer.\n"));
-        /*callTakePlayerScreenShot = (ptrTakePlayerScreenShot)scan.FindPattern(xorstr_("client.dll"),
+        callTakePlayerScreenShot = (ptrTakePlayerScreenShot)scan.FindPattern(xorstr_("client.dll"),
         xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x60\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x57\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x89"),
         xorstr_("xxxxxx????xxxxxxxxxxx????xxxxxxxxxxxxxxxxxx"));
         if (callTakePlayerScreenShot != nullptr)
@@ -106,7 +106,7 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             MH_CreateHook(callTakePlayerScreenShot, &TakePlayerScreenShot, reinterpret_cast<LPVOID*>(&callTakePlayerScreenShot));
             MH_EnableHook(MH_ALL_HOOKS);
         }
-        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for TakePlayerScreenShot.\n"));*/
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for TakePlayerScreenShot.\n"));
         callAddDebugHook = (ptrAddDebugHook)scan.FindPattern(xorstr_("client.dll"),
         xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x81\xEC\xF8\x00\x00\x00\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x57\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\x75"),
         xorstr_("xxxxxx????xxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxxxx"));
@@ -153,9 +153,9 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             MH_RemoveHook(callTriggerServerEvent);
             MH_CreateHook(callTriggerServerEvent, &TriggerServerEvent, reinterpret_cast<LPVOID*>(&callTriggerServerEvent));
             MH_EnableHook(MH_ALL_HOOKS);
-            LogInFile(LOG_NAME, "[PLUGIN] Found address from signature to TriggerServerEvent!\n");
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to TriggerServerEvent!\n"));
         }
-        else LogInFile(LOG_NAME, "[ERROR] Can`t find a sig to TriggerServerEvent.\n");
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig to TriggerServerEvent.\n"));
         if (callRecalculateFrameRateLimit == nullptr)
         {
             callRecalculateFrameRateLimit = (ptrRecalculateFrameRateLimit)
@@ -167,7 +167,7 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
                 MH_RemoveHook(callRecalculateFrameRateLimit);
                 MH_CreateHook(callRecalculateFrameRateLimit, &RecalculateFrameRateLimit, reinterpret_cast<LPVOID*>(&callRecalculateFrameRateLimit));
                 MH_EnableHook(MH_ALL_HOOKS);
-                LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to RecalculateFrameRateLimit!\n"));
+                LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to RecalculateFrameRateLimit!\n"), (DWORD)callRecalculateFrameRateLimit);
             }
             else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig for RecalculateFrameRateLimit.\n"));
         }

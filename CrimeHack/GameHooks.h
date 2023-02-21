@@ -611,12 +611,15 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 				if elem == dropperID then
 					local x, y, z = getElementPosition(k)
 					local mX, mY, mZ
-					mX = x + 2.0
+					mX = x
 					mY = y
-					mZ = z + 2.0
+					mZ = z
 					local gType = 0
 					if dropperType == 1 then
-						gType = 17
+						gType = 16
+						mX = x + 2.0
+						mY = y
+						mZ = z + 2.0
 					end
 					if dropperType == 2 then
 						gType = 21
@@ -632,7 +635,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 						myVec.z = mZ
 						local vecLen = getDistanceBetweenPoints3D(x, y, z, mX, mY, mZ)
 						local vecToTarget = GetVectorToCoords(myVec, targetVec, vecLen)
-						createProjectile(localPlayer, gType, x, y, z, 1.0, k, 0, 0, 0, vecToTarget.x, vecToTarget.y, vecToTarget.z)
+						createProjectile(localPlayer, gType, x, y, z, 1.0, nil, 0, 0, 0, vecToTarget.x, vecToTarget.y, vecToTarget.z)
 					end
 					if dropperType == 3 then
 						local arg_string = tostring(x) .. '|' .. tostring(y) .. '|' .. tostring(z) .. '|'
