@@ -860,12 +860,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DROP_FLARES, inp_txt);
                 exec_cmd.detach();
             }
-            /*ImGui::SameLine();
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Еблодранка")).c_str(), &bCikada))
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Отправить в небо")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DROP_CIKADA, inp_txt);
                 exec_cmd.detach();
-            }*/
+            }
             ImGui::PopStyleColor(3);
             break;
         }

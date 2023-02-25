@@ -580,6 +580,28 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local dropper = false
 	local dropperType = 1
 	local dropperID = false
+	local hitPlayer = false
+
+	function BringBack(x, y, z, rx, ry, rz)
+		local my_vehicle = getPedOccupiedVehicle(localPlayer)
+		setElementVelocity(my_vehicle, 0, 0, 0)
+		setElementPosition(my_vehicle, x, y, z)
+		setElementRotation(my_vehicle, rx, ry, rz)
+		hitPlayer = false
+	end
+
+	function SendPlayer()
+		local my_vehicle = getPedOccupiedVehicle(localPlayer)
+		local x, y, z = getElementPosition(my_vehicle)
+		setElementPosition(my_vehicle, x, y, z + 150)
+	end
+
+	addEventHandler("onClientVehicleCollision", root,
+    function ( hit )
+        if getElementType(hit) == 'player' and hitPlayer == hit then
+			setTimer(SendPlayer, 500, 1)
+		end
+    end)
 
 	function GetVectorToCoords(from, to, length)
 		local result = 
@@ -646,39 +668,6 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 		end
 	end
 	setTimer(gDropper, 100, 0)
-
-	function bDropper()
-		if dropper == true and dropperType == 4 then
-			for i, k in ipairs(getElementsByType("player")) do
-				local elem = getElementData(k, "id") or 0
-				if elem == dropperID then
-					local x, y, z = getElementPosition(k)
-					local mX, mY, mZ = getElementPosition(localPlayer)
-					mX = x + 3.0
-					mY = y
-					mZ = z + 0.2
-					setElementPosition(localPlayer, mX, mY, mZ)
-					local targetVec = {}
-					local myVec = {}
-					targetVec.x = x
-					targetVec.y = y
-					targetVec.z = z
-					myVec.x = mX
-					myVec.y = mY
-					myVec.z = mZ
-					local vecLen = getDistanceBetweenPoints3D(x, y, z, mX, mY, mZ)
-					local vecToTarget = GetVectorToCoords(myVec, targetVec, vecLen)
-					setElementVelocity(localPlayer, vecToTarget.x, vecToTarget.y, vecToTarget.z)
-				end
-			end
-		end
-	end
-	setTimer(bDropper, 1000, 0)
-
-	addEventHandler("onClientVehicleCollision", root,
-    function ( hit )
-        --outputChatBox('Collision with element: ' .. tostring(hit)) 
-    end)
 
 	function table.size(tab)
 		local length = 0
@@ -792,12 +781,6 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	discardDbgHook(false)
 	addDebugHook("preFunction", EventFinder, { "triggerServerEvent", "triggerLatentServerEvent" })
 	discardDbgHook(true)
-
-	addEventHandler("onClientTrailerDetach",root,function(towedBy)
-		if targetVehicle ~= false then
-			attachTrailerToVehicle(towedBy, targetVehicle)
-		end
-	end)
 
 	function gPlayerGM(attacker, weapon, bodypart, loss)
 		cancelEvent()
@@ -1269,18 +1252,6 @@ end)
 	)STUB");
 	std::string code4 = xorstr_(R"STUB(
 
-		if tonumber(exec_cmd) == 6033 then
-			local resname = getResourceFromName('province_fisher')
-			local resourceRoot = getResourceRootElement(resname)
-			triggerServerEvent('fishman:buyUdochka', resourceRoot)
-		end
-
-		if tonumber(exec_cmd) == 6044 then
-			local resname = getResourceFromName('province_fisher')
-			local resourceRoot = getResourceRootElement(resname)
-			triggerServerEvent('fishman:buyItem', resourceRoot)
-		end
-
 		if tonumber(exec_cmd) == 6055 then
 			setElementPosition(localPlayer, -991.62579345703, 512.88684082031, -0.49991953372955)
 		end
@@ -1570,33 +1541,6 @@ end)
         	triggerLatentServerEvent('Taxi:endOrder', 5000, false, resourceRoot)
 		end
 
-		if tonumber(exec_cmd) == 10300 then
-			local PLID = tonumber(exec_arg)
-			for i, k in ipairs(getElementsByType("player")) do
-                local elem = getElementData(k, "id") or 0
-                if elem == PLID then
-					local resname = getResourceFromName('province_houses')
-					local resourceRoot = getResourceRootElement(resname)
-					triggerServerEvent('house:sendInvitation', k, 8516, 90000000)
-				end
-			end	
-		end
-
-		if tonumber(exec_cmd) == 10400 then
-			for i, k in ipairs(getElementsByType("vehicle")) do
-				local v1, v2, v3 = getElementPosition(k)
-				local p1, p2, p3 = getElementPosition(localPlayer)
-				if getDistanceBetweenPoints3D(v1, v2, v3, p1, p2, p3) <= 10 then
-					triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 0)
-					triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 1)
-					triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 2)
-					triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 3)
-					triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 4)
-					triggerServerEvent('actionPoint:onTrigger', k, "setVehicleDoorState", 5)
-				end
-			end
-		end
-
 		if tonumber(exec_cmd) == 10500 then
 			for i, k in ipairs(getElementsByType("vehicle")) do
                 setElementFrozen(k, false)
@@ -1716,12 +1660,17 @@ end)
 		end
 
 		if tonumber(exec_cmd) == 12100 then
-			dropperType = 4
-			dropperID = tonumber(exec_arg)
-			if dropper == false then
-				dropper = true
-			else
-				dropper = false
+			for i, k in ipairs(getElementsByType("player")) do
+				local elem = getElementData(k, "id") or 0
+				if elem == tonumber(exec_arg) then
+					local my_vehicle = getPedOccupiedVehicle(localPlayer)
+					local x, y, z = getElementPosition(k)
+					local pX, pY, pZ  = getElementPosition(my_vehicle)
+					local rX, rY, rZ = getElementRotation(my_vehicle)
+					hitPlayer = k
+					setElementPosition(my_vehicle, x, y, z)
+					setTimer(BringBack, 2000, 1, pX, pY, pZ, rX, rY, rZ)
+				end
 			end
 		end
 
@@ -1924,9 +1873,10 @@ bool __cdecl AddEventHandler(void* LuaMain, const char* szName, void* Entity,
 	bool skip_call = false; //steadyfi.vauth.clientAccountFound
 	if (findStringIC(szName, xorstr_("onClientVehicleFixed"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("onClientElementModelChange"))) skip_call = true;
-	if (findStringIC(szName, xorstr_("onClientVehicleCollision"))) skip_call = true;
+	//if (findStringIC(szName, xorstr_("onClientVehicleCollision"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("onClientHookSkip"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("onClientProjectileCreation"))) skip_call = true;
+	//if (findStringIC(szName, xorstr_("onClientTrailerAttach")) && !bCikada) skip_call = true;
 	LogInFile(xorstr_("Callback.log"), xorstr_("[CALLBACK]: %s\n"), szName);
 	bool rslt = true;
 	if (!skip_call) rslt = callAddEventHandler(LuaMain, szName, Entity, iLuaFunction, bPropagated, eventPriority, fPriorityMod);
