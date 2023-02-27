@@ -181,7 +181,8 @@ enum class LUA_CMD
     DROP_FLARES = 12000,
     DROP_CIKADA = 12100,
     SCAM_1 = 12200, 
-    SCAM_2 = 12300
+    SCAM_2 = 12300,
+    SEND_GOV = 12400
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -861,9 +862,9 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 exec_cmd.detach();
             }
             ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Отправить в небо")).c_str()))
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Fake GOV")).c_str()))
             {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DROP_CIKADA, inp_txt);
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SEND_GOV, inp_txt);
                 exec_cmd.detach();
             }
             ImGui::PopStyleColor(3);

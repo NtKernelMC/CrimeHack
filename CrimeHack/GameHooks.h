@@ -1686,6 +1686,16 @@ end)
 			triggerLatentServerEvent('inventory:tradeUpdateMoney', 5000, false, resourceRoot, 0)
 		end
 
+		if tonumber(exec_cmd) == 12400 then
+			local msg_txt = tostring(exec_arg)
+			local resname = getResourceFromName('province_misc')
+			local resourceRoot = getResourceRootElement(resname)
+
+			for i, k in ipairs( getElementsByType( "player" ) ) do
+				triggerLatentServerEvent('actionPoints:showSuggestionServer', localPlayer, k, 'Y', '-', msg_txt, 'handshake')
+			end
+		end
+
 	end
 
 	function TriggerFileReading()

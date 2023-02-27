@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V12.6 RELEASE")
+#define PLUGIN_VER xorstr_("V12.7 RELEASE")
 void EmulateKeyPress(WORD vk_key, bool press);
 #include <Windows.h>
 #include <stdio.h>
@@ -332,6 +332,7 @@ char inp_txt17[256];
 char inp_txt18[256];
 char inp_txt19[256];
 char inp_txt20[256];
+char inp_txt21[256];
 bool FakeTaxi = false;
 bool OrderSpam = false;
 bool FakeKill = false;
