@@ -182,7 +182,12 @@ enum class LUA_CMD
     DROP_CIKADA = 12100,
     SCAM_1 = 12200, 
     SCAM_2 = 12300,
-    SEND_GOV = 12400
+    SEND_GOV = 12400,
+    TASK_ENTER = 12500,
+    MARK_CAR_TP = 12600,
+    TRIGGER_BOT = 12700,
+    RENT_CAR = 12800,
+    FAKE_KILL = 12900,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -219,40 +224,6 @@ void DumpCoords()
         LogInFile(LOG_NAME, xorstr_("X: %f | Y: %f | Z: %f\n"), vec.x, vec.y, vec.z);
         std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DUMP_INTERIOR, xorstr_("NONE"));
         exec_cmd.detach();
-    }
-}
-void UseTramRage()
-{
-    if (!Points3D.empty()) Points3D.clear();
-    if (TramRAGE || TramRAGEN)
-    {
-        AntiRed = false; RedStage = 0; NoAgain = false;
-        SetTrafficLightState(5);
-        SetTrafficLightsLocked(true);
-        AntiRed = true;
-        BYTE NOP[] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
-        BYTE NOP2[] = { 0x90, 0x90, 0x90, 0x90 };
-        DWORD patch = ((DWORD)GetModuleHandleA("game_sa.dll") + 0x133E7F); // Trawmay Collide
-        DWORD patch2 = ((DWORD)GetModuleHandleA("vorbisfile.dll") + 0x316B); // Tramway Speed Limiter
-        DWORD oldProt = NULL; VirtualProtect((void*)patch, sizeof(NOP), PAGE_EXECUTE_READWRITE, &oldProt);
-        memcpy((void*)patch, NOP, sizeof(NOP));
-        VirtualProtect((void*)patch, sizeof(NOP), oldProt, &oldProt);
-        VirtualProtect((void*)patch2, sizeof(NOP2), PAGE_EXECUTE_READWRITE, &oldProt);
-        memcpy((void*)patch2, NOP2, sizeof(NOP2));
-        VirtualProtect((void*)patch2, sizeof(NOP2), oldProt, &oldProt);
-        BuildRoutes();
-        if (bRouteID == 1 || bRouteID == 2)
-        {
-            EmulateKeyPress('2', true);
-            Sleep(40);
-            EmulateKeyPress('2', false);
-        }
-        DWORD PEDSELF = *(DWORD*)0xB6F5F0;
-        *(float*)(PEDSELF + 0x540) = NAN;
-    }
-    else
-    {
-        AntiRed = false;
     }
 }
 void BankTransaction(std::string bank_id, std::string value)
@@ -364,25 +335,13 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         switch (page)
         {
         case HACK_TAB1:
-            //ImGui::SameLine(); ImGui::Checkbox(cp1251_to_utf8(xorstr_("Аура Смерти")).c_str(), &DeadlyAura);
-            //ImGui::Checkbox(cp1251_to_utf8(xorstr_("Сайлент аим")).c_str(), &SilentAIM);
-            //ImGui::SameLine(); ImGui::SliderFloat(xorstr_("FOV"), &FOV, 50.0, 500.0f);
-            //ImGui::Checkbox(cp1251_to_utf8(xorstr_("Ваншот")).c_str(), &OneShot);
-            //ImGui::SameLine();
             ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(10, 50, 175, 255));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(17, 65, 222, 255));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(10, 44, 154, 255));
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Накрутить патроны")).c_str()))
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП на рыбалку")).c_str()))
             {
                 CPed* ped = FindPlayerPed(-1);
-                if (ped)
-                {
-                    for (short x = 0; x < 13; x++)
-                    {
-                        if (ped->m_aWeapons[x].m_nTotalAmmo != NULL) ped->GiveWeapon(ped->m_aWeapons[x].m_eWeaponType, 9999, false);
-                    }
-                    MessageBeep(MB_ICONERROR);
-                }
+                if (ped) ped->Teleport(CVector(-1862.1632080078, 849.89630126953, -6.4869027137756), false);
             }
             ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП по метке")).c_str()))
@@ -396,6 +355,8 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DUMP_MODEL_ID, xorstr_("NONE"));
                 exec_cmd.detach();
             }
+            //ImGui::SameLine();
+            //ImGui::Checkbox(cp1251_to_utf8(xorstr_("Абузер машин")).c_str(), &Abuser);
             ImGui::PopStyleColor(3);
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Спидхак")).c_str(), &SpeedHack);
             ImGui::SameLine(); ImGui::SliderFloat(cp1251_to_utf8(xorstr_("Макс.скорость")).c_str(), &MaxSpd, 150.0, 600.0f);
@@ -435,12 +396,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 CClock::SetGameClock(12, 0, 1);
             }
             ImGui::InputText(cp1251_to_utf8(xorstr_("Имя файла")).c_str(), inp_txt12, sizeof(inp_txt12));
-            /*ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Trigger Dumper")).c_str()))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::TRIGGER_DUMPER, xorstr_("NONE"));
-                exec_cmd.detach();
-            }*/
             ImGui::InputText(cp1251_to_utf8(xorstr_("ID Модели")).c_str(), inp_txt13, sizeof(inp_txt13));
             ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Coord Dumper")).c_str()))
@@ -632,7 +587,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 exec_cmd.detach();
             }
             /*ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Пробив")).c_str()))
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Клонировать")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_INFO, current_select);
                 exec_cmd.detach();
@@ -790,6 +745,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             {
                 FuckRuchnik();
             }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Fake Kill")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::FAKE_KILL, inp_txt);
+                exec_cmd.detach();
+            }
             if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Показать мусоров")).c_str(), &Dummy8))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SHOW_POLICE, xorstr_("NONE"));
@@ -842,31 +803,50 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SET_TAXI, xorstr_("NONE"));
                 exec_cmd.detach();
             }
-            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Ваншот")).c_str(), &OneShot);
+            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Дамагер")).c_str(), &OneShot);
             ImGui::SameLine();
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Kraken V2")).c_str(), &TramRAGE))
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("ТП к машине")).c_str()))
             {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DROP_MOLOTOV, inp_txt);
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::MARK_CAR_TP, xorstr_("NONE"));
                 exec_cmd.detach();
             }
             ImGui::SameLine();
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Кидать гранаты")).c_str(), &TramRAGEN))
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("TriggerBot")).c_str(), &TriggerBot))
             {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DROP_GRENADE, inp_txt);
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::TRIGGER_BOT, xorstr_("NONE"));
                 exec_cmd.detach();
             }
             ImGui::SameLine();
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Мотра")).c_str(), &Flares))
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Аренда отеля")).c_str()))
             {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DROP_FLARES, inp_txt);
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::RENT_HOTEL, xorstr_("NONE"));
                 exec_cmd.detach();
             }
             ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Fake GOV")).c_str()))
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Аренда машины")).c_str()))
             {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::SEND_GOV, inp_txt);
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::RENT_CAR, xorstr_("NONE"));
                 exec_cmd.detach();
             }
+            /*ImGui::Checkbox(cp1251_to_utf8(xorstr_("Угонщик")).c_str(), &Theft);
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("TASK_ENTER")).c_str()))
+            {
+                CPed* local_ped = FindPlayerPed(-1);
+                if (local_ped != nullptr)
+                {
+                    for (decltype(auto) veh : CPools::ms_pVehiclePool)
+                    {
+                        CVector ppos = local_ped->GetPosition();
+                        CVector vpos = veh->GetPosition();
+                        float dist = FindDistance3D(ppos.x, ppos.y, ppos.z, vpos.x, vpos.y, vpos.z);
+                        if (dist <= 5.0f)
+                        {
+                            CCarEnterExit::SetPedInCarDirect(local_ped, veh, 1, false);
+                        }
+                    }
+                }
+            }*/
             ImGui::PopStyleColor(3);
             break;
         }

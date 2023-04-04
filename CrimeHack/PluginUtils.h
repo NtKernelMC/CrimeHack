@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V12.7 RELEASE")
+#define PLUGIN_VER xorstr_("V13.0 RELEASE")
 void EmulateKeyPress(WORD vk_key, bool press);
 #include <Windows.h>
 #include <stdio.h>
@@ -27,8 +27,27 @@ void EmulateKeyPress(WORD vk_key, bool press);
 #include "HWBP.h"
 #include <Wbemidl.h>
 #include "CStreaming.h"
+#include "CCarEnterExit.h"
 #include "base64.h"
 #include "magic_enum/include/magic_enum.hpp"
+using lua_CFunction = int(__cdecl*)(void*);
+#define LUA_GLOBALSINDEX (-10002)
+typedef void(__cdecl* lua_pushcclosure)(void* L, lua_CFunction fn, int n);
+lua_pushcclosure call_pushcclosure = nullptr;
+typedef void(__cdecl* lua_setfield)(void* L, int idx, const char* k);
+lua_setfield call_setfield = nullptr;
+typedef void(__cdecl* lua_pushboolean)(void* L, int bValue);
+lua_pushboolean call_pushboolean = nullptr;
+typedef int(__cdecl* lua_toboolean)(void* L, int idx);
+lua_toboolean call_toboolean = nullptr;
+typedef int(__cdecl* lua_strlen)(void* L);
+lua_strlen call_strlen = nullptr;
+typedef const char* (__cdecl* lua_tostring)(void* L, int idx, unsigned int* len);
+lua_tostring call_tostring = nullptr;
+typedef void(__cdecl* lua_pushnumber)(void* L, long double n);
+lua_pushnumber call_pushnumber = nullptr;
+typedef void(__cdecl* lua_pushstring)(void* L, const char* s);
+lua_pushstring call_pushstring = nullptr;
 //////////////////////////
 #include <atlbase.h>
 #include <atlcom.h>
@@ -45,12 +64,14 @@ void EmulateKeyPress(WORD vk_key, bool press);
 #define SOFT_TYPE xorstr_("crimehack")
 BYTE jmp_prologue1[5]; BYTE jmp_prologue2[5];
 bool oldClient = false;
+bool TriggerBot = false;
 bool isDeveloper = false;
 bool ShadowType = false;
 bool Networker = false;
 bool InjectAvailable = false;
 bool Exploder = false;
 bool nanInviz = false;
+bool Abuser = false;
 bool GuiListAvailable = false;
 std::string LuaArg;
 std::string LuaCode;
@@ -74,8 +95,7 @@ IID REPORT_TYPES[] = { IID_ILatLongReport };
 DWORD VehColHandler = NULL;
 bool UnocSync = false;
 bool NoAgain = false;
-bool TramRAGE = false;
-bool TramRAGEN = false;
+bool CarRepair = false;
 bool Flares = false;
 bool bCikada = false;
 bool RepairSync = false;
@@ -595,7 +615,6 @@ void __stdcall LogInFile(std::string log_name, const char* log, ...)
 		if (hFile) { fclose(hFile); DeleteFileA(new_dir); }
 		once = true;
 	}
-	if (!isDeveloper) return;
 	FILE* hFile = fopen(new_dir, xorstr_("a+"));
 	if (hFile)
 	{
@@ -983,7 +1002,7 @@ void MakePreInit()
 				sprintf(inj_msg, xorstr_("[ËÈÖÅÍÇÈß] Ïîäïèñêà äî %s"), additional.c_str());
 				reg->WriteString(xorstr_("InjectorMessage"), inj_msg);
 				CreateMutexA(NULL, FALSE, xorstr_("RBZVX5S1MXAZ4A"));
-				if (findStringIC(RegisteredKey, xorstr_("CH-CUXS-MEZ0-WM7LLF"))) isDeveloper = true;
+				//InstallSpoofingHooks();
 			}
 		}
 		else
@@ -994,7 +1013,6 @@ void MakePreInit()
 		}
 		if (reg != nullptr) delete reg;
 	}
-	//InstallSpoofingHooks();
 	VMProtectEnd();
 }
 bool __stdcall IsDirectoryExists(const std::string& dirName_in)

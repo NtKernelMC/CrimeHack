@@ -84,6 +84,7 @@ bool setVehElementSpeed(CVehicle* element, float speed)
 }
 void HackThread()
 {
+    genProc = getProcName();
     MH_Initialize();
     VMProtectBegin("HackThread()");
     MakePreInit();
@@ -101,7 +102,6 @@ void HackThread()
     LogInFile(LOG_NAME, xorstr_("[PLUGIN] Crime Hack %s by NtKernelMC loaded!\n"), PLUGIN_VER);
     InstallDx9Hooks();
     std::thread tth(AirBreak); tth.detach();
-    std::thread tth2(TramRage); tth2.detach();
     callVirtualQuery = (ptrVirtualQuery)GetProcAddress(GetModuleHandleA(xorstr_("kernel32.dll")), xorstr_("VirtualQuery"));
     if (callVirtualQuery != nullptr)
     {

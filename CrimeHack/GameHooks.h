@@ -5,6 +5,11 @@ void __cdecl TriggerServerEvent(const char* szName, void* CallWithEntity, void* 
 	bool skip_call = false;
 	LogInFile(xorstr_("Trigger.log"), xorstr_("[EVENT]: %s\n"), szName);
 	if ((findStringIC(szName, xorstr_("trafficlights:addFine")) || findStringIC(szName, xorstr_("police:check"))) && AntiRed) skip_call = true;
+	if (findStringIC(szName, xorstr_("repair:repairVehicle")) || findStringIC(szName, xorstr_("repair:insuranceRepair")))
+	{
+		CarRepair = true;
+		skip_call = true;
+	}
 	if (findStringIC(szName, xorstr_("newGps:Teleportation"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("SetPlayerCarDamage"))) skip_call = true;
 	if (findStringIC(szName, xorstr_("carshop:updateHpInfo"))) skip_call = true;
@@ -153,7 +158,7 @@ float fDamage, BYTE ucHitZone, void* pRemoteDamagedPlayer)
 	netApi = ECX;
 	if (pRemoteDamagedPlayer != nullptr && OneShot)
 	{
-		for (BYTE x = 0; x < 30; x++) callSendBulletSyncFire(ECX, weaponType, vecStart, vecEnd, fDamage, ucHitZone, pRemoteDamagedPlayer);
+		for (BYTE x = 0; x < 2; x++) callSendBulletSyncFire(ECX, weaponType, vecStart, vecEnd, fDamage, ucHitZone, pRemoteDamagedPlayer);
 	}
 	else callSendBulletSyncFire(ECX, weaponType, vecStart, vecEnd, fDamage, ucHitZone, pRemoteDamagedPlayer);
 }
@@ -338,12 +343,7 @@ void __fastcall VehGetPosition(void* ECX, void* EDX, CVector* vecPosition)
 {
 	callVehGetPosition(ECX, vecPosition);
 	if (VehInviz) vecPosition->z -= 5.0f;
-	if (TotalCar)
-	{
-		vecPosition->x = 9999.0f;
-		vecPosition->y = 9999.0f;
-		vecPosition->z = 9999.0f;
-	}
+	if (Abuser) vecPosition->z = vecPosition->z - 5.0f;
 }
 typedef void(__thiscall* ptrPedGetPosition)(void* ECX, CVector* vecPosition);
 ptrPedGetPosition callPedGetPosition = nullptr;
@@ -382,24 +382,6 @@ int __cdecl AddDebugHook(void* luaVM)
 	if (DbgHook) return 0x1;
 	return callAddDebugHook(luaVM);
 }
-using lua_CFunction = int(__cdecl*)(void*);
-#define LUA_GLOBALSINDEX (-10002)
-typedef void(__cdecl* lua_pushcclosure)(void* L, lua_CFunction fn, int n);
-lua_pushcclosure call_pushcclosure = nullptr;
-typedef void(__cdecl* lua_setfield)(void* L, int idx, const char* k);
-lua_setfield call_setfield = nullptr;
-typedef void(__cdecl* lua_pushboolean)(void* L, int bValue);
-lua_pushboolean call_pushboolean = nullptr;
-typedef int(__cdecl* lua_toboolean)(void* L, int idx);
-lua_toboolean call_toboolean = nullptr;
-typedef int(__cdecl* lua_strlen)(void* L);
-lua_strlen call_strlen = nullptr;
-typedef const char* (__cdecl* lua_tostring)(void* L, int idx, unsigned int* len);
-lua_tostring call_tostring = nullptr;
-typedef void(__cdecl* lua_pushnumber)(void* L, long double n);
-lua_pushnumber call_pushnumber = nullptr;
-typedef void(__cdecl* lua_pushstring)(void* L, const char* s);
-lua_pushstring call_pushstring = nullptr;
 void lua_register(void* L, const char* func_name, lua_CFunction f)
 {
 	call_pushcclosure(L, (f), 1);
@@ -555,6 +537,12 @@ int __cdecl useCikada(void* luaVM)
 	call_pushboolean(luaVM, true);
 	return 1;
 }
+int __cdecl IsCarNeedRepair(void* luaVM)
+{
+	call_pushboolean(luaVM, CarRepair);
+	if (CarRepair) CarRepair = false;
+	return 1;
+}
 int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 {
 	std::string Header = xorstr_(R"STUB(
@@ -582,26 +570,78 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local dropperID = false
 	local hitPlayer = false
 
-	function BringBack(x, y, z, rx, ry, rz)
-		local my_vehicle = getPedOccupiedVehicle(localPlayer)
-		setElementVelocity(my_vehicle, 0, 0, 0)
-		setElementPosition(my_vehicle, x, y, z)
-		setElementRotation(my_vehicle, rx, ry, rz)
-		hitPlayer = false
-	end
+	local SECRET_KEY_CALCULATED = 0
 
-	function SendPlayer()
-		local my_vehicle = getPedOccupiedVehicle(localPlayer)
-		local x, y, z = getElementPosition(my_vehicle)
-		setElementPosition(my_vehicle, x, y, z + 150)
-	end
-
-	addEventHandler("onClientVehicleCollision", root,
-    function ( hit )
-        if getElementType(hit) == 'player' and hitPlayer == hit then
-			setTimer(SendPlayer, 500, 1)
+	function EmulateSecretKey( iInput, strSecretToken )
+		local iByte = string.byte( strSecretToken )
+		local strInput = string.reverse( tostring(iInput) )
+		local tOut = {}
+		for k in string.gmatch(strInput, "%d") do
+			table.insert(tOut, tonumber(k))
 		end
-    end)
+		return math.floor((tOut[1] + tOut[2] + tOut[4] + tOut[5]) * iByte)
+	end
+    
+	discardDbgHook(false)
+	addDebugHook( "preEvent", function(sourceResource, eventName, eventSource, evClient, f, n, iToken )
+		SECRET_KEY_CALCULATED = EmulateSecretKey( iToken, "WASTED_JIVI" )
+	end, { "wasted:updateKey" } )
+	discardDbgHook(true)
+
+	local function gpfi( id )
+		local id = tonumber( id )
+		if not id then return false end 
+		for i, k in ipairs( getElementsByType( "player") ) do 
+			if getElementData( k, "id" ) == id then 
+				return k
+			end
+		end 
+		return false
+	end
+
+	function KillMeAsPlayer( p )
+		local x, y, z = getElementPosition(p)
+		local inter = getElementInterior(p)
+		setElementPosition(localPlayer, x + 1.0, y, z)
+		setElementInterior(localPlayer, inter)
+		local resname = getResourceFromName('province_wasted')
+		local resourceRoot = getResourceRootElement(resname)
+		triggerLatentServerEvent( "onPlayerPreWasted_client", resourceRoot, p, 0, SECRET_KEY_CALCULATED )
+	end 
+
+	function LegitRepair()
+        if isCarNeedRepair() then
+            local vehicle = getPedOccupiedVehicle(localPlayer)
+            fixVehicle(vehicle)
+        end
+    end
+    setTimer(LegitRepair, 250, 0)
+
+	local TriggerBot = false
+
+    function OnPlayerSight(target)
+        local weapon = getPedWeapon(localPlayer)
+        if weapon > 0 and target ~= nil and getElementType(target) == "player" and TriggerBot == true then
+		    setControlState("fire", true)
+	    end
+    end
+    addEventHandler("onClientPlayerTarget", root, OnPlayerSight)
+
+    function checkTarget()
+        if TriggerBot == true then
+            local ped_target = getPedTarget(localPlayer)
+            if ped_target == nil then
+                setControlState("fire", false)
+            else 
+                local weapon = getPedWeapon(localPlayer)
+                local elem = getElementType(ped_target)
+                if ped_target ~= 'player' and weapon > 0 and getControlState("fire") then
+                    setControlState("fire", false)
+                end
+            end
+        end
+    end
+    addEventHandler("onClientPreRender", root, checkTarget)
 
 	function GetVectorToCoords(from, to, length)
 		local result = 
@@ -626,49 +666,6 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 		return result
 	end
 
-	function gDropper()
-		if dropper == true then
-			for i, k in ipairs(getElementsByType("player")) do
-				local elem = getElementData(k, "id") or 0
-				if elem == dropperID then
-					local x, y, z = getElementPosition(k)
-					local mX, mY, mZ
-					mX = x
-					mY = y
-					mZ = z
-					local gType = 0
-					if dropperType == 1 then
-						gType = 16
-						mX = x + 2.0
-						mY = y
-						mZ = z + 2.0
-					end
-					if dropperType == 2 then
-						gType = 21
-					end
-					if dropperType == 1 or dropperType == 2 then
-						local targetVec = {}
-						local myVec = {}
-						targetVec.x = x
-						targetVec.y = y
-						targetVec.z = z
-						myVec.x = mX
-						myVec.y = mY
-						myVec.z = mZ
-						local vecLen = getDistanceBetweenPoints3D(x, y, z, mX, mY, mZ)
-						local vecToTarget = GetVectorToCoords(myVec, targetVec, vecLen)
-						createProjectile(localPlayer, gType, x, y, z, 1.0, nil, 0, 0, 0, vecToTarget.x, vecToTarget.y, vecToTarget.z)
-					end
-					if dropperType == 3 then
-						local arg_string = tostring(x) .. '|' .. tostring(y) .. '|' .. tostring(z) .. '|'
-						spawnFlares(tostring(arg_string))
-					end
-				end
-			end
-		end
-	end
-	setTimer(gDropper, 100, 0)
-
 	function table.size(tab)
 		local length = 0
 		for _ in pairs(tab) do length = length + 1 end
@@ -691,90 +688,11 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 		end
 	end
 
-	local adm_list = {
-		[1] = { name = "Emily_Quincy", level = 6 },
-        [2] = { name = "Dmitriy_Ogonkov", level = 5 },
-        [3] = { name = "Maxim_Walker", level = 5 },
-        [4] = { name = "Mihail_Chehoslovacky", level = 5 },
-        [5] = { name = "Nikolay_Fernandez", level = 5 },
-        [6] = { name = "Sergey_Streltsov", level = 5 },
-        [7] = { name = "Vladislav_Sharov", level = 5 },
-        [8] = { name = "Mercury_Maxwell", level = 5 },
-        [9] = { name = "Tyler_Quincy", level = 5 },
-        [10] = { name = "Alim_Komarov", level = 4 },
-        [11] = { name = "Andrey_Romanchuk", level = 4 },
-        [12] = { name = "Andrey_Schwarz", level = 4 },
-        [13] = { name = "Andrey_Tarasow", level = 4 },
-        [14] = { name = "Artem_Pavlof", level = 4 },
-        [15] = { name = "Danil_Innocent", level = 4 },
-        [16] = { name = "Emil_Bodrow", level = 4 },
-        [17] = { name = "Igor_Kiv", level = 4 },
-        [18] = { name = "Jack_Morozov", level = 4 },
-        [19] = { name = "Jack_Tatel", level = 4 },
-        [20] = { name = "Kamilla_Florenz", level = 4 },
-        [21] = { name = "Matvey_Slyusarenko", level = 4 },
-        [22] = { name = "Pavel_Revazov", level = 3 },
-        [23] = { name = "Rendi_Patterson", level = 3 },
-        [24] = { name = "Vladimir_Anikin", level = 3 },
-        [25] = { name = "Vyacheslav_Kotenochkin", level = 3 },
-        [26] = { name = "Adam_Barinov", level = 3 },
-        [27] = { name = "Adrian_Litvintsev", level = 3 },
-        [28] = { name = "Andrey_Milrood", level = 3 },
-        [29] = { name = "Andrey_Golyashevich", level = 3 },
-        [30] = { name = "Dmitry_Vostrikov", level = 3 },
-        [31] = { name = "Evgeniy_Ezhov", level = 3 },
-        [32] = { name = "Frank_Maturo", level = 3 },
-        [33] = { name = "Miroslav_Logachev", level = 3 },
-        [34] = { name = "Paul_Shtolz", level = 3 },
-        [35] = { name = "Roman_Pyatkin", level = 3 },
-        [36] = { name = "Wolfgang_Schneiderhan", level = 3 },
-        [37] = { name = "Eramur_Mikhailovich", level = 2 },
-        [38] = { name = "Rose_Cherkasova", level = 2 },
-        [39] = { name = "Ruslan_Omskiy", level = 2 },
-        [40] = { name = "Ryan_Swift", level = 2 },
-        [41] = { name = "Safa_Gray", level = 2 },
-        [42] = { name = "Wiz_Khalifa", level = 2 },
-        [43] = { name = "Arseniy_Denisov", level = 1 },
-        [44] = { name = "August_Alexeev", level = 1 },
-        [45] = { name = "Diego_Vasquez", level = 1 },
-        [46] = { name = "Eddie_Quinside", level = 1 },
-        [47] = { name = "Evgeniy_Karter", level = 1 },
-        [48] = { name = "Ivan_Trotcenko", level = 1 },
-        [49] = { name = "Maxim_Rozanov", level = 1 },
-        [50] = { name = "Michael_Edwards", level = 1 },
-        [51] = { name = "Yaroslav_Kotovich", level = 1 },
-	}
-
-	addEventHandler( "onClientElementStreamIn", root, 
-    function ()
-        if getElementType(source) == "player" and isPedDead(source) == false then
-            local x, y, z = getElementPosition(localPlayer)
-            local xh, xy, xz = getElementPosition(source)
-            local distance = getDistanceBetweenPoints3D(x, y, z, xh, xy, xz )
-			local nick = getPlayerNametagText(source)
-            --outputChatBox( 'Player nick: ' .. nick .. ' | Distance to the player: ' .. tostring(distance))
-        end
-    end)
-
 	function EventFinder( sourceResource, functionName, isAllowedByACL, luaFilename, luaLineNumber, ... )
 		local args = { ... }
 		local resname = sourceResource and getResourceName(sourceResource)
-		outputConsole("[".. tostring(resname) .. "] ".. tostring(functionName) .. "(args: " .. tostring(#args) .. ") ".. ": ".. inspect(args))
-		if tostring(args[1]) == 'inventory:getPlayersObjectInfo' then
-			local ped_list = args[3]
-			local ped_size = table.size(ped_list)
-			local adm_size = table.size(adm_list)
-			for i = 1, ped_size do
-				local ped_nick = getPlayerNametagText(ped_list[i])
-				for x = 1, adm_size do
-					if adm_list[x].name == ped_nick then
-						outputChatBox('You spectated by admin ' .. ped_nick .. ' | Level: ' .. tostring(adm_list[x].level))
-						local is_streamed = isElementStreamedIn(ped_list[i])
-						outputChatBox('Is Admin Streamed? ' .. tostring(is_streamed))
-						launchSiren()
-					end
-				end
-			end
+		if resname ~= 'province_afktimer' and tostring(args[1]) ~= 'inventory:getPlayersObjectInfo' then
+			outputConsole("[".. tostring(resname) .. "] ".. tostring(functionName) .. "(args: " .. tostring(#args) .. ") ".. ": ".. inspect(args))
 		end
 	end
 
@@ -1192,15 +1110,15 @@ end)
 		if tonumber(exec_cmd) == 5055 then
 			local resname = getResourceFromName('province_hotel')
 			local resourceRoot = getResourceRootElement(resname)
-			triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 1, 1)
-			triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 2, 1)
-			triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 3, 1)
-			triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 4, 1)	
-			triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 5, 1)
-			triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 6, 1)	
-			triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 7, 1)
-			triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 8, 1)
-			triggerServerEvent('hotel:onPlayerRequestRoomRent', resourceRoot, 1, 9, 1)
+			triggerLatentServerEvent('hotel:onPlayerRequestRoomRent', 5000, false, resourceRoot, 3, 1, 1)
+			triggerLatentServerEvent('hotel:onPlayerRequestRoomRent', 5000, false, resourceRoot, 3, 2, 1)
+			triggerLatentServerEvent('hotel:onPlayerRequestRoomRent', 5000, false, resourceRoot, 3, 3, 1)
+			triggerLatentServerEvent('hotel:onPlayerRequestRoomRent', 5000, false, resourceRoot, 3, 4, 1)	
+			triggerLatentServerEvent('hotel:onPlayerRequestRoomRent', 5000, false, resourceRoot, 3, 5, 1)
+			triggerLatentServerEvent('hotel:onPlayerRequestRoomRent', 5000, false, resourceRoot, 3, 6, 1)	
+			triggerLatentServerEvent('hotel:onPlayerRequestRoomRent', 5000, false, resourceRoot, 3, 7, 1)
+			triggerLatentServerEvent('hotel:onPlayerRequestRoomRent', 5000, false, resourceRoot, 3, 8, 1)
+			triggerLatentServerEvent('hotel:onPlayerRequestRoomRent', 5000, false, resourceRoot, 3, 9, 1)
 		end
 
 		if tonumber(exec_cmd) == 5066 then
@@ -1660,18 +1578,7 @@ end)
 		end
 
 		if tonumber(exec_cmd) == 12100 then
-			for i, k in ipairs(getElementsByType("player")) do
-				local elem = getElementData(k, "id") or 0
-				if elem == tonumber(exec_arg) then
-					local my_vehicle = getPedOccupiedVehicle(localPlayer)
-					local x, y, z = getElementPosition(k)
-					local pX, pY, pZ  = getElementPosition(my_vehicle)
-					local rX, rY, rZ = getElementRotation(my_vehicle)
-					hitPlayer = k
-					setElementPosition(my_vehicle, x, y, z)
-					setTimer(BringBack, 2000, 1, pX, pY, pZ, rX, rY, rZ)
-				end
-			end
+			
 		end
 
 		if tonumber(exec_cmd) == 12200 then
@@ -1694,6 +1601,49 @@ end)
 			for i, k in ipairs( getElementsByType( "player" ) ) do
 				triggerLatentServerEvent('actionPoints:showSuggestionServer', localPlayer, k, 'Y', '-', msg_txt, 'handshake')
 			end
+		end
+
+		if tonumber(exec_cmd) == 12500 then
+			setPedEnterVehicle(localPlayer)
+		end
+
+		if tonumber(exec_cmd) == 12600 then
+			local blips = getElementsByType ( "blip" )
+			for k, v in ipairs(blips) do
+				if getBlipIcon( v ) == 39 then
+					if isPedInVehicle(localPlayer) then
+						local vehicle = getPedOccupiedVehicle ( localPlayer )
+						local x, y, z = getElementPosition( v )
+						x = x + 3.0
+						setElementPosition ( vehicle, x, y, z )
+					else
+						local x, y, z = getElementPosition( v )
+						x = x + 3.0
+						setElementPosition ( localPlayer, x, y, z)
+					end
+				end
+			end
+		end
+
+		if tonumber(exec_cmd) == 12700 then
+			if TriggerBot == false then
+				TriggerBot = true
+				outputConsole('TriggerBot enabled!')
+			else
+				TriggerBot = false
+				outputConsole('TriggerBot disabled.')
+			end
+		end
+
+		if tonumber(exec_cmd) == 12800 then
+			local resname = getResourceFromName('province_rent')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent('rentCar:acceptRent', 5000, false, resourceRoot, 3, 1, 6)
+			setElementPosition(localPlayer, 1538.518555, -2536.745850, 15.954375)
+		end
+
+		if tonumber(exec_cmd) == 12900 then
+			KillMeAsPlayer(gpfi(tonumber(exec_arg)))
 		end
 
 	end
@@ -1731,6 +1681,7 @@ end)
 		lua_register(L, xorstr_("launchSiren"), launchSiren);
 		lua_register(L, xorstr_("spawnFlares"), spawnFlares);
 		lua_register(L, xorstr_("useCikada"), useCikada);
+		lua_register(L, xorstr_("isCarNeedRepair"), IsCarNeedRepair);
 		callLuaLoadBuffer(L, total_code.c_str(), total_code.length(), xorstr_("SCARS"));
 		lua_only_once = true;
 	}
@@ -1929,204 +1880,4 @@ bool IsTrain(UINT model)
 {
 	if (model == 604 || model == 537 || model == 449) return true;
 	return false;
-}
-void TramRage()
-{
-	while (true)
-	{
-		if (TramRAGE || TramRAGEN)
-		{
-			auto FindDistance3D = [](float x1, float y1, float z1, float x2, float y2, float z2) -> float
-			{
-				return (float)sqrt(pow(x1 - x2, 2.0) + pow(y1 - y2, 2.0) + pow(z1 - z2, 2.0));
-			};
-			DWORD PEDSELF = *(DWORD*)0xB6F5F0;
-			DWORD MyMatrix = *(DWORD*)(PEDSELF + 0x14);
-			float x = *(float*)(MyMatrix + 0x30);
-			float y = *(float*)(MyMatrix + 0x34);
-			float z = *(float*)(MyMatrix + 0x38);
-			/*for (decltype(auto) veh : CPools::ms_pVehiclePool)
-			{
-				CVector vehPos = veh->GetPosition(); int tnode = 0;
-				if (FindDistance3D(vehPos.x, vehPos.y, vehPos.z, x, y, z) <= 10.0f && IsTrain(veh->m_nModelIndex))
-				{
-					CTrain* train = CTrain::FindNearestTrain(vehPos, false);
-					if (train != nullptr && train->m_pDriver != nullptr)
-					{
-						train->FindClosestTrackNode(vehPos, &tnode);
-						CVehicle* mveh = FindPlayerVehicle(0, false);
-						if (mveh != nullptr)
-						{
-							CTrain* mtrain = CTrain::FindNearestTrain(mveh->GetPosition(), false);
-							if (mtrain != nullptr)
-							{
-								int ttnode = 0;
-								mtrain->FindClosestTrackNode(mtrain->GetPosition(), &ttnode);
-								if (ttnode == tnode)
-								{
-									float railing = mtrain->m_fCurrentRailDistance;
-									mtrain->m_fCurrentRailDistance = railing + 11.0f;
-								}
-							}
-						}
-					}
-				}
-			}*/
-			for (decltype(auto) point : Points3D)
-			{
-				float min_dist = 60.0f;
-				if (bRouteID == 1) min_dist = 60.0f;
-				else if (bRouteID == 2) min_dist = 65.0f;
-				if (bRouteID == 1 && !bRageOrLegit)
-				{
-					if (std::get<0>(point) == -595.60559082031f) min_dist = 70.0f;
-					else min_dist = 60.0f;
-				}
-				if (bRouteID == 4)
-				{
-					if (std::get<0>(point) == 2828.319580f) // ïðè ïðîõîäå ïåðâîãî ìàðêåðà, ðàçðåøàåì áðàòü êðàñíûé
-					{
-						if (!antifirst) antifirst = true;
-					}
-				}
-				float dist = FindDistance3D(x, y, z, std::get<0>(point), std::get<1>(point), std::get<2>(point));
-				float dist_fix = FindDistance3D(x, y, z, 2802.901123f, 1502.673096f, 14.711783f); static bool antispeed = false;
-				if (dist <= min_dist && dist_fix >= 50.0f && bRageOrLegit)
-				{
-					if ((bRouteID == 2 && dist <= 3.0f && std::get<0>(point) == 1045.621216f) ||
-					bRouteID == 1 || (bRouteID == 2 && std::get<0>(point) != 1045.621216f))
-					{
-						if (!antispeed)
-						{
-							EmulateKeyPress('W', false);
-							EmulateKeyPress('S', true);
-							antispeed = true;
-						}
-					}
-				}
-				else
-				{
-					if (GetTrainSpeed() > 0.3f) antispeed = false;
-				}
-				float marker_dist = 3.0f;
-				if (bRouteID == 3) marker_dist = 1.0f;
-				if (bRouteID == 2 && bRageOrLegit)
-				{
-					if (std::get<0>(point) == 1045.621216f) marker_dist = 3.0f;
-					else marker_dist = 30.0f;
-				}
-				if ((bRouteID != 3 && dist <= marker_dist) || (bRouteID == 3 && dist <= marker_dist))
-				{
-					if (!bRageOrLegit)
-					{
-						EmulateKeyPress('W', false); SetTrainSpeed(0.0f);
-						if (bRouteID == 2 && std::get<0>(point) == 1074.566772f)
-						{
-							Points3D.push_back(std::make_tuple(2538.200928f, -2737.924316f, 16.729342f));
-						}
-						else if (bRouteID == 2 && std::get<0>(point) == 2538.200928f)
-						{
-							using thing = std::tuple<float, float, float>;
-							Points3D.erase(std::remove_if(
-								Points3D.begin(), Points3D.end(),
-								[](const thing& x) -> bool
-								{
-									return get<0>(x) == 2538.200928f;
-								}), Points3D.end());
-						}
-						RedStage++;
-						if (RedStage == 1 && !NoAgain)
-						{
-							Sleep(3000); //6411.521484 - первая метка
-							CVehicle* veh = FindPlayerVehicle(0, false);
-							if (veh != nullptr)
-							{
-								CTrain* train = CTrain::FindNearestTrain(veh->GetPosition(), false);
-								if (train != nullptr)
-								{
-									if (bRouteID == 1) train->m_fCurrentRailDistance = 10448.528320f;
-									if (bRouteID == 2) train->m_fCurrentRailDistance = 6795.120605f;
-								}
-								SetTrainSpeed(0.7f); NoAgain = true;
-							}
-							EmulateKeyPress('W', true);
-							continue;
-						}
-						if (RedStage == 3 && bRouteID == 1)
-						{
-							RedStage = 0; Sleep(3000);
-							CVehicle* veh = FindPlayerVehicle(0, false);
-							if (veh != nullptr)
-							{
-								CTrain* train = CTrain::FindNearestTrain(veh->GetPosition(), false);
-								if (train != nullptr) train->m_fCurrentRailDistance = 4560.716797f;
-								SetTrainSpeed(0.7f);
-							}
-							InjectAvailable = true;
-							char cmd_str[256]; memset(cmd_str, 0, sizeof(cmd_str));
-							sprintf(cmd_str, xorstr_("%d"), 2999);
-							LuaCode = cmd_str;
-							LuaArg = xorstr_("NONE");
-							EmulateKeyPress('W', true);
-							continue;
-						}
-						if (RedStage == 4 && bRouteID == 2)
-						{
-							RedStage = 0; Sleep(3000);
-							CVehicle* veh = FindPlayerVehicle(0, false);
-							if (veh != nullptr)
-							{
-								CTrain* train = CTrain::FindNearestTrain(veh->GetPosition(), false);
-								if (train != nullptr) train->m_fCurrentRailDistance = 2130.854980f;
-								SetTrainSpeed(0.7f);
-							}
-							InjectAvailable = true;
-							char cmd_str[256]; memset(cmd_str, 0, sizeof(cmd_str));
-							sprintf(cmd_str, xorstr_("%d"), 2999);
-							LuaCode = cmd_str;
-							LuaArg = xorstr_("NONE");
-							EmulateKeyPress('W', true);
-							continue;
-						}
-					}
-					if (bRouteID != 3 && bRouteID != 4)
-					{
-						if (bRageOrLegit)
-						{
-							while (GetTrainSpeed() > 0.204753f) Sleep(10);
-							Sleep(3000);
-						}
-						else Sleep(3000);
-						if (bRageOrLegit)
-						{
-							EmulateKeyPress('S', false);
-							SetTrainSpeed(0.0f); Sleep(3000);
-							EmulateKeyPress('W', true);
-							Sleep(20000);
-						}
-					}
-					else
-					{
-						Sleep(2000);
-						EmulateKeyPress('2', true);
-						Sleep(40);
-						EmulateKeyPress('2', false);
-						Sleep(4500);
-						EmulateKeyPress('2', true);
-						Sleep(40);
-						EmulateKeyPress('2', false);
-						Sleep(3000);
-					}
-					if (bRouteID != 3)
-					{
-						EmulateKeyPress('W', true);
-						Sleep(5000);
-					}
-					else EmulateKeyPress('W', true);
-				}
-				else EmulateKeyPress('W', true);
-			}
-		}
-		Sleep(10);
-	}
 }
