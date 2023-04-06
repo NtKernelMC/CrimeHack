@@ -569,6 +569,19 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local dropperType = 1
 	local dropperID = false
 	local hitPlayer = false
+	local v_x, v_y, v_z
+	local voice_sync = false
+	local last_syncer = false
+	local old_pint = 0
+
+	function SetSyncerMode()
+		if voice_sync == true and last_syncer ~= false then
+			local px, py, pz = getElementPosition(last_syncer)
+			pz = pz - 2.5
+			setElementPosition(localPlayer, px, py, pz)
+		end
+	end
+	setTimer(SetSyncerMode, 1000, 0)
 
 	local SECRET_KEY_CALCULATED = 0
 
@@ -1510,12 +1523,7 @@ end)
 		end
 
 		if tonumber(exec_cmd) == 11200 then
-			local resname = getResourceFromName('province_cs')
-        	local resourceRoot = getResourceRootElement(resname)
-			triggerLatentServerEvent('province_cs:onPlayerJoin', 5000, false, resourceRoot, 4)
-			resname = getResourceFromName('province_radialMenu')
-        	resourceRoot = getResourceRootElement(resname)
-        	triggerLatentServerEvent('province_cs:onPlayerBuyWeapon', 5000, false, resourceRoot, 29)
+			
 		end
 
 		if tonumber(exec_cmd) == 11300 then
@@ -1527,54 +1535,27 @@ end)
 		end
 
 		if tonumber(exec_cmd) == 11500 then
-			local resname = getResourceFromName('province_skinshop')
-        	local resourceRoot = getResourceRootElement(resname)
-        	triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 122)
+			
 		end
 
 		if tonumber(exec_cmd) == 11600 then
-			for i, k in ipairs(getElementsByType("player")) do
-				local elem = getPlayerNametagText(k)
-				if elem == exec_arg then
-					local resname = getResourceFromName('admin')
-					local resourceRoot = getResourceRootElement(resname)
-					triggerLatentServerEvent('aSpecate:GetPlayerData', 5000, false, resourceRoot, k)
-				end	     
-			end
+			
 		end
 
 		if tonumber(exec_cmd) == 11700 then
-			triggerLatentServerEvent('aServer', 5000, false, localPlayer, "setweather", 9)
+			
 		end
 
 		if tonumber(exec_cmd) == 11800 then
-			dropperType = 1
-			dropperID = tonumber(exec_arg)
-			if dropper == false then
-				dropper = true
-			else
-				dropper = false
-			end
+			
 		end
 		
 		if tonumber(exec_cmd) == 11900 then
-			dropperType = 2
-			dropperID = tonumber(exec_arg)
-			if dropper == false then
-				dropper = true
-			else
-				dropper = false
-			end
+			
 		end
 
 		if tonumber(exec_cmd) == 12000 then
-			dropperType = 3
-			dropperID = tonumber(exec_arg)
-			if dropper == false then
-				dropper = true
-			else
-				dropper = false
-			end
+			
 		end
 
 		if tonumber(exec_cmd) == 12100 then
@@ -1582,15 +1563,11 @@ end)
 		end
 
 		if tonumber(exec_cmd) == 12200 then
-			local resname = getResourceFromName('province_inventory')
-			local resourceRoot = getResourceRootElement(resname)
-			triggerLatentServerEvent('inventory:tradeUpdateMoney', 5000, false, resourceRoot, tonumber(exec_arg))
+			
 		end
 
 		if tonumber(exec_cmd) == 12300 then
-			local resname = getResourceFromName('province_inventory')
-			local resourceRoot = getResourceRootElement(resname)
-			triggerLatentServerEvent('inventory:tradeUpdateMoney', 5000, false, resourceRoot, 0)
+			
 		end
 
 		if tonumber(exec_cmd) == 12400 then
@@ -1644,6 +1621,28 @@ end)
 
 		if tonumber(exec_cmd) == 12900 then
 			KillMeAsPlayer(gpfi(tonumber(exec_arg)))
+		end
+
+		if tonumber(exec_cmd) == 13000 then
+			for i, k in ipairs(getElementsByType("player")) do
+				local name_tag = getPlayerNametagText(k)
+				if name_tag == exec_arg then
+					if voice_sync == false then
+						v_x, v_y, v_z = getElementPosition(localPlayer)
+						old_pint = getElementInterior(localPlayer)
+						setElementFrozen(localPlayer, true) 
+						local pint = getElementInterior(k)
+						setElementInterior(localPlayer, pint)
+						voice_sync = true
+						last_syncer = k
+					else
+						setElementPosition(localPlayer, v_x, v_y, v_z)
+						setElementFrozen(localPlayer, false) 
+						setElementInterior(localPlayer, old_pint)
+						voice_sync = false
+					end
+				end
+			end
 		end
 
 	end

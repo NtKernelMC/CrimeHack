@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V13.0 RELEASE")
+#define PLUGIN_VER xorstr_("V13.1 RELEASE")
 void EmulateKeyPress(WORD vk_key, bool press);
 #include <Windows.h>
 #include <stdio.h>
@@ -63,6 +63,8 @@ lua_pushstring call_pushstring = nullptr;
 #pragma comment(lib, "Ws2_32.lib")
 #define SOFT_TYPE xorstr_("crimehack")
 BYTE jmp_prologue1[5]; BYTE jmp_prologue2[5];
+bool RDummy = false;
+bool NoSpread = false;
 bool oldClient = false;
 bool TriggerBot = false;
 bool isDeveloper = false;
@@ -75,6 +77,10 @@ bool Abuser = false;
 bool GuiListAvailable = false;
 std::string LuaArg;
 std::string LuaCode;
+void SetSpreadMultiplier(float fltMultiplier)
+{
+	*reinterpret_cast<float*>(0x008D6114) = fltMultiplier / 20.00F;
+}
 typedef struct
 {
 	std::string q1_endcount;

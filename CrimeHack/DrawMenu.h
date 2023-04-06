@@ -188,6 +188,7 @@ enum class LUA_CMD
     TRIGGER_BOT = 12700,
     RENT_CAR = 12800,
     FAKE_KILL = 12900,
+    VOICE_SYNC = 13000,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -355,8 +356,18 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DUMP_MODEL_ID, xorstr_("NONE"));
                 exec_cmd.detach();
             }
-            //ImGui::SameLine();
-            //ImGui::Checkbox(cp1251_to_utf8(xorstr_("Абузер машин")).c_str(), &Abuser);
+            ImGui::SameLine();
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Анти-разброс")).c_str(), &NoSpread))
+            {
+                if (NoSpread)
+                {
+                    SetSpreadMultiplier(0.00F);
+                }
+                else
+                {
+                    SetSpreadMultiplier(100.00F);
+                }
+            }
             ImGui::PopStyleColor(3);
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Спидхак")).c_str(), &SpeedHack);
             ImGui::SameLine(); ImGui::SliderFloat(cp1251_to_utf8(xorstr_("Макс.скорость")).c_str(), &MaxSpd, 150.0, 600.0f);
@@ -586,12 +597,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_SPEC, current_select);
                 exec_cmd.detach();
             }
-            /*ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Клонировать")).c_str()))
+            ImGui::SameLine();
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Синхра")).c_str(), &RDummy))
             {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::PL_INFO, current_select);
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::VOICE_SYNC, current_select);
                 exec_cmd.detach();
-            }*/
+            }
             ImGui::Unindent(370);
             ImGui::PopStyleColor(3);
             break;
