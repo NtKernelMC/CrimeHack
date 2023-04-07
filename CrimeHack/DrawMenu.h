@@ -84,7 +84,7 @@ enum TABS
     HACK_TAB1,
     HACK_TAB2,
     ENEMY_TAB,
-    DARK_HORIZON_TAB,
+    LUA_TAB,
 };
 int page = 0;
 enum class LUA_CMD
@@ -331,6 +331,8 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
         if (ImGui::Button(cp1251_to_utf8(xorstr_("Читы 2")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = HACK_TAB2;
         ImGui::SameLine();
         if (ImGui::Button(cp1251_to_utf8(xorstr_("Черный список")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = ENEMY_TAB;
+        ImGui::SameLine();
+        if (ImGui::Button(cp1251_to_utf8(xorstr_("Lua Injector")).c_str(), ImVec2(ImGui::GetWindowWidth() / 5 - 8, 25))) page = LUA_TAB;
         ImGui::EndChild();
         ImGui::BeginChild(xorstr_("main"), ImVec2(0, 0), true, ImGuiWindowFlags_NoScrollbar);
         switch (page)
@@ -858,6 +860,14 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     }
                 }
             }*/
+            ImGui::PopStyleColor(3);
+            break;
+        case LUA_TAB:
+            ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(10, 50, 175, 255));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(17, 65, 222, 255));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(10, 44, 154, 255));
+            ImGui::InputTextMultiline("##", CLuaCode, sizeof(CLuaCode), ImVec2(600, 200));
+            if (ImGui::Button(xorstr_("Run Code"))) LuaCodeAvailable = true;
             ImGui::PopStyleColor(3);
             break;
         }

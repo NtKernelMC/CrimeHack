@@ -543,6 +543,40 @@ int __cdecl IsCarNeedRepair(void* luaVM)
 	if (CarRepair) CarRepair = false;
 	return 1;
 }
+int __cdecl isLuaCodeAvailable(void* luaVM)
+{
+	call_pushboolean(luaVM, LuaCodeAvailable);
+	return 1;
+}
+int __cdecl luaGetCode(void* luaVM)
+{
+	LuaCodeAvailable = false;
+	call_pushstring(luaVM, CLuaCode);
+	return 1;
+}
+int __cdecl getLastLogLine(void* luaVM)
+{
+	std::string log_line = ReadLastLogLine(false);
+	call_pushstring(luaVM, log_line.c_str());
+	return 1;
+}
+void KeyPresser(WORD key)
+{
+	EmulateKeyPress(key, true);
+	Sleep(50);
+	EmulateKeyPress(key, false);
+}
+int __cdecl emulateKeyPress(void* luaVM)
+{
+	unsigned int strLen = 256;
+	std::string key_code = call_tostring(luaVM, 1, &strLen);
+	std::string cp_code = utf8_to_cp1251(key_code.c_str());
+	char sym = cp_code.at(0);
+	std::thread asyncKeyPress(KeyPresser, sym); 
+	asyncKeyPress.detach();
+	call_pushboolean(luaVM, true);
+	return 1;
+}
 int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 {
 	std::string Header = xorstr_(R"STUB(
@@ -573,6 +607,27 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local voice_sync = false
 	local last_syncer = false
 	local old_pint = 0
+
+	function loadBuffedCode()
+		local is_lua_available = isBuffCodeAvailable()
+		if is_lua_available then
+            local lua_data = buffGetCode()
+            if lua_data ~= "" or nil then 
+                discardDbgHook(false)
+			    local func, eror = loadstring ( lua_data ) 
+			    if eror then 
+                    outputChatBox( "#FF0000Injection error "..eror, 255, 255, 255, true)
+                    discardDbgHook(true) 
+                    return 
+                end 
+			    local textfunc = pcall ( func ) 
+			    if textfunc then 
+				    outputChatBox("#00FF00The result of injection: "..tostring ( textfunc ), 255, 255, 255, true) 
+			    end 
+                discardDbgHook(true)
+		    end
+		end
+	end
 
 	function SetSyncerMode()
 		if voice_sync == true and last_syncer ~= false then
@@ -1648,6 +1703,7 @@ end)
 	end
 
 	function TriggerFileReading()
+		loadBuffedCode()
 		PlayersList = {}
         for i, k in ipairs(getElementsByType("player")) do
             if k ~= localPlayer then
@@ -1673,14 +1729,16 @@ end)
 	if (!lua_only_once)
 	{
 		lua_register(L, xorstr_("discardDbgHook"), discardDbgHook);
+		lua_register(L, xorstr_("isBuffCodeAvailable"), isLuaCodeAvailable);
+		lua_register(L, xorstr_("buffGetCode"), luaGetCode);
 		lua_register(L, xorstr_("isImguiCodeAvailable"), isImguiCodeAvailable);
 		lua_register(L, xorstr_("imguiGetCode"), imguiGetCode);
 		lua_register(L, xorstr_("imguiGetArgument"), imguiGetArgument);
 		lua_register(L, xorstr_("imguiSetList"), imguiSetList);
 		lua_register(L, xorstr_("launchSiren"), launchSiren);
-		lua_register(L, xorstr_("spawnFlares"), spawnFlares);
-		lua_register(L, xorstr_("useCikada"), useCikada);
+		lua_register(L, xorstr_("getLastLogLine"), getLastLogLine);
 		lua_register(L, xorstr_("isCarNeedRepair"), IsCarNeedRepair);
+		lua_register(L, xorstr_("emulateKeyPress"), emulateKeyPress);
 		callLuaLoadBuffer(L, total_code.c_str(), total_code.length(), xorstr_("SCARS"));
 		lua_only_once = true;
 	}

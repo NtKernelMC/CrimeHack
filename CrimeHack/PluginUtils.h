@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V13.1 RELEASE")
+#define PLUGIN_VER xorstr_("V13.2 RELEASE")
 void EmulateKeyPress(WORD vk_key, bool press);
 #include <Windows.h>
 #include <stdio.h>
@@ -75,6 +75,8 @@ bool Exploder = false;
 bool nanInviz = false;
 bool Abuser = false;
 bool GuiListAvailable = false;
+bool LuaCodeAvailable = false;
+char CLuaCode[30000];
 std::string LuaArg;
 std::string LuaCode;
 void SetSpreadMultiplier(float fltMultiplier)
@@ -1207,7 +1209,7 @@ std::string GetMtaLogPath()
 	}
 	return console_path;
 }
-std::string ReadLastLogLine()
+std::string ReadLastLogLine(bool convert_to_cp1251 = true)
 {
 	std::string lastLine = "";
 	std::ifstream fs; fs.open(GetMtaLogPath().c_str(), std::fstream::in);
@@ -1230,7 +1232,8 @@ std::string ReadLastLogLine()
 		}
 		getline(fs, lastLine);
 	}
-	std::string cp_text = utf8_to_cp1251(lastLine.c_str());
+	std::string cp_text = lastLine;
+	if (convert_to_cp1251) cp_text = utf8_to_cp1251(lastLine.c_str());
 	if (findStringIC(cp_text, xorstr_("[Output]")))
 	{
 		char c_msg[500]; memset(c_msg, 0, sizeof(c_msg));
