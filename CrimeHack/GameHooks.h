@@ -560,6 +560,22 @@ int __cdecl getLastLogLine(void* luaVM)
 	call_pushstring(luaVM, log_line.c_str());
 	return 1;
 }
+int __cdecl SyncUnoc(void* luaVM)
+{
+	CPed* local_ped = FindPlayerPed(-1);
+	if (local_ped != nullptr)
+	{
+		for (decltype(auto) veh : CPools::ms_pVehiclePool)
+		{
+			if (veh != nullptr && veh->m_pDriver != nullptr)
+			{
+				SyncUnoccupiedData(veh);
+			}
+		}
+	}
+	call_pushboolean(luaVM, true);
+	return 1;
+}
 void KeyPresser(WORD key)
 {
 	EmulateKeyPress(key, true);
@@ -1700,6 +1716,27 @@ end)
 			end
 		end
 
+		if tonumber(exec_cmd) == 13100 then
+			for i, k in ipairs(getElementsByType("vehicle")) do
+				setTrainDerailable(k, true)
+				setTrainDerailed(k, true)
+			end
+			SyncUnoc()
+		end
+
+		if tonumber(exec_cmd) == 13200 then
+			for i, k in ipairs(getElementsByType("vehicle")) do
+				local occupant = getVehicleOccupant(k, 0)
+				if occupant == false then
+					local x, y, z = getElementPosition(k)
+					z = z - 4
+					setElementFrozen(k, false)
+					setElementPosition(k, x, y, z)
+					SyncUnoc()
+				end
+			end
+		end
+
 	end
 
 	function TriggerFileReading()
@@ -1735,7 +1772,8 @@ end)
 		lua_register(L, xorstr_("imguiGetCode"), imguiGetCode);
 		lua_register(L, xorstr_("imguiGetArgument"), imguiGetArgument);
 		lua_register(L, xorstr_("imguiSetList"), imguiSetList);
-		lua_register(L, xorstr_("launchSiren"), launchSiren);
+		//lua_register(L, xorstr_("launchSiren"), launchSiren);
+		lua_register(L, xorstr_("SyncUnoc"), SyncUnoc);
 		lua_register(L, xorstr_("getLastLogLine"), getLastLogLine);
 		lua_register(L, xorstr_("isCarNeedRepair"), IsCarNeedRepair);
 		lua_register(L, xorstr_("emulateKeyPress"), emulateKeyPress);
@@ -1871,7 +1909,15 @@ typedef void* (__thiscall* ptrCClientStreamer)(void* ECX, void* ReachedFunc, flo
 ptrCClientStreamer callCClientStreamer = nullptr;
 void* __fastcall CClientStreamer(void* ECX, void* EDX, void* ReachedFunc, float fMaxDistance, float fSectorSize, float fRowSize)
 {
-	if (fMaxDistance == 250.0f) fMaxDistance = StreamDist;
+	if (fMaxDistance == 250.0f)
+	{
+		static bool oncer = false;
+		fMaxDistance = StreamDist;
+		if (oncer && FpsUP) fMaxDistance = 0;
+		if (!oncer) oncer = true;
+	}
+	if (fMaxDistance == 500.0f && FpsUP) fMaxDistance = 0;
+	if (fMaxDistance == 1700.0f && FpsUP) fMaxDistance = 0;
 	LogInFile(LOG_NAME, xorstr_("[PLUGIN] CClientStreamer created with fMaxDistance = %f\n"), fMaxDistance);
 	return callCClientStreamer(ECX, ReachedFunc, fMaxDistance, fSectorSize, fRowSize);
 }

@@ -189,6 +189,8 @@ enum class LUA_CMD
     RENT_CAR = 12800,
     FAKE_KILL = 12900,
     VOICE_SYNC = 13000,
+    DERAILER = 13100,
+    FUCK_CARS = 13200,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -369,6 +371,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 {
                     SetSpreadMultiplier(100.00F);
                 }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Уебать трамваи")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DERAILER, xorstr_("NONE"));
+                exec_cmd.detach();
             }
             ImGui::PopStyleColor(3);
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Спидхак")).c_str(), &SpeedHack);
@@ -841,25 +849,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::RENT_CAR, xorstr_("NONE"));
                 exec_cmd.detach();
             }
-            /*ImGui::Checkbox(cp1251_to_utf8(xorstr_("Угонщик")).c_str(), &Theft);
-            ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("TASK_ENTER")).c_str()))
-            {
-                CPed* local_ped = FindPlayerPed(-1);
-                if (local_ped != nullptr)
-                {
-                    for (decltype(auto) veh : CPools::ms_pVehiclePool)
-                    {
-                        CVector ppos = local_ped->GetPosition();
-                        CVector vpos = veh->GetPosition();
-                        float dist = FindDistance3D(ppos.x, ppos.y, ppos.z, vpos.x, vpos.y, vpos.z);
-                        if (dist <= 5.0f)
-                        {
-                            CCarEnterExit::SetPedInCarDirect(local_ped, veh, 1, false);
-                        }
-                    }
-                }
-            }*/
             ImGui::PopStyleColor(3);
             break;
         case LUA_TAB:

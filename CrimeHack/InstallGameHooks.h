@@ -63,13 +63,13 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             MH_EnableHook(MH_ALL_HOOKS);
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for SendBulletSyncFire.\n"));
-        //VehColHandler = scan.FindPattern(xorstr_("client.dll"),
-        //xorstr_("\x55\x8B\xEC\xF3\x0F\x7E\x45\x00\x83\xEC\x0C\x8B\x45\x34"), xorstr_("xxxxxxx?xxxxxx"));
-        //if (VehColHandler != NULL)
-        //{
-            //LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to VehColHandler!\n"));
-        //}
-        //else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for VehColHandler.\n"));
+        VehColHandler = scan.FindPattern(xorstr_("client.dll"),
+        xorstr_("\x55\x8B\xEC\xF3\x0F\x7E\x45\x00\x83\xEC\x0C\x8B\x45\x34"), xorstr_("xxxxxxx?xxxxxx"));
+        if (VehColHandler != NULL)
+        {
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to VehColHandler!\n"));
+        }
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for VehColHandler.\n"));
         //GetParentID = scan.FindPattern(xorstr_("client.dll"), 
         //xorstr_("\x8B\x07\x8D\x4D\xB4\x51\x8B\xCF\xFF\x50\x28"), 
         //xorstr_("xxxxxxxxxxx"));

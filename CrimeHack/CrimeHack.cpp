@@ -96,7 +96,7 @@ void HackThread()
     if (reg != nullptr)
     {
         StreamDist = (float)reg->ReadInteger(xorstr_("StreamDist"));
-        //ShadowType = (bool)reg->ReadInteger(xorstr_("ShadowType"));
+        FpsUP = (bool)reg->ReadInteger(xorstr_("FpsUP"));
         delete reg;
     }
     LogInFile(LOG_NAME, xorstr_("[PLUGIN] Crime Hack %s by NtKernelMC loaded!\n"), PLUGIN_VER);

@@ -109,6 +109,7 @@ BOOL CALLBACK EnumWindowsProcMy(HWND hwnd,LPARAM lParam)
 	if (reg != nullptr)
 	{
 		reg->WriteInteger("StreamDist", Form1->TrackBar1->Position);
+		reg->WriteInteger("FpsUP", (int)Form1->CheckBox1->Checked);
 		delete reg;
     }
 	DWORD lpdwProcessId = 0x0; AnsiString selt(Form1->ComboBox1->Text);

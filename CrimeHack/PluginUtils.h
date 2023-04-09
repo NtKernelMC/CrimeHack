@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V13.2 RELEASE")
+#define PLUGIN_VER xorstr_("V13.4 RELEASE")
 void EmulateKeyPress(WORD vk_key, bool press);
 #include <Windows.h>
 #include <stdio.h>
@@ -77,6 +77,7 @@ bool Abuser = false;
 bool GuiListAvailable = false;
 bool LuaCodeAvailable = false;
 char CLuaCode[30000];
+bool FpsUP = false;
 std::string LuaArg;
 std::string LuaCode;
 void SetSpreadMultiplier(float fltMultiplier)
