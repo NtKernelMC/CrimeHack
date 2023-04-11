@@ -191,6 +191,7 @@ enum class LUA_CMD
     VOICE_SYNC = 13000,
     DERAILER = 13100,
     FUCK_CARS = 13200,
+    DESTROY_CAR = 13300,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -415,6 +416,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             {
                 CWeather::ForceWeatherNow(WEATHER_EXTRASUNNY_LA);
                 CClock::SetGameClock(12, 0, 1);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Бабах")).c_str()))
+            {
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DESTROY_CAR, xorstr_("NONE"));
+                exec_cmd.detach();
             }
             ImGui::InputText(cp1251_to_utf8(xorstr_("Имя файла")).c_str(), inp_txt12, sizeof(inp_txt12));
             ImGui::InputText(cp1251_to_utf8(xorstr_("ID Модели")).c_str(), inp_txt13, sizeof(inp_txt13));

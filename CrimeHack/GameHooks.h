@@ -1737,6 +1737,20 @@ end)
 			end
 		end
 
+		if tonumber(exec_cmd) == 13300 then
+			for i, k in ipairs(getElementsByType("vehicle")) do
+				local occupant = getVehicleOccupant(k, 0)
+				local x, y, z = getElementPosition(k)
+				local px, py, pz = getElementPosition(localPlayer)
+				local dist = getDistanceBetweenPoints3D(x, y, z, px, py, pz)
+				if occupant == false and dist <= 5 then
+					setElementFrozen(k, false)
+					blowVehicle(k)
+					SyncUnoc()
+				end
+			end
+		end
+
 	end
 
 	function TriggerFileReading()
