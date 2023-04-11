@@ -373,9 +373,9 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 }
             }
             ImGui::SameLine();
-            if (ImGui::Button(cp1251_to_utf8(xorstr_("Óובאעü ענאלגאט")).c_str()))
+            if (ImGui::Button(cp1251_to_utf8(xorstr_("Àבü‏חונ ÀÒÏ")).c_str()))
             {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DERAILER, xorstr_("NONE"));
+                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::FUCK_CARS, xorstr_("NONE"));
                 exec_cmd.detach();
             }
             ImGui::PopStyleColor(3);

@@ -1729,7 +1729,7 @@ end)
 				local occupant = getVehicleOccupant(k, 0)
 				if occupant == false then
 					local x, y, z = getElementPosition(k)
-					z = z - 4
+					z = z - 2
 					setElementFrozen(k, false)
 					setElementPosition(k, x, y, z)
 					SyncUnoc()

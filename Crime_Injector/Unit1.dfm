@@ -44643,7 +44643,7 @@ object Form1: TForm1
   end
   object CheckBox1: TCheckBox
     Left = 82
-    Top = 496
+    Top = 484
     Width = 172
     Height = 17
     Caption = 'FPS UP '#1076#1083#1103' '#1084#1086#1085#1077#1090#1095#1080#1082#1086#1074' '#1041#1059
