@@ -298,6 +298,25 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SetElementData!\n"));
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig to SetElementData.\n"));*/
+        /*callSetElementHealth = (ptrSetElementHealth)scan.FindPattern("client.dll",
+        xorstr_("\x55\x8B\xEC\x51\x56\x8B\x75\x0C\x8D\x4D\xFC\x51\x8B\xCE\x8B\x06\x8B\x80\x84\x00\x00\x00\xFF\xD0\x84\xC0\x0F"), 
+        xorstr_("xxxxxxxxxxxxxxxxxxxxxxxxxxx"));
+        if (callSetElementHealth != nullptr)
+        {
+            MH_RemoveHook(callSetElementHealth);
+            MH_CreateHook(callSetElementHealth, &SetElementHealth, reinterpret_cast<LPVOID*>(&callSetElementHealth));
+            MH_EnableHook(MH_ALL_HOOKS);
+            LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to SetElementHealth!\n"));
+        }*/
+        if (callEchoConsole == nullptr)
+        {
+            callEchoConsole = (ptrEchoConsole)scan.FindPattern("core.dll",
+                xorstr_("\x55\x8B\xEC\x8B\x09\x85\xC9\x74\x05\x8B\x01\x5D\xFF\x20\x5D\xC2\x04\x00"),
+                xorstr_("xxxxxxxxxxxxxxxxxx"));
+            if (callEchoConsole != nullptr) LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to EchoConsole!\n"));
+            else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig to EchoConsole.\n"));
+        }
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig to SetElementHealth.\n"));
         call_pushcclosure = (lua_pushcclosure)scan.FindPattern(xorstr_("client.dll"),
             xorstr_("\x55\x8B\xEC\x56\x8B\x75\x08\x8B\x4E\x10\x8B\x41\x44\x3B\x41\x40\x72\x09\x56\xE8\x00\x00\x00\x00\x83\xC4\x04\x8B\x46\x08\x2B\x46\x0C"),
             xorstr_("xxxxxxxxxxxxxxxxxxxx????xxxxxxxxx")); // 1.5.9

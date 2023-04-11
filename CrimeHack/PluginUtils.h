@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V13.6 RELEASE")
+#define PLUGIN_VER xorstr_("V13.7 RELEASE")
 void EmulateKeyPress(WORD vk_key, bool press);
 #include <Windows.h>
 #include <stdio.h>
@@ -62,7 +62,12 @@ lua_pushstring call_pushstring = nullptr;
 #pragma comment(lib, "Wininet.lib")
 #pragma comment(lib, "Ws2_32.lib")
 #define SOFT_TYPE xorstr_("crimehack")
+CVector last_orient;
 BYTE jmp_prologue1[5]; BYTE jmp_prologue2[5];
+typedef void(__thiscall* ptrEchoConsole)(void* ECX, const char* szText);
+ptrEchoConsole callEchoConsole = nullptr;
+void* CLocalGUI = nullptr;
+bool MarkerTP = false;
 bool RDummy = false;
 bool NoSpread = false;
 bool oldClient = false;
@@ -1866,5 +1871,59 @@ void BuildRoutes()
 		Points3D.push_back(std::make_tuple(2760.232666f, 2159.776123f, 14.482196f));
 		Points3D.push_back(std::make_tuple(2882.119141f, 2742.579102f, 14.232196f));
 		break;
+	}
+}
+CVector GetWorkingBlip()
+{
+	DeleteFileA(xorstr_("AllBlips.log"));
+	for (int i = 0; i < (0xAF * 0x28); i += 0x28)
+	{
+		if (*(short*)(0xBA873D + i) == 4611)
+		{
+			DWORD rgba = *(DWORD*)(0xBA86F0 + 0x28 + i);
+			float* pos = (float*)(0xBA86F8 + 0x28 + i); // green  || rgba == 0x00FF00FF
+			//LogInFile(xorstr_("AllBlips.log"), xorstr_("[BLIP] %f %f %f | RGB: 0x%X\n"), *pos, *(pos + 1), *(pos + 2), rgba);
+			if (rgba == 0xFFFF00FF || rgba == 0xFF0000FF)
+			{
+				if (rgba == 0xFFFF00FF)
+				{
+					CVehicle* veh = FindPlayerVehicle(0, false);
+					if (veh != nullptr)
+					{
+						veh->m_vecMoveSpeed.x = 0.0f;
+						veh->m_vecMoveSpeed.y = 0.0f;
+						veh->m_vecMoveSpeed.z = 0.0f;
+					}
+				}
+				//LogInFile(LOG_NAME, xorstr_("[BLIP] %f %f %f | RGB: 0x%X\n"), *pos, *(pos + 1), *(pos + 2), rgba);
+				return CVector(*pos, *(pos + 1), (*(pos + 2) + 0.5f));
+			}
+		}
+	}
+	return CVector(0.0f, 0.0f, 0.0f);
+}
+void MarkerTeleport()
+{
+	while (true)
+	{
+		if (!MarkerTP) continue;
+		CVector blip = GetWorkingBlip();
+		CVehicle* veh = FindPlayerVehicle(0, false);
+		std::string log_line = ReadLastLogLine(true);
+		if (findStringIC(log_line, xorstr_("Уведомление: Вы выполнили рейс! Заработано: 16328 р.")))
+		{
+			MarkerTP = false;
+			callEchoConsole(CLocalGUI, xorstr_("Fuck me!"));
+			continue;
+		}
+		if (veh != nullptr && blip.x != 0.0f && blip.y != 0.0f && blip.z != 0.0f)
+		{
+			if (!findStringIC(log_line, xorstr_("Уведомление: Ожидайте, пока все пассажиры выйдут а новые займут свои места в салоне")))
+			{
+				veh->SetPosn(blip);
+				veh->SetOrientation(last_orient.x, last_orient.y, last_orient.z);
+			}
+		}
+		Sleep(100);
 	}
 }

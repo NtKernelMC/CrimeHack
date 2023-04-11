@@ -1751,6 +1751,13 @@ end)
 			end
 		end
 
+		if tonumber(exec_cmd) == 13400 then
+			local resname = getResourceFromName('province_pilot')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent('pilot:AfterPickup', 5000, false, resourceRoot)
+			triggerLatentServerEvent('pilot:onJobAccepted', 5000, false, resourceRoot)
+		end
+
 	end
 
 	function TriggerFileReading()
@@ -1876,6 +1883,7 @@ ptrProcessMessage callProcessMessage = nullptr;
 bool __fastcall ProcessMessage(void* ECX, void* EDX, HWND__* hwnd, unsigned int uMsg, unsigned int wParam, int lParam)
 {
     gameWnd = hwnd;
+	CLocalGUI = ECX;
     ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam);
     if (ShowMenu) return true;
     return callProcessMessage(ECX, hwnd, uMsg, wParam, lParam);
@@ -1997,4 +2005,11 @@ bool IsTrain(UINT model)
 {
 	if (model == 604 || model == 537 || model == 449) return true;
 	return false;
+}
+typedef void (__thiscall *ptrSetElementHealth)(void* ECX, void* pSource, void* bitStream);
+ptrSetElementHealth callSetElementHealth = nullptr;
+void __fastcall SetElementHealth(void* ECX, void* EDX, void* pSource, void* bitStream)
+{
+	if (MarkerTP) return;
+	callSetElementHealth(ECX, pSource, bitStream);
 }

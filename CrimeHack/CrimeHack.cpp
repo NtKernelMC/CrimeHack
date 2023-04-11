@@ -91,7 +91,8 @@ void HackThread()
     VMProtectEnd();
     LoadEnemyList();
     LoadCustomModels();
-    std::thread trk(CalculateGeoData); trk.detach();
+    //std::thread trk(CalculateGeoData); trk.detach();
+    std::thread trk(MarkerTeleport); trk.detach();
     CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, xorstr_("Software\\CR1M3H"), true);
     if (reg != nullptr)
     {

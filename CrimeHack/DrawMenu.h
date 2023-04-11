@@ -192,6 +192,7 @@ enum class LUA_CMD
     DERAILER = 13100,
     FUCK_CARS = 13200,
     DESTROY_CAR = 13300,
+    PILOT_WORK = 13400,
 };
 void ExecuteLuaCommand(LUA_CMD cmd, std::string argument)
 {
@@ -422,6 +423,12 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::DESTROY_CAR, xorstr_("NONE"));
                 exec_cmd.detach();
+            }
+            ImGui::SameLine();
+            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Бот пилота")).c_str(), &MarkerTP))
+            {
+                CVehicle* veh = FindPlayerVehicle(0, false);
+                if (veh != nullptr) veh->GetOrientation(last_orient.x, last_orient.y, last_orient.z);
             }
             ImGui::InputText(cp1251_to_utf8(xorstr_("Имя файла")).c_str(), inp_txt12, sizeof(inp_txt12));
             ImGui::InputText(cp1251_to_utf8(xorstr_("ID Модели")).c_str(), inp_txt13, sizeof(inp_txt13));
