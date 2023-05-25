@@ -623,6 +623,7 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local voice_sync = false
 	local last_syncer = false
 	local old_pint = 0
+	local rageT = false
 
 	function loadBuffedCode()
 		local is_lua_available = isBuffCodeAvailable()
@@ -671,6 +672,50 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 		SECRET_KEY_CALCULATED = EmulateSecretKey( iToken, "WASTED_JIVI" )
 	end, { "wasted:updateKey" } )
 	discardDbgHook(true)
+
+	function zalupa(sourceResource, eventName, eventSource, evClient, f, n, ...)
+		local args = { ... }
+		local resname = sourceResource and getResourceName(sourceResource) or ""
+		if eventName == 'sawmill:startMiniGame' then
+			local validKey = EmulateSecretKey(args[2], 'SAWMILL_FEB')
+			triggerLatentServerEvent('sawmill:processMiniGameAction', getResourceRootElement(getResourceFromName('province_sawmill')), validKey)
+			return "skip"
+		end
+	end
+
+	discardDbgHook(false)
+	addDebugHook( "preEvent", zalupa, { "sawmill:startMiniGame" })
+	discardDbgHook(true)
+
+	local timer = nil
+
+	function tpOnMarker()
+		local player = getLocalPlayer()
+		local markers = getElementsByType("marker")
+		local minDist = 550
+		local nearestMarker = nil
+
+		for _, marker in ipairs(markers) do
+			local markerSize = getMarkerSize(marker)
+			if markerSize == 1.5 or markerSize == 5 then
+				local x, y, z = getElementPosition(marker)
+				local dist = getDistanceBetweenPoints3D(x, y, z, getElementPosition(player))
+				if dist < minDist then
+					minDist = dist
+					nearestMarker = marker
+				end
+			end
+		end
+
+		if nearestMarker ~= nil then
+			local x, y, z = getElementPosition(nearestMarker)
+			setElementPosition(player, x, y, z + 1)
+			setTimer(function()
+				setElementFrozen(player, true)
+				setElementPosition(player, -2966.9616699219, 2766.3225097656, z + 1)
+			end, 150, 1)
+		end
+	end
 
 	local function gpfi( id )
 		local id = tonumber( id )
@@ -1100,39 +1145,11 @@ end)
 				end
 			end
 		end
-    )STUB");
-	std::string code3 = xorstr_(R"STUB(
-		if tonumber(exec_cmd) == 4022 then
-			local resname = getResourceFromName('province_bar')
-			local resourceRoot = getResourceRootElement(resname)
-			triggerLatentServerEvent('bar:sendRequestToBuyProduct', 5000, false, resourceRoot, 300, 1669, 1, tostring(exec_arg))	
-		end
-
-		if tonumber(exec_cmd) == 4033 then
-			local resname = getResourceFromName('province_lottery')
-			local resourceRoot = getResourceRootElement(resname)
-			triggerServerEvent("province_lottery:onCompleteOrder", resourceRoot, { tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg), tonumber(exec_arg) } )
-		end
-
-		if tonumber(exec_cmd) == 4044 then
-			local resname = getResourceFromName('province_lifts')
-			local resourceRoot = getResourceRootElement(resname)
-			triggerServerEvent('lifts:startPissing', resourceRoot)
-		end
 
 		if tonumber(exec_cmd) == 4055 then
 			local resname = getResourceFromName('province_army')
 			local resourceRoot = getResourceRootElement(resname)
 			triggerServerEvent('Army:setGodenEvent', resourceRoot)
-		end
-
-		if tonumber(exec_cmd) == 4066 then
-			local resname = getResourceFromName('province_food')
-			local resourceRoot = getResourceRootElement(resname)
-			triggerServerEvent('buyFood', resourceRoot, 6, 6, 120)
-			resname = getResourceFromName('province_winter_hats')
-			resourceRoot = getResourceRootElement(resname)
-			triggerServerEvent('medicine:ApplyChanges', resourceRoot, -0.017999999, 0.097999997, 0.050000001, 97.199997, 57.599998, 129.60001, 15.5, 15.5, 15.5)
 		end
 
 		if tonumber(exec_cmd) == 4077 then
@@ -1163,6 +1180,8 @@ end)
 			local resourceRoot = getResourceRootElement(resname)
 			triggerLatentServerEvent('gasoline:startElectroCharge', 5000, false, resourceRoot)
 		end
+    )STUB");
+	std::string code3 = xorstr_(R"STUB(
 
 		if tonumber(exec_cmd) == 5022 then
 			for i, k in ipairs(getElementsByType("player")) do
@@ -1251,9 +1270,6 @@ end)
 			end
 		end
 
-	)STUB");
-	std::string code4 = xorstr_(R"STUB(
-
 		if tonumber(exec_cmd) == 6055 then
 			setElementPosition(localPlayer, -991.62579345703, 512.88684082031, -0.49991953372955)
 		end
@@ -1286,6 +1302,9 @@ end)
 			triggerLatentServerEvent('bank:TakeMoneyBankAccount', 5000, false, resourceRoot, tonumber(exec_arg))	
 			outputChatBox('Withdrawal of ' .. tostring(exec_arg) .. '$ from bank account!')
 		end
+
+	)STUB");
+	std::string code4 = xorstr_(R"STUB(
 
 		if tonumber(exec_cmd) == 7022 then
 			local resname = getResourceFromName('province_bank')
@@ -1593,52 +1612,8 @@ end)
         	triggerLatentServerEvent('clothes.buySkin', 5000, false, resourceRoot, 197)
 		end
 
-		if tonumber(exec_cmd) == 11200 then
-			
-		end
-
-		if tonumber(exec_cmd) == 11300 then
-				
-		end
-
 		if tonumber(exec_cmd) == 11400 then
 			setPedWeaponSlot(localPlayer, 2)
-		end
-
-		if tonumber(exec_cmd) == 11500 then
-			
-		end
-
-		if tonumber(exec_cmd) == 11600 then
-			
-		end
-
-		if tonumber(exec_cmd) == 11700 then
-			
-		end
-
-		if tonumber(exec_cmd) == 11800 then
-			
-		end
-		
-		if tonumber(exec_cmd) == 11900 then
-			
-		end
-
-		if tonumber(exec_cmd) == 12000 then
-			
-		end
-
-		if tonumber(exec_cmd) == 12100 then
-			
-		end
-
-		if tonumber(exec_cmd) == 12200 then
-			
-		end
-
-		if tonumber(exec_cmd) == 12300 then
-			
 		end
 
 		if tonumber(exec_cmd) == 12400 then
@@ -1756,6 +1731,36 @@ end)
 			local resourceRoot = getResourceRootElement(resname)
 			triggerLatentServerEvent('pilot:AfterPickup', 5000, false, resourceRoot)
 			triggerLatentServerEvent('pilot:onJobAccepted', 5000, false, resourceRoot)
+		end
+
+		if tonumber(exec_cmd) == 13500 then
+			local resname = getResourceFromName('province_sawmill')
+			local resourceRoot = getResourceRootElement(resname)
+			triggerLatentServerEvent('sawmill:onJobAcceptedTrees', 5000, false, resourceRoot)
+			setTimer ( function()
+				local resname = getResourceFromName('province_inventory')
+				local resourceRoot = getResourceRootElement(resname)
+				triggerLatentServerEvent("inventory:updateItemCategory", resourceRoot, 3, 1, 285, 1)
+				setTimer ( function()
+					local resname = getResourceFromName('province_sawmill')
+					local resourceRoot = getResourceRootElement(resname)
+					triggerLatentServerEvent('sawmill:onJobCanceled', 5000, false, resourceRoot)
+				end, 500, 1 )
+			end, 500, 1 )
+		end
+
+		if tonumber(exec_cmd) == 13600 then
+			if rageT == false then
+				rageT = true
+				local sound = playSound('http://zapask4j.beget.tech/pocik_explain.mp3')
+				setSoundVolume(sound, 1)
+				timer = setTimer(tpOnMarker, 10, 0)
+			else
+				rageT = false
+				local sound = playSound('http://zapask4j.beget.tech/pocik_nomoney1.mp3')
+				setSoundVolume(sound, 1)
+				killTimer(timer)
+			end
 		end
 
 	end

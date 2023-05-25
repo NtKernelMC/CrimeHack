@@ -154,6 +154,11 @@ void HackThread()
             CVehicle* veh = FindPlayerVehicle(0, false);
             if (veh != nullptr) setVehElementSpeed(veh, MaxSpd);
         }
+        if (GetAsyncKeyState(0x1) && Dummy12 && GetModuleHandleA(xorstr_("client.dll")))
+        {
+            CVehicle* veh = FindPlayerVehicle(0, false);
+            if (veh != nullptr) setVehElementSpeed(veh, 600.0f);
+        }
         Sleep(150);
     }
 }
