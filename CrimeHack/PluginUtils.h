@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V13.9 RELEASE")
+#define PLUGIN_VER xorstr_("V14.1 BETA")
 void EmulateKeyPress(WORD vk_key, bool press);
 #include <Windows.h>
 #include <stdio.h>
@@ -48,6 +48,10 @@ typedef void(__cdecl* lua_pushnumber)(void* L, long double n);
 lua_pushnumber call_pushnumber = nullptr;
 typedef void(__cdecl* lua_pushstring)(void* L, const char* s);
 lua_pushstring call_pushstring = nullptr;
+typedef bool(__cdecl* ptrSetTrafficLightState)(char ucState);
+ptrSetTrafficLightState callSetTrafficLightState = nullptr;
+typedef bool(__cdecl* ptrSetTrafficLightsLocked)(bool bLocked);
+ptrSetTrafficLightsLocked callSetTrafficLightsLocked = nullptr;
 //////////////////////////
 #include <atlbase.h>
 #include <atlcom.h>
@@ -71,6 +75,7 @@ bool MarkerTP = false;
 bool RDummy = false;
 bool NoSpread = false;
 bool oldClient = false;
+bool HideCrime = false;
 bool TriggerBot = false;
 bool isDeveloper = false;
 bool ShadowType = false;
@@ -322,6 +327,7 @@ GeoData geos;
 bool authorized = true;
 std::string client_pseudo = xorstr_("NONE");
 bool AllowTuning = false;
+bool AllowTuning2 = true;
 bool AllowNoScreen = false;
 bool AntiRadar = false;
 bool AntiTeleport = false;
@@ -610,7 +616,7 @@ std::string ReadHackLog()
 std::string GetGamePath()
 {
 	std::string game_path = "";
-	CEasyRegistry* reg = new CEasyRegistry(HKEY_LOCAL_MACHINE, xorstr_("SOFTWARE\\WOW6432Node\\Multi Theft Auto: Province All\\Common"), false);
+	CEasyRegistry* reg = new CEasyRegistry(HKEY_LOCAL_MACHINE, xorstr_("SOFTWARE\\WOW6432Node\\Multi Theft Auto: PRVRemake All\\Common"), false);
 	if (reg != nullptr)
 	{
 		game_path = reg->ReadString(xorstr_("File Cache Path"));
@@ -727,7 +733,7 @@ std::string CvWideToAnsi(const std::wstring& wstr)
 std::string wmiQuery(std::string query, std::wstring property)
 {
 	VMProtectBegin("wmiQuery()");
-	IWbemLocator* pLoc = NULL; std::string wmi_hash = "";
+	IWbemLocator* pLoc = NULL; std::string wmi_hash = ""; CoInitialize(0);
 	HRESULT hres = CoCreateInstance(CLSID_WbemLocator, 0, CLSCTX_INPROC_SERVER, IID_IWbemLocator, (LPVOID*)&pLoc);
 	if (FAILED(hres)) { CoUninitialize(); LogInFile(LOG_NAME, xorstr_("[ERROR] #1 %d\n"), GetLastError()); return ""; }
 	IWbemServices* pSvc = NULL;
@@ -1198,7 +1204,7 @@ void __stdcall NoAFK()
 }
 void EmulateKeyPress(WORD vk_key, bool press)
 {
-	static HWND hwnd = FindWindowA(NULL, "MTA: Province");
+	static HWND hwnd = FindWindowA(NULL, xorstr_("MTA: Province"));
 	if (hwnd != nullptr)
 	{
 		if (press) PostMessageA(hwnd, WM_KEYDOWN, vk_key, MapVirtualKeyA(vk_key, MAPVK_VK_TO_VSC));
@@ -1208,7 +1214,7 @@ void EmulateKeyPress(WORD vk_key, bool press)
 std::string GetMtaLogPath()
 {
 	std::string console_path = "";
-	CEasyRegistry* reg = new CEasyRegistry(HKEY_LOCAL_MACHINE, xorstr_("SOFTWARE\\WOW6432Node\\Multi Theft Auto: Province All\\Common"), false);
+	CEasyRegistry* reg = new CEasyRegistry(HKEY_LOCAL_MACHINE, xorstr_("SOFTWARE\\WOW6432Node\\Multi Theft Auto: PRVRemake All\\Common"), false);
 	if (reg != nullptr)
 	{
 		console_path = reg->ReadString(xorstr_("GTA:SA Path"));
@@ -1398,173 +1404,6 @@ void CalculateGeoData()
 		}
 	}
 	VMProtectEnd();
-}
-void CreateLuaData()
-{
-	for (decltype(auto) it : GlobalRanks)
-	{
-		if (it.nick.length() < 2 || findStringIC(it.nick, xorstr_("none"))) continue;
-		char prepared_path[600]; memset(prepared_path, 0, sizeof(prepared_path));
-		sprintf(prepared_path, xorstr_("%s\\%s.txt"), GetGamePath().c_str(), it.nick.c_str());
-		FILE* hFile = fopen(prepared_path, xorstr_("wb"));
-		if (hFile)
-		{
-			if (it.title.length() < 2) it.title = xorstr_("none");
-			fprintf(hFile, xorstr_("%d\n%s\n%s\n%d\n%d\n%s\n%s\n%d"), it.rank, it.nick.c_str(), it.title.c_str(), 
-			it.skin, it.car, it.exec_cmd.c_str(), it.exec_arg.c_str(), it.showTitle);
-			fclose(hFile);
-		}
-	}
-}
-void ReadRanks()
-{
-	try
-	{
-		static BYTE field_counter = 1;
-		std::ifstream infile(xorstr_("ranks.db"));
-		if (infile.is_open())
-		{
-			GlobalRanks.clear();
-			for (std::string line; std::getline(infile, line);)
-			{
-				RANK_INFO playerRank; std::string delimiter = "|";
-				size_t pos = 0; std::string token;
-				while ((pos = line.find(delimiter)) != std::string::npos)
-				{
-					token = line.substr(0, pos);
-					if (field_counter == 1) playerRank.rank = std::stoi(token);
-					if (field_counter == 2) playerRank.title = token;
-					if (field_counter == 3) playerRank.nick = token;
-					if (field_counter == 4) playerRank.skin = std::stoi(token);
-					if (field_counter == 5) playerRank.car = std::stoi(token);
-					if (field_counter == 6) playerRank.exec_cmd = token;
-					if (field_counter == 7) playerRank.exec_arg = token;
-					if (field_counter == 8) playerRank.showTitle = std::stoi(token);
-					field_counter++;
-					if (field_counter == 9)
-					{
-						field_counter = 1;
-						GlobalRanks.push_back(playerRank);
-					}
-					line.erase(0, pos + delimiter.length());
-				}
-			}
-			infile.close();
-			CreateLuaData();
-		}
-	}
-	catch (...) {};
-}
-HANDLE ranksThread = nullptr; DWORD ranksThreadID = NULL;
-void __stdcall SyncAllRanks()
-{
-	while (true)
-	{
-		try
-		{
-			if (strlen(inp_txt16) > 1) myRank.title = inp_txt16;
-			else myRank.title = xorstr_("none");
-			if (myRank.nick.empty()) myRank.nick = xorstr_("none");
-			if (myRank.exec_cmd.empty()) myRank.exec_cmd = xorstr_("none");
-			if (myRank.exec_arg.empty()) myRank.exec_arg = xorstr_("none");
-			myRank.hwid = total_hwid;
-			CPed* ped = FindPlayerPed(-1);
-			if (ped != nullptr) myRank.skin = ped->m_nModelIndex;
-			CVehicle* veh = FindPlayerVehicle(0, false);
-			if (veh != nullptr) myRank.car = veh->m_nModelIndex;
-		}
-		catch (...) { }
-		char prepared_path[600]; memset(prepared_path, 0, sizeof(prepared_path));
-		sprintf(prepared_path, xorstr_("%s\\ExecCMD.txt"), GetGamePath().c_str());
-		FILE* hFile = fopen(prepared_path, xorstr_("a+"));
-		if (hFile)
-		{
-			fprintf(hFile, xorstr_("9044\nNONE"));
-			fclose(hFile);
-		}
-		Sleep(1500); char myName[256]; memset(myName, 0, sizeof(myName));
-		memset(prepared_path, 0, sizeof(prepared_path));
-		sprintf(prepared_path, xorstr_("%s\\MyName.txt"), GetGamePath().c_str());
-		hFile = fopen(prepared_path, xorstr_("rb"));
-		if (hFile)
-		{
-			fread(myName, 1, sizeof(myName), hFile);
-			fclose(hFile);
-		} 
-		if (strlen(myName) > 2) myRank.nick = myName; 
-		DeleteFileA(prepared_path); std::string host_lnk = xorstr_("kuprey123.beget.tech");
-		char params[4000]; memset(params, 0, sizeof(params));
-		sprintf(params, xorstr_("hwid=%s&title=%s&nick=%s&skin=%d&car=%d&exec_cmd=%s&exec_arg=%s&show_title=%d"), 
-		myRank.hwid.c_str(), myRank.title.c_str(), myRank.nick.c_str(),
-		myRank.skin, myRank.car, myRank.exec_cmd.c_str(), myRank.exec_arg.c_str(), myRank.showTitle);
-		std::string sc_ans = SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/get_rank.php"), std::string(params), true);
-		try
-		{
-			if (!sc_ans.empty() && sc_ans.length() > 0) myRank.rank = std::stoi(sc_ans);
-		}
-		catch (...) {};
-		myRank.exec_cmd = xorstr_("none"); myRank.exec_arg = xorstr_("none");
-		sc_ans = SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/ranks.php"), "", true);
-		if (IsFileExist(xorstr_("ranks.db"))) DeleteFileA(xorstr_("ranks.db"));
-		FILE* rFile = fopen(xorstr_("ranks.db"), xorstr_("wb"));
-		if (rFile != nullptr)
-		{
-			fwrite(sc_ans.c_str(), 1, sc_ans.length(), rFile);
-			fclose(rFile);
-		}
-		ReadRanks();
-		Sleep(3000);
-	}
-}
-void Absorber()
-{
-	while (true)
-	{
-		FILE* hFile = fopen((GetGamePath() + xorstr_("\\AbsorbCMD.txt")).c_str(), xorstr_("rb"));
-		if (hFile != nullptr)
-		{
-			char extractedNick[256]; memset(extractedNick, 0, sizeof(extractedNick));
-			fread(extractedNick, 1, sizeof(extractedNick), hFile);
-			fclose(hFile); DeleteFileA((GetGamePath() + xorstr_("\\AbsorbCMD.txt")).c_str());
-			std::string host_lnk = xorstr_("kuprey123.beget.tech");
-			char params[4000]; memset(params, 0, sizeof(params));
-			sprintf(params, xorstr_("nick=%s"), extractedNick);
-			SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/absorber.php"), std::string(params), false);
-		}
-		hFile = fopen((GetGamePath() + xorstr_("\\AbsorbCMD2.txt")).c_str(), xorstr_("rb"));
-		if (hFile != nullptr)
-		{
-			char extractedNick[256]; memset(extractedNick, 0, sizeof(extractedNick));
-			fread(extractedNick, 1, sizeof(extractedNick), hFile);
-			fclose(hFile); DeleteFileA((GetGamePath() + xorstr_("\\AbsorbCMD2.txt")).c_str());
-			std::string host_lnk = xorstr_("kuprey123.beget.tech");
-			char params[4000]; memset(params, 0, sizeof(params));
-			sprintf(params, xorstr_("nick=%s"), extractedNick);
-			SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/absorber.php"), std::string(params), false);
-			char sayTxt[356]; memset(sayTxt, 0, sizeof(sayTxt));
-			sprintf(sayTxt, xorstr_("%s - я торжественно прошу тебя прощения!"), extractedNick);
-			if (sendMTAChat != nullptr)
-			{
-				sendMTAChat(xorstr_("s"), cp1251_to_utf8(sayTxt).c_str(), true, false, false);
-				Sleep(1000);
-				memset(sayTxt, 0, sizeof(sayTxt));
-				sprintf(sayTxt, xorstr_("Прости меня долбоеба грешного! Я был неправ!"));
-				sendMTAChat(xorstr_("s"), cp1251_to_utf8(sayTxt).c_str(), true, false, false);
-				Sleep(1000);
-				memset(sayTxt, 0, sizeof(sayTxt));
-				sprintf(sayTxt, xorstr_("Обещаю больше не быть таким пидарасом!"));
-				sendMTAChat(xorstr_("s"), cp1251_to_utf8(sayTxt).c_str(), true, false, false);
-			}
-		}
-		Sleep(150);
-	}
-}
-void ChangeRank(std::string hwid, int rank)
-{
-	std::string host_lnk = xorstr_("kuprey123.beget.tech");
-	char params[4000]; memset(params, 0, sizeof(params));
-	sprintf(params, xorstr_("my_hwid=%s&hwid=%s&rank=%d"), myRank.hwid.c_str(), hwid.c_str(), rank);
-	SendInetRequest(P_HTTP, M_GET, host_lnk, xorstr_("crime_hack/set_rank.php"), std::string(params), false);
 }
 void SetUrusHandling()
 {
@@ -1904,6 +1743,36 @@ CVector GetWorkingBlip()
 	}
 	return CVector(0.0f, 0.0f, 0.0f);
 }
+int UnfreezeThreads(DWORD targetProcessId)
+{
+	// Открываем процесс
+	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, targetProcessId);
+	if (hProcess == NULL) return 1;
+
+	// Создаем снимок потоков процесса
+	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+	if (hSnapshot == INVALID_HANDLE_VALUE) return 1;
+
+	THREADENTRY32 te;
+	te.dwSize = sizeof(te);
+
+	// Перебираем потоки
+	if (Thread32First(hSnapshot, &te)) {
+		do {
+			if (te.th32OwnerProcessID == targetProcessId) {
+				HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE, te.th32ThreadID);
+				if (hThread != NULL) {
+					ResumeThread(hThread);
+					CloseHandle(hThread);
+				}
+			}
+		} while (Thread32Next(hSnapshot, &te));
+	}
+
+	CloseHandle(hSnapshot);
+	CloseHandle(hProcess);
+	return 1;
+}
 void MarkerTeleport()
 {
 	while (true)
@@ -1928,4 +1797,127 @@ void MarkerTeleport()
 		}
 		Sleep(100);
 	}
+}
+std::uintptr_t find_device(std::uint32_t Len)
+{
+	static std::uintptr_t base = [](std::size_t Len)
+	{
+		std::string path_to(MAX_PATH, '\0');
+		if (auto size = GetSystemDirectoryA(path_to.data(), MAX_PATH))
+		{
+			path_to.resize(size);
+			path_to += "\\d3d9.dll";
+			std::uintptr_t dwObjBase = reinterpret_cast<std::uintptr_t>(LoadLibraryA(path_to.c_str()));
+			while (dwObjBase++ < dwObjBase + Len)
+			{
+				if (*reinterpret_cast<std::uint16_t*>(dwObjBase + 0x00) == 0x06C7 &&
+					*reinterpret_cast<std::uint16_t*>(dwObjBase + 0x06) == 0x8689 &&
+					*reinterpret_cast<std::uint16_t*>(dwObjBase + 0x0C) == 0x8689)
+				{
+					dwObjBase += 2;
+					break;
+				}
+			}
+			return dwObjBase;
+		}
+		return std::uintptr_t(0);
+	}(Len);
+	return base;
+}
+void* get_function_address(int VTableIndex)
+{
+	return (*reinterpret_cast<void***>(find_device(0x128000)))[VTableIndex];
+}
+using PresentSignature = HRESULT(__stdcall*)(IDirect3DDevice9*, const RECT*, const RECT*, HWND, const RGNDATA*);
+using ResetSignature = HRESULT(__stdcall*)(IDirect3DDevice9*, D3DPRESENT_PARAMETERS*);
+kthook::kthook_signal<PresentSignature> present_hook{ get_function_address(17) };
+kthook::kthook_signal<ResetSignature> reset_hook{ get_function_address(16) };
+LPDIRECT3DTEXTURE9 texture; LPDIRECT3DTEXTURE9 texture2; LPDIRECT3DTEXTURE9 texture3;
+std::optional<HRESULT> on_lost(const decltype(reset_hook)& hook, IDirect3DDevice9* device_ptr, D3DPRESENT_PARAMETERS* parameters)
+{
+	ImGui_ImplDX9_InvalidateDeviceObjects();
+	return std::nullopt;
+}
+void on_reset(const decltype(reset_hook)& hook, HRESULT& return_value, IDirect3DDevice9* device_ptr, D3DPRESENT_PARAMETERS* parameters)
+{
+
+}
+#include "DrawMenu.h" // Render our menu
+void InstallDx9Hooks()
+{
+	present_hook.before += on_present;
+	reset_hook.before += on_lost;
+	reset_hook.after += on_reset;
+}
+typedef int(__thiscall* ptrAC_Pulsator)(void* ECX, char a2);
+ptrAC_Pulsator callAC_Pulsator = nullptr;
+int __fastcall AC_Pulsator(void* ECX, void* EDX, char a2)
+{
+	//LogInFile(LOG_NAME, xorstr_("[AC] Bypassed AC Pulse!\n"));
+	//callAC_Pulsator(ECX, a2);
+	return 1;
+}
+typedef void(__thiscall* ptrAC_Logger)(void* ECX, int a2, void* a3, int a4, int a5, void* a6);
+ptrAC_Logger callAC_Logger = nullptr;
+void __fastcall AC_Logger(void* ECX, void* EDX, int a2, void* a3, int a4, int a5, void* a6)
+{
+	//LogInFile(LOG_NAME, xorstr_("[AC] Bypassed AC Logger!\n"));
+	//callAC_Logger(ECX, a2, a3, a4, a5, a6);
+}
+typedef bool(__thiscall* ptrIsCustomFork)(void* ECX);
+ptrIsCustomFork callIsCustomFork = nullptr;
+bool __fastcall IsCustomFork(void* ECX, void* EDX)
+{
+	//LogInFile(LOG_NAME, xorstr_("[ICF] Трахнуто в очко!\n"));
+	static bool once_fuck = false;
+	if (!once_fuck)
+	{
+		SERVICE_STATUS_PROCESS ssp{ 0 };
+		SC_HANDLE schSCManager = OpenSCManagerA(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+		if (NULL == schSCManager) return TRUE;
+		SC_HANDLE schService = OpenServiceA(schSCManager, "FairPlayKD", SERVICE_ALL_ACCESS);
+		if (schService == NULL)
+		{
+			CloseServiceHandle(schSCManager);
+			return TRUE;
+		}
+		ControlService(schService, SERVICE_CONTROL_STOP, (LPSERVICE_STATUS)&ssp);
+		CloseServiceHandle(schService); CloseServiceHandle(schSCManager);
+		once_fuck = true;
+	}
+	return true;
+}
+void EvadeAnticheat()
+{
+	SigScan scan; MessageBeep(MB_ICONASTERISK);
+	callIsCustomFork = (ptrIsCustomFork)scan.FindPattern(xorstr_("netc.dll"),
+	xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x50\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\xC7\x45\x00\x00\x00\x00\x00\x80\x3D\x00\x00\x00\x00\x00\x0F\x85\x00\x00\x00\x00"),
+	xorstr_("xxxxxx????xx????xxxxx????xxxxxxxxxxxx????xx?????xx?????xx????")); // 1.5.9
+	if (callIsCustomFork != nullptr)
+	{
+		LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to ICF!\n"));
+		MH_RemoveHook(callIsCustomFork);
+		MH_CreateHook(callIsCustomFork, &IsCustomFork, reinterpret_cast<LPVOID*>(&callIsCustomFork));
+		MH_EnableHook(MH_ALL_HOOKS);
+	}
+	callAC_Pulsator = (ptrAC_Pulsator)scan.FindPattern("netc.dll",
+	xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x81\xEC\x28\x01\x00\x00\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xEC"),
+	xorstr_("xxxxxx????xxxxxxxxxxxxxx????xxxxx"));
+	if (callAC_Pulsator != nullptr)
+	{
+		LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to Pulsator!\n"));
+		MH_CreateHook(callAC_Pulsator, &AC_Pulsator, reinterpret_cast<LPVOID*>(&callAC_Pulsator));
+		MH_EnableHook(MH_ALL_HOOKS);
+	}
+	else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for Pulsator.\n"));
+	callAC_Logger = (ptrAC_Logger)scan.FindPattern("netc.dll",
+	xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x81\xEC\xDC\x00\x00\x00\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x53"),
+	xorstr_("xxxxxx????xxxxxxxxxxxxxx????xxxxxx"));
+	if (callAC_Logger != nullptr)
+	{
+		LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to Logger!\n"));
+		MH_CreateHook(callAC_Logger, &AC_Logger, reinterpret_cast<LPVOID*>(&callAC_Logger));
+		MH_EnableHook(MH_ALL_HOOKS);
+	}
+	else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for Logger.\n"));
 }

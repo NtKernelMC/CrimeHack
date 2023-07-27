@@ -385,9 +385,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             ImGui::PopStyleColor(3);
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Спидхак")).c_str(), &SpeedHack);
             ImGui::SameLine(); ImGui::SliderFloat(cp1251_to_utf8(xorstr_("Макс.скорость")).c_str(), &MaxSpd, 150.0, 600.0f);
-            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Инвиз пешком")).c_str(), &PedInviz);
-            ImGui::SameLine(); ImGui::Checkbox(cp1251_to_utf8(xorstr_("Инвиз в тачке")).c_str(), &VehInviz);
-            ImGui::SameLine(); ImGui::Checkbox(cp1251_to_utf8(xorstr_("Тачка ездит перевернутой (Синхра)")).c_str(), &UpSide);
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Анти-штраф (Скорость)")).c_str(), &AntiRadar);
             ImGui::SameLine(); 
             if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Анти-штраф (Светофор)")).c_str(), &AntiRed))
@@ -395,8 +392,8 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 if (AntiRed)
                 {
                     AntiRed = false;
-                    SetTrafficLightState(5);
-                    SetTrafficLightsLocked(true);
+                    callSetTrafficLightState(5);
+                    callSetTrafficLightsLocked(true);
                     AntiRed = true;
                 }
             }
@@ -427,11 +424,13 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 exec_cmd.detach();
             }
             ImGui::SameLine();
+            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Тачка ездит перевернутой (Синхра)")).c_str(), &UpSide);
+            /*ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Выдать топор")).c_str()))
             {
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::GET_TOPOR, xorstr_("NONE"));
                 exec_cmd.detach();
-            }
+            }*/
             ImGui::InputText(cp1251_to_utf8(xorstr_("Имя файла")).c_str(), inp_txt12, sizeof(inp_txt12));
             ImGui::InputText(cp1251_to_utf8(xorstr_("ID Модели")).c_str(), inp_txt13, sizeof(inp_txt13));
             ImGui::SameLine();
@@ -865,12 +864,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::RENT_CAR, xorstr_("NONE"));
                 exec_cmd.detach();
             }
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Погрузка древесины (RAGE)")).c_str(), &Dummy11))
-            {
-                std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::RAGE_TREE, xorstr_("NONE"));
-                exec_cmd.detach();
-            }
-            if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Рванка машиной")).c_str(), &Dummy12))
+            /*if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Рванка машиной")).c_str(), &Dummy12))
             {
                 if (Dummy12)
                 {
@@ -880,7 +874,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 {
                     airBrake = false;
                 }
-            }
+            }*/
             ImGui::PopStyleColor(3);
             break;
         case LUA_TAB:

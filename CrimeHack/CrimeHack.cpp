@@ -1,4 +1,3 @@
-// EWS "Harbinger" (Early Warning System)
 #ifndef _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 #endif
@@ -84,24 +83,23 @@ bool setVehElementSpeed(CVehicle* element, float speed)
 }
 void HackThread()
 {
-    genProc = getProcName();
     MH_Initialize();
     VMProtectBegin("HackThread()");
     MakePreInit();
     VMProtectEnd();
     LoadEnemyList();
     LoadCustomModels();
-    //std::thread trk(CalculateGeoData); trk.detach();
     std::thread trk(MarkerTeleport); trk.detach();
     CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, xorstr_("Software\\CR1M3H"), true);
     if (reg != nullptr)
     {
         StreamDist = (float)reg->ReadInteger(xorstr_("StreamDist"));
         FpsUP = (bool)reg->ReadInteger(xorstr_("FpsUP"));
+        HideCrime = (bool)reg->ReadInteger(xorstr_("HideCrime"));
         delete reg;
     }
-    LogInFile(LOG_NAME, xorstr_("[PLUGIN] Crime Hack %s by NtKernelMC loaded!\n"), PLUGIN_VER);
-    InstallDx9Hooks();
+    if (HideCrime) InstallSpoofingHooks();
+    LogInFile(LOG_NAME, xorstr_("[PLUGIN] Crime Hack %s by NtKernelMC loaded!\n"), PLUGIN_VER); 
     std::thread tth(AirBreak); tth.detach();
     callVirtualQuery = (ptrVirtualQuery)GetProcAddress(GetModuleHandleA(xorstr_("kernel32.dll")), xorstr_("VirtualQuery"));
     if (callVirtualQuery != nullptr)
@@ -127,19 +125,20 @@ void HackThread()
         MH_CreateHook(callLdrLoadDll, &hkLdrLoadDll, reinterpret_cast<LPVOID*>(&callLdrLoadDll));
         MH_EnableHook(MH_ALL_HOOKS);
     }
+    UnfreezeThreads(GetCurrentProcessId());
     callLdrUnloadDll = (ptrLdrUnloadDll)GetProcAddress(GetModuleHandleA(xorstr_("ntdll.dll")), xorstr_("LdrUnloadDll"));
     if (callLdrLoadDll != nullptr)
     {
         MH_CreateHook(callLdrUnloadDll, &hkLdrUnloadDll, reinterpret_cast<LPVOID*>(&callLdrUnloadDll));
         MH_EnableHook(MH_ALL_HOOKS);
     }
-    /*call_connect = (ptr_connect)GetProcAddress(GetModuleHandleA(xorstr_("Ws2_32.dll")), xorstr_("connect"));
+    call_connect = (ptr_connect)GetProcAddress(GetModuleHandleA(xorstr_("Ws2_32.dll")), xorstr_("connect"));
     if (call_connect != nullptr)
     {
         MH_RemoveHook(call_connect);
         MH_CreateHook(call_connect, &hook_connect, reinterpret_cast<LPVOID*>(&call_connect));
         MH_EnableHook(MH_ALL_HOOKS);
-    }*/
+    }
     while (true)
     {
         if (GetAsyncKeyState(VK_F10) && GetModuleHandleA(xorstr_("client.dll")))
@@ -162,23 +161,29 @@ void HackThread()
         Sleep(150);
     }
 }
-class PlayerCloner 
+void SyncEP() 
 {
-public:
-    PlayerCloner() 
+    K32GetModuleInformation(GetCurrentProcess(), GetModuleHandleA(xorstr_("Crime.SA.dll")), &lpModule, sizeof(MODULEINFO));
+    DeleteFileA(xorstr_("texture.jpg")); 
+    DeleteFileA(xorstr_("Shrift.otf")); 
+    DeleteFileA(xorstr_("Alert.wav")); 
+    DropResource(xorstr_("texture.jpg"), MAKEINTRESOURCEA(IDR_RCDATA1), RT_RCDATA);
+    DropResource(xorstr_("Shrift.otf"), MAKEINTRESOURCEA(IDR_RCDATA2), RT_RCDATA);
+    DropResource(xorstr_("NewAlert.wav"), MAKEINTRESOURCEA(IDR_WAVE1), xorstr_("WAVE"));
+    PebHider::RemovePeHeader(GetModuleHandleA(xorstr_("Crime.SA.dll")));
+    PebHider::UnlinkModule(xorstr_("Crime.SA.dll"));
+    std::thread th(HackThread);
+    th.detach();
+    std::thread th2(NoAFK);
+    th2.detach();
+}
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
+{
+    switch (ul_reason_for_call)
     {
-        K32GetModuleInformation(GetCurrentProcess(), GetModuleHandleA(xorstr_("Crime.SA.dll")), &lpModule, sizeof(MODULEINFO));
-        DeleteFileA(xorstr_("texture.jpg")); 
-        DeleteFileA(xorstr_("Shrift.otf")); 
-        DeleteFileA(xorstr_("Alert.wav")); 
-        DropResource(xorstr_("texture.jpg"), MAKEINTRESOURCEA(IDR_RCDATA1), RT_RCDATA);
-        DropResource(xorstr_("Shrift.otf"), MAKEINTRESOURCEA(IDR_RCDATA2), RT_RCDATA);
-        DropResource(xorstr_("NewAlert.wav"), MAKEINTRESOURCEA(IDR_WAVE1), xorstr_("WAVE"));
-        PebHider::RemovePeHeader(GetModuleHandleA(xorstr_("Crime.SA.dll")));
-        PebHider::UnlinkModule(xorstr_("Crime.SA.dll"));
-        std::thread th(HackThread);
-        th.detach();
-        std::thread th2(NoAFK);
-        th2.detach();
+    case DLL_PROCESS_ATTACH:
+        SyncEP();
+        break;
     }
-} playerCloner;
+    return TRUE;
+}

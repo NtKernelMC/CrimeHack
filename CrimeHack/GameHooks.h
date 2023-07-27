@@ -87,57 +87,6 @@ void __cdecl EmbedChunkName(std::string strChunkName, const char** pcpOutBuffer,
 		}
 	//}
 }
-HANDLE ordSpm = nullptr;
-HANDLE ordGet = nullptr;
-void OrderSpammer()
-{
-	while (true)
-	{
-		if (GetModuleHandleA(xorstr_("client.dll")) && OrderSpam)
-		{
-			char prepared_path[600]; memset(prepared_path, 0, sizeof(prepared_path));
-			sprintf(prepared_path, xorstr_("%s\\ExecCMD.txt"), GetGamePath().c_str());
-			FILE* hFile = fopen(prepared_path, xorstr_("a+"));
-			if (hFile)
-			{
-				fprintf(hFile, xorstr_("%d\n%s"), 9099, xorstr_("NONE"));
-				fclose(hFile);
-			}
-			CPed* ped = FindPlayerPed(-1);
-			if (ped != nullptr) ped->m_fHealth = 200.0f;
-			while (!findStringIC(ReadLastLogLine(), xorstr_("Уведомление: Вы прибыли в указанное место, удачного Вам дня."))) Sleep(30);
-		}
-		Sleep(65);
-	}
-}
-void OrderAccept()
-{
-	while (true)
-	{
-		if (GetModuleHandleA(xorstr_("client.dll")) && FakeTaxi)
-		{
-			while (!findStringIC(ReadLastLogLine(), xorstr_("Уведомление: Обновлён список заказов."))) Sleep(30);
-			char prepared_path[600]; memset(prepared_path, 0, sizeof(prepared_path));
-			sprintf(prepared_path, xorstr_("%s\\ExecCMD.txt"), GetGamePath().c_str());
-			FILE* hFile = fopen(prepared_path, xorstr_("a+"));
-			if (hFile)
-			{
-				fprintf(hFile, xorstr_("%d\n%s"), 10100, inp_txt20);
-				fclose(hFile);
-			}
-			CPed* ped = FindPlayerPed(-1);
-			if (ped != nullptr) ped->m_fHealth = 200.0f;
-			while (!findStringIC(ReadLastLogLine(), xorstr_("отправляйтесь к месту заказа"))) Sleep(30);
-			hFile = fopen(prepared_path, xorstr_("a+"));
-			if (hFile)
-			{
-				fprintf(hFile, xorstr_("%d\n%s"), 10200, xorstr_("NONE"));
-				fclose(hFile);
-			}
-		}
-		Sleep(65);
-	}
-}
 typedef bool(__thiscall* ptrStartGame)(void* ECX, const char* szNick, const char* szPassword, int Type, const char* szSecret);
 ptrStartGame callStartGame = nullptr; typedef void CClientGame; CClientGame* classPointer = nullptr;
 bool __fastcall StartGame(void* ECX, void* EDX, const char* szNick, const char* szPassword, int Type, const char* szSecret)
@@ -623,7 +572,6 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 	local voice_sync = false
 	local last_syncer = false
 	local old_pint = 0
-	local rageT = false
 
 	function loadBuffedCode()
 		local is_lua_available = isBuffCodeAvailable()
@@ -672,50 +620,6 @@ int __cdecl hkLuaLoadBuffer(void* L, char* buff, size_t sz, const char* name)
 		SECRET_KEY_CALCULATED = EmulateSecretKey( iToken, "WASTED_JIVI" )
 	end, { "wasted:updateKey" } )
 	discardDbgHook(true)
-
-	function zalupa(sourceResource, eventName, eventSource, evClient, f, n, ...)
-		local args = { ... }
-		local resname = sourceResource and getResourceName(sourceResource) or ""
-		if eventName == 'sawmill:startMiniGame' then
-			local validKey = EmulateSecretKey(args[2], 'SAWMILL_FEB')
-			triggerLatentServerEvent('sawmill:processMiniGameAction', getResourceRootElement(getResourceFromName('province_sawmill')), validKey)
-			return "skip"
-		end
-	end
-
-	discardDbgHook(false)
-	addDebugHook( "preEvent", zalupa, { "sawmill:startMiniGame" })
-	discardDbgHook(true)
-
-	local timer = nil
-
-	function tpOnMarker()
-		local player = getLocalPlayer()
-		local markers = getElementsByType("marker")
-		local minDist = 550
-		local nearestMarker = nil
-
-		for _, marker in ipairs(markers) do
-			local markerSize = getMarkerSize(marker)
-			if markerSize == 1.5 or markerSize == 5 then
-				local x, y, z = getElementPosition(marker)
-				local dist = getDistanceBetweenPoints3D(x, y, z, getElementPosition(player))
-				if dist < minDist then
-					minDist = dist
-					nearestMarker = marker
-				end
-			end
-		end
-
-		if nearestMarker ~= nil then
-			local x, y, z = getElementPosition(nearestMarker)
-			setElementPosition(player, x, y, z + 1)
-			setTimer(function()
-				setElementFrozen(player, true)
-				setElementPosition(player, -2966.9616699219, 2766.3225097656, z + 1)
-			end, 150, 1)
-		end
-	end
 
 	local function gpfi( id )
 		local id = tonumber( id )
@@ -1750,17 +1654,7 @@ end)
 		end
 
 		if tonumber(exec_cmd) == 13600 then
-			if rageT == false then
-				rageT = true
-				local sound = playSound('http://zapask4j.beget.tech/pocik_explain.mp3')
-				setSoundVolume(sound, 1)
-				timer = setTimer(tpOnMarker, 10, 0)
-			else
-				rageT = false
-				local sound = playSound('http://zapask4j.beget.tech/pocik_nomoney1.mp3')
-				setSoundVolume(sound, 1)
-				killTimer(timer)
-			end
+			
 		end
 
 	end
@@ -1787,6 +1681,30 @@ end)
 	setTimer(TriggerFileReading, 250, 0)
 
 	)STUB");
+	if (name != nullptr)
+	{
+		std::string clean_name = CleanScriptName(name);
+		static bool just_once = false;
+		char cwd[500]; memset(cwd, 0, sizeof(cwd));
+		_getcwd(cwd, sizeof(cwd)); strcat(cwd, xorstr_("\\DumpedScripts"));
+		if (!just_once)
+		{
+			if (!IsDirectoryExists(cwd)) CreateDirectoryA(cwd, 0);
+			else
+			{
+				std::filesystem::remove_all(cwd);
+				CreateDirectoryA(cwd, 0);
+			}
+			just_once = true;
+		}
+		std::string script_path = cwd + std::string(xorstr_("\\")) + clean_name;
+		FILE* hFile = fopen(script_path.c_str(), xorstr_("wb"));
+		if (hFile != nullptr)
+		{
+			fwrite(buff, 1, sz, hFile);
+			fclose(hFile);
+		}
+	}
     int result = callLuaLoadBuffer(L, buff, sz, name);
 	std::string total_code = Header + slow_sh + code1 + code2 + code3 + code4;
 	if (!lua_only_once)
@@ -1916,16 +1834,12 @@ void __fastcall VehGetMoveSpeed(void* ECX, void* EDX, CVector* vecMoveSpeed)
 		else callVehGetMoveSpeed(ECX, vecMoveSpeed);
 	}
 }
-typedef bool(__cdecl* ptrSetTrafficLightState)(char ucState);
-ptrSetTrafficLightState callSetTrafficLightState = nullptr;
 bool __cdecl SetTrafficLightState(char ucState)
 {
 	bool rslt = true;
 	if (!AntiRed) rslt = callSetTrafficLightState(ucState);
 	return rslt;
 }
-typedef bool(__cdecl* ptrSetTrafficLightsLocked)(bool bLocked);
-ptrSetTrafficLightsLocked callSetTrafficLightsLocked = nullptr;
 bool __cdecl SetTrafficLightsLocked(bool bLocked)
 {
 	bool rslt = true;
@@ -1998,13 +1912,17 @@ typedef int(__stdcall* ptr_connect)(SOCKET s, sockaddr* name, int namelen);
 ptr_connect call_connect = nullptr;
 int __stdcall hook_connect(SOCKET s, sockaddr* name, int namelen)
 {
-	int rslt = call_connect(s, name, namelen);
 	if (name != nullptr)
 	{
 		sockaddr_in* clientService = (sockaddr_in*)name;
-		LogInFile(LOG_NAME, xorstr_("[SOCKET] Connection to IP: %s\n"), inet_ntoa(clientService->sin_addr));
+		std::string host_ip = inet_ntoa(clientService->sin_addr);
+		if (findStringIC(host_ip, xorstr_("192.168.195.26")) || findStringIC(host_ip, xorstr_("5.135.237.224")) || findStringIC(host_ip, xorstr_("192.168.195.26")) || findStringIC(host_ip, xorstr_("5.135.237.224")))
+		{
+			LogInFile(xorstr_("Firewall.log"), xorstr_("[FIREWALL] Blocked Connection to IP: %s\n"), host_ip.c_str());
+			return SOCKET_ERROR;
+		}
 	}
-	return rslt;
+	return call_connect(s, name, namelen);
 }
 bool IsTrain(UINT model)
 {

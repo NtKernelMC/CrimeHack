@@ -335,55 +335,6 @@ LSTATUS __stdcall hookRegOpenKeyExW(HKEY hKey, LPWSTR lpSubKey, DWORD ulOptions,
 		&& !w_findStringIC(lpSubKey, xorstr_(L"SOFTWARE\\Rockstar Games"))
 		&& !w_findStringIC(lpSubKey, xorstr_(L"Microsoft\\XboxLive")))
 	{
-		if (!wcscmp(lpSubKey, xorstr_(L"SYSTEM\\CurrentControlSet\\Control\\IDConfigDB\\Hardware Profiles\\0001")))
-		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			rgr = callRegOpenKeyExW(hKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"), ulOptions, samDesired, phkResult);
-			return rgr;
-		}
-		if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\MSLicensing\\HardwareID")))
-		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			rgr = callRegOpenKeyExW(hKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"), ulOptions, samDesired, phkResult);
-			return rgr;
-		}
-		if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\SQMClient")))
-		{
-			// Impostor here!
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			rgr = callRegOpenKeyExW(hKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"), ulOptions, samDesired, phkResult);
-			return rgr;
-		}
-		if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion")))
-		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			rgr = callRegOpenKeyExW(hKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"), ulOptions, samDesired, phkResult);
-			return rgr;
-		}
-		if (!wcscmp(lpSubKey, xorstr_(L"SYSTEM\\MountedDevices")))
-		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			rgr = callRegOpenKeyExW(hKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"), ulOptions, samDesired, phkResult);
-			return rgr;
-		}
-		if (!wcscmp(lpSubKey, xorstr_(L"SOFTWARE\\Microsoft\\Cryptography")))
-		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			rgr = callRegOpenKeyExW(hKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"), ulOptions, samDesired, phkResult);
-			return rgr;
-		}
-		if (!wcscmp(lpSubKey, xorstr_(L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0")))
-		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			rgr = callRegOpenKeyExW(hKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"), ulOptions, samDesired, phkResult);
-			return rgr;
-		}
-		if (!wcscmp(lpSubKey, xorstr_(L"HARDWARE\\DESCRIPTION\\System\\BIOS")))
-		{
-			LogInFile(LOG_NAME, xorstr_("Called retranslator on: %ls\n"), lpSubKey);
-			rgr = callRegOpenKeyExW(hKey, xorstr_(L"SOFTWARE\\WOW6432Node\\MicrosoftNode"), ulOptions, samDesired, phkResult);
-			return rgr;
-		}
 		rgr = callRegOpenKeyExW(hKey, lpSubKey, ulOptions, samDesired, phkResult);
 	}
 	else LogInFile(LOG_NAME, xorstr_("Ignored registry key: %ls\n"), lpSubKey);
@@ -441,13 +392,13 @@ void InstallSpoofingHooks()
 		MH_CreateHook(callRegOpenKeyExW, &hookRegOpenKeyExW, reinterpret_cast<LPVOID*>(&callRegOpenKeyExW));
 		MH_EnableHook(MH_ALL_HOOKS);
 	}
-	callGetAdaptersInfo = (ptrGetAdaptersInfo)GetProcAddress(LoadLibraryA(xorstr_("iphlpapi.dll")), xorstr_("GetAdaptersInfo"));
+	/*callGetAdaptersInfo = (ptrGetAdaptersInfo)GetProcAddress(LoadLibraryA(xorstr_("iphlpapi.dll")), xorstr_("GetAdaptersInfo"));
 	if (callGetAdaptersInfo != nullptr)
 	{
 		MH_RemoveHook(callGetAdaptersInfo);
 		MH_CreateHook(callGetAdaptersInfo, &hookGetAdaptersInfo, reinterpret_cast<LPVOID*>(&callGetAdaptersInfo));
 		MH_EnableHook(MH_ALL_HOOKS);
-	}
+	}*/
 	callProcess32First = (ptrProcess32First)GetProcAddress(LoadLibraryA(xorstr_("kernel32.dll")), xorstr_("Process32First"));
 	if (callProcess32First != nullptr)
 	{

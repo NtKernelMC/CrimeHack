@@ -15,9 +15,7 @@
 class TForm1 : public TForm
 {
 __published:	// IDE-managed Components
-	TComboBox *ComboBox1;
 	TButton *Button1;
-	TLabel *Label1;
 	TButton *Button2;
 	TImage *Image1;
 	TLabel *Label2;

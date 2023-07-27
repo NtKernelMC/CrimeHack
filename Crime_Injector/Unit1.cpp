@@ -60,6 +60,7 @@ __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner)
 		{
 			reg->WriteInteger("SettingsCreated", 0x300);
 			reg->WriteInteger("StreamDist", 250);
+			reg->WriteInteger("HideCrime", 1);
 		}
         std::string nothing = "";
 		reg->WriteString("InjectorMessage", nothing.c_str());
@@ -110,6 +111,7 @@ BOOL CALLBACK EnumWindowsProcMy(HWND hwnd,LPARAM lParam)
 	{
 		reg->WriteInteger("StreamDist", Form1->TrackBar1->Position);
 		reg->WriteInteger("FpsUP", (int)Form1->CheckBox1->Checked);
+        reg->WriteInteger("HideCrime", (int)Form1->CheckBox2->Checked);
 		delete reg;
     }
 	DWORD lpdwProcessId = 0x0; AnsiString selt(Form1->ComboBox1->Text);
@@ -162,7 +164,10 @@ void __fastcall TForm1::Button1Click(TObject *Sender)
 	{
 		if (!Form2->Showing) Form2->Show();
     }
-	else EnumWindows(EnumWindowsProcMy, 0);
+	else
+	{
+		EnumWindows(EnumWindowsProcMy, 0);
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ComboBox1DropDown(TObject *Sender)
