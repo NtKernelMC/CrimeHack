@@ -5,7 +5,7 @@
 #define HOOKPOS_PlayerCollision 0x0054BCEE
 #define AGENT_NAME xorstr_("CR1M3H")
 #define LOG_NAME xorstr_("CrimeHack.log")
-#define PLUGIN_VER xorstr_("V14.2 BETA")
+#define PLUGIN_VER xorstr_("V14.4 BETA")
 void EmulateKeyPress(WORD vk_key, bool press);
 #include <Windows.h>
 #include <stdio.h>
@@ -1857,11 +1857,13 @@ int __fastcall AC_Pulsator(void* ECX, void* EDX, char a2)
 	//callAC_Pulsator(ECX, a2);
 	return 1;
 }
-typedef void(__thiscall* ptrAC_Logger)(void* ECX, int a2, void* a3, int a4, int a5, void* a6);
+typedef void(__thiscall* ptrAC_Logger)(void* ECX, int ID, std::string* text, int size, int unk1, int unk2);
 ptrAC_Logger callAC_Logger = nullptr;
-void __fastcall AC_Logger(void* ECX, void* EDX, int a2, void* a3, int a4, int a5, void* a6)
+void __fastcall AC_Logger(void* ECX, void* EDX, int ID, std::string* text, int size, int unk1, int unk2)
 {
-	//LogInFile(LOG_NAME, xorstr_("[AC] Bypassed AC Logger!\n"));
+	if (text != nullptr && size > 0)
+	LogInFile(xorstr_("Logger.log"), xorstr_("[REPORT] ID: %d | Data: %s | Size: %d | unk1: 0x%X | unk2: 0x%X\n"),
+	ID, text->c_str(), size, unk1, unk2);
 	//callAC_Logger(ECX, a2, a3, a4, a5, a6);
 }
 typedef bool(__thiscall* ptrIsCustomFork)(void* ECX);
