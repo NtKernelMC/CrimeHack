@@ -89,7 +89,7 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to VehColHandler!\n"));
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for VehColHandler.\n"));
-        callCClientStreamer = (ptrCClientStreamer)scan.FindPattern("client.dll",
+        /*callCClientStreamer = (ptrCClientStreamer)scan.FindPattern("client.dll",
         xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x1C\x53\x56\x57\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF1\x89\x75\xF0\xF3"),
         xorstr_("xxxxxx????xxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxxx"));
         if (callCClientStreamer != nullptr)
@@ -98,7 +98,7 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             MH_CreateHook(callCClientStreamer, &CClientStreamer, reinterpret_cast<LPVOID*>(&callCClientStreamer));
             MH_EnableHook(MH_ALL_HOOKS);
         }
-        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for CClientStreamer.\n"));
+        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for CClientStreamer.\n"));*/
         callTakePlayerScreenShot = (ptrTakePlayerScreenShot)scan.FindPattern(xorstr_("client.dll"),
         xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x60\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x57\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x89"),
         xorstr_("xxxxxx????xxxxxxxxxxx????xxxxxxxxxxxxxxxxxx"));
@@ -298,20 +298,6 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to AddEventHandler!\n"));
         }
         else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for AddEventHandler.\n"));
-        if (isDeveloper)
-        {
-            callEmbedChunkName = (ptrEmbedChunkName)scan.FindPattern(xorstr_("client.dll"),
-            xorstr_("\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x74\xA1\x00\x00\x00\x00\x33\xC5\x89\x45\xF0\x56\x57\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\x75"),
-            xorstr_("xxxxxx????xxxxxxxxxxx????xxxxxxxxxxxxxxxxxxx")); // 1.5.9
-            if (callEmbedChunkName != nullptr)
-            {
-                MH_RemoveHook(callEmbedChunkName);
-                MH_CreateHook(callEmbedChunkName, &EmbedChunkName, reinterpret_cast<LPVOID*>(&callEmbedChunkName));
-                MH_EnableHook(MH_ALL_HOOKS);
-                LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to EmbedChunkName!\n"));
-            }
-            else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a signature for EmbedChunkName.\n"));
-        }
         if (callEchoConsole == nullptr)
         {
             callEchoConsole = (ptrEchoConsole)scan.FindPattern("core.dll",
@@ -320,7 +306,6 @@ NTSTATUS __stdcall hkLdrLoadDll(PWCHAR PathToFile, ULONG Flags, PUNICODE_STRING 
             if (callEchoConsole != nullptr) LogInFile(LOG_NAME, xorstr_("[PLUGIN] Found address from signature to EchoConsole!\n"));
             else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig to EchoConsole.\n"));
         }
-        else LogInFile(LOG_NAME, xorstr_("[ERROR] Can`t find a sig to SetElementHealth.\n"));
         AllowTuning2 = false;
     }
     if (w_findStringIC(wstrModuleFileName, xorstr_(L"client.dll")) && !AllowTuning) AllowTuning = true;

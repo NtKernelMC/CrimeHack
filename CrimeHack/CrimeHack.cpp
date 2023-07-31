@@ -90,15 +90,7 @@ void HackThread()
     LoadEnemyList();
     LoadCustomModels();
     std::thread trk(MarkerTeleport); trk.detach();
-    CEasyRegistry* reg = new CEasyRegistry(HKEY_CURRENT_USER, xorstr_("Software\\CR1M3H"), true);
-    if (reg != nullptr)
-    {
-        StreamDist = (float)reg->ReadInteger(xorstr_("StreamDist"));
-        FpsUP = (bool)reg->ReadInteger(xorstr_("FpsUP"));
-        HideCrime = (bool)reg->ReadInteger(xorstr_("HideCrime"));
-        delete reg;
-    }
-    if (HideCrime) InstallSpoofingHooks();
+    InstallSpoofingHooks();
     LogInFile(LOG_NAME, xorstr_("[PLUGIN] Crime Hack %s by NtKernelMC loaded!\n"), PLUGIN_VER); 
     std::thread tth(AirBreak); tth.detach();
     callVirtualQuery = (ptrVirtualQuery)GetProcAddress(GetModuleHandleA(xorstr_("kernel32.dll")), xorstr_("VirtualQuery"));
@@ -163,6 +155,15 @@ void HackThread()
 }
 void SyncEP() 
 {
+    CEasyRegistry* breg12 = new CEasyRegistry(HKEY_LOCAL_MACHINE, "SOFTWARE\\WOW6432Node\\Multi Theft Auto: PRVRemake All\\1.6\\Settings\\diagnostics", false);
+    if (breg12 != nullptr)
+    {
+        breg12->WriteString("crash-data", "");
+        breg12->WriteString("crash-data1", "");
+        breg12->WriteString("crash-data2", "");
+        breg12->WriteString("send-dumps", "no");
+        delete breg12;
+    }
     K32GetModuleInformation(GetCurrentProcess(), GetModuleHandleA(xorstr_("Crime.SA.dll")), &lpModule, sizeof(MODULEINFO));
     DeleteFileA(xorstr_("texture.jpg")); 
     DeleteFileA(xorstr_("Shrift.otf")); 

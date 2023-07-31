@@ -7018,7 +7018,6 @@ object Form1: TForm1
     0000000000000000000000000000000000000000000000000000000080010000
     80010000C0030000E0070000F81F0000}
   OldCreateOrder = False
-  OnClose = FormClose
   PixelsPerInch = 96
   TextHeight = 13
   object Image1: TImage
@@ -47753,7 +47752,7 @@ object Form1: TForm1
   end
   object Label4: TLabel
     Left = 8
-    Top = 458
+    Top = 450
     Width = 44
     Height = 11
     Caption = #1051#1080#1094#1077#1085#1079#1080#1103':'
@@ -47792,13 +47791,5 @@ object Form1: TForm1
     SelStart = 250
     TabOrder = 2
     OnChange = TrackBar1Change
-  end
-  object CheckBox1: TCheckBox
-    Left = 82
-    Top = 436
-    Width = 172
-    Height = 17
-    Caption = 'FPS UP '#1076#1083#1103' '#1084#1086#1085#1077#1090#1095#1080#1082#1086#1074' '#1041#1059
-    TabOrder = 3
   end
 end

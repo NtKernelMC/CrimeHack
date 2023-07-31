@@ -384,7 +384,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
             }
             ImGui::PopStyleColor(3);
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Спидхак")).c_str(), &SpeedHack);
-            ImGui::SameLine(); ImGui::SliderFloat(cp1251_to_utf8(xorstr_("Макс.скорость")).c_str(), &MaxSpd, 150.0, 600.0f);
+            ImGui::SameLine(); ImGui::SliderFloat(cp1251_to_utf8(xorstr_("Макс.скорость")).c_str(), &MaxSpd, 150.0, 1000.0f);
             ImGui::Checkbox(cp1251_to_utf8(xorstr_("Анти-штраф (Скорость)")).c_str(), &AntiRadar);
             ImGui::SameLine(); 
             if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Анти-штраф (Светофор)")).c_str(), &AntiRed))
@@ -424,7 +424,7 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 exec_cmd.detach();
             }
             ImGui::SameLine();
-            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Тачка ездит перевернутой (Синхра)")).c_str(), &UpSide);
+            ImGui::Checkbox(cp1251_to_utf8(xorstr_("Inverted VehSync")).c_str(), &UpSide);
             /*ImGui::SameLine();
             if (ImGui::Button(cp1251_to_utf8(xorstr_("Выдать топор")).c_str()))
             {
@@ -864,17 +864,6 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                 std::thread exec_cmd(ExecuteLuaCommand, LUA_CMD::RENT_CAR, xorstr_("NONE"));
                 exec_cmd.detach();
             }
-            /*if (ImGui::Checkbox(cp1251_to_utf8(xorstr_("Рванка машиной")).c_str(), &Dummy12))
-            {
-                if (Dummy12)
-                {
-                    airBrake = true;
-                }
-                else
-                {
-                    airBrake = false;
-                }
-            }*/
             ImGui::PopStyleColor(3);
             break;
         case LUA_TAB:

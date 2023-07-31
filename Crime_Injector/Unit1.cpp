@@ -110,8 +110,8 @@ BOOL CALLBACK EnumWindowsProcMy(HWND hwnd,LPARAM lParam)
 	if (reg != nullptr)
 	{
 		reg->WriteInteger("StreamDist", Form1->TrackBar1->Position);
-		reg->WriteInteger("FpsUP", (int)Form1->CheckBox1->Checked);
-        reg->WriteInteger("HideCrime", (int)Form1->CheckBox2->Checked);
+		reg->WriteInteger("FpsUP", 0x0);
+		reg->WriteInteger("HideCrime", 0x1);
 		delete reg;
     }
 	DWORD lpdwProcessId = 0x0; AnsiString selt(Form1->ComboBox1->Text);
@@ -170,39 +170,9 @@ void __fastcall TForm1::Button1Click(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::ComboBox1DropDown(TObject *Sender)
-{
-	Form1->ComboBox1->Items->Clear();
-    auto snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	auto pe = PROCESSENTRY32{ sizeof(PROCESSENTRY32) };
-	if (Process32First(snapshot, &pe))
-	{
-		do
-		{
-			if (strstr(pe.szExeFile, "proxy_sa.exe") != nullptr ||
-			strstr(pe.szExeFile, "gta_sa.exe") != nullptr)
-			{
-				char tmpProc[256]; sprintf(tmpProc,
-				"PID %d ; %s", pe.th32ProcessID, pe.szExeFile);
-				Form1->ComboBox1->Items->Add(tmpProc);
-			}
-		} while (Process32Next(snapshot, &pe));
-	}
-	CloseHandle(snapshot);
-}
-//---------------------------------------------------------------------------
 void __fastcall TForm1::Button2Click(TObject *Sender)
 {
 	ShellExecuteA(0, 0, "https://vk.com/provhacks", 0, 0 , SW_SHOW );
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::FormClose(TObject *Sender, TCloseAction &Action)
-{
-    if (!Form1->ComboBox1->Text.IsEmpty())
-	{
-		int mkey = MessageBoxW(0, L"Вы уверены что хотите закрыть чит?\nЗакрытие во время игры вызвит её зависание!", L"WARNING", MB_ICONASTERISK | MB_YESNO);
-	    if (mkey == IDNO) Action = caNone;
-	}
 }
 //---------------------------------------------------------------------------
 

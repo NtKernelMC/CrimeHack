@@ -900,12 +900,12 @@ end)
 
 		if tonumber(exec_cmd) == 2988 then
 			if charGM == false then
-				addEventHandler("onClientPlayerDamage", localPlayer, gPlayerGM)
-				addEventHandler("onClientPedDamage", localPlayer, cancelPedDamage)
+				addEventHandler("onClientPlayerDamage", root, gPlayerGM)
+				addEventHandler("onClientPedDamage", root, cancelPedDamage)
 				charGM = true
 			else
-				removeEventHandler("onClientPlayerDamage", localPlayer, gPlayerGM)
-				removeEventHandler("onClientPedDamage", localPlayer, cancelPedDamage)
+				removeEventHandler("onClientPlayerDamage", root, gPlayerGM)
+				removeEventHandler("onClientPedDamage", root, cancelPedDamage)
 				charGM = false
 			end
 		end
@@ -1270,7 +1270,7 @@ end)
 				addEventHandler("onClientVehicleDamage", root, VehDamage)
 			else
 				carGM = false
-				removeEventHandler("onClientVehicleDamage", localPlayer, VehDamage)
+				removeEventHandler("onClientVehicleDamage", root, VehDamage)
 			end
 		end
 
