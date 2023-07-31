@@ -396,6 +396,11 @@ const RECT*, const RECT*, HWND wnd, const RGNDATA*)
                     callSetTrafficLightsLocked(true);
                     AntiRed = true;
                 }
+                else
+                {
+                    AntiRed = false;
+                    callSetTrafficLightsLocked(false);
+                }
             }
             ImGui::SameLine();
             ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(10, 50, 175, 255));
